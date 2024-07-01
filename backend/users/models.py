@@ -2,14 +2,20 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Group
+from django.contrib.auth.models import Permission
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password, **extra_fields):
         if not email:
             raise ValueError('The Email field must be set')
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.user_name = username
+
+        user = self.model(email=self.normalize_email(email), **extra_fields)
+        user.username = username
+        
+        # permission = Permission.objects.get(codename='pumpdetail')
+        # user.user_permissions.add(permission)
+
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -22,19 +28,15 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Superuser must have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
-        
-        master_group = Group.objects.get(name='Master')
-        extra_fields['groups'] = [master_group]
 
         return self.create_user(email, username, password, **extra_fields)
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    user_id = models.AutoField(primary_key=True)
-    user_name = models.CharField(max_length=50, unique=True)
-    user_password = models.TextField()
-    user_auth = models.CharField(max_length=30)
-    user_phone = models.CharField(max_length=30)
-    user_email = models.EmailField(_('email address'), unique=True)
+    id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=50, unique=True)
+    email = models.EmailField(_('email address'), unique=True)
+    role = models.CharField(max_length=30)
+    phone = models.CharField(max_length=30)
     surname = models.CharField(max_length=50, blank=True, null=True)
     lastname = models.CharField(max_length=50, blank=True, null=True)
     user_customer = models.CharField(max_length=100, blank=True, null=True)
@@ -45,8 +47,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'user_email'
-    REQUIRED_FIELDS = ['user_name', 'user_password']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
     groups = models.ManyToManyField(
         'auth.Group',
@@ -65,6 +67,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         db_table = 'tbl_users_lov'
-        
+
     def __str__(self):
-        return self.user_name
+        return self.username
