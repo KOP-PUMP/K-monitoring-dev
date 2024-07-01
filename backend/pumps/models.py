@@ -1,7 +1,13 @@
 from django.db import models
+from django.utils import timezone
+
+from users.models import CustomUser
+
 
 class EngineeringDetail(models.Model):
     """Details of pump those engineer need to check."""
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+
     doc_id = models.AutoField(primary_key=True)
     doc_customer = models.CharField(max_length=50, blank=True, null=True)
     doc_number = models.CharField(max_length=50, blank=True, null=True)
@@ -189,6 +195,11 @@ class EngineeringDetail(models.Model):
     bearing_status = models.TextField(blank=True, null=True)
     bearing_temp_status = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(blank=True, null=True)
+    
+
+    def save(self, *args, **kwargs):
+        self.timestamp = timezone.now()
+        return super(PumpDetail, self).save(*args, **kwargs)
 
     class Meta:
         db_table = 'tbl_engineering_check'
@@ -198,6 +209,8 @@ class PumpDetail(models.Model):
     """
     General details of pump.
     """
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+
     pump_id = models.AutoField(primary_key=True)
     doc_customer = models.TextField()
     doc_no = models.TextField()
@@ -373,7 +386,7 @@ class PumpDetail(models.Model):
     mech_material = models.TextField(blank=True, null=True)
     concentration = models.IntegerField(blank=True, null=True)
     pump_status = models.TextField()
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'tbl_pump_detail'
