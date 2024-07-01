@@ -1,17 +1,15 @@
-from ninja_extra import permissions
+from django.http import HttpRequest
+from ninja_extra import ControllerBase, permissions
 
-class CanAddPumpDetail(permissions.BasePermission):
-    def has_permission(self, request, controller):
-        return request.user.has_perm('pump.add_pumpdetail')
 
-class CanViewPumpDetail(permissions.BasePermission):
-    def has_permission(self, request, controller):
-        return request.user.has_perm('pump.view_pumpdetail')
+class CanManagePump(permissions.BasePermission):
+    def has_permission(self, request: HttpRequest, controller: ControllerBase) -> bool:
+        return request.user.has_perm("pumps.manage_pump")
 
-class CanChangePumpDetail(permissions.BasePermission):
-    def has_permission(self, request, controller):
-        return request.user.has_perm('pump.change_pumpdetail')
+class CanViewPump(permissions.BasePermission):
+    def has_permission(self, request: HttpRequest, controller: ControllerBase) -> bool:
+        return request.user.has_perm("pumps.view_pumpdetail")
 
-class CanDeletePumpDetail(permissions.BasePermission):
-    def has_permission(self, request, controller):
-        return request.user.has_perm('pump.delete_pumpdetail')
+class CanManageEngineering(permissions.BasePermission):
+    def has_permission(self, request: HttpRequest, controller: ControllerBase) -> bool:
+        return request.user.has_perm("pumps.manage_engineering")

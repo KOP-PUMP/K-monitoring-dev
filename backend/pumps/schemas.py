@@ -1,3 +1,4 @@
+from datetime import datetime
 from ninja import Schema
 from ninja.orm import create_schema
 
@@ -133,7 +134,7 @@ class PumpDetailIn(Schema):
     rotation_de: str
     bearing_de: str = None
     bearing_de_no: str = None
-    bearing_last_chg_dt: str = None
+    bearing_last_chg_dt: datetime = None
     sleeve_mat_id: int = None
     sleeve_mat: str = None
     bearing_housing_mat_id: int = None
@@ -181,7 +182,6 @@ class PumpDetailIn(Schema):
     mech_material: str = None
     concentration: int = None
     pump_status: str
-    timestamp: str
 
 class PumpDetailOut(Schema):
     pump_id: int
@@ -311,7 +311,7 @@ class PumpDetailOut(Schema):
     rotation_de: str
     bearing_de: str = None
     bearing_de_no: str = None
-    bearing_last_chg_dt: str = None
+    bearing_last_chg_dt: datetime = None
     sleeve_mat_id: int = None
     sleeve_mat: str = None
     bearing_housing_mat_id: int = None
@@ -359,4 +359,3 @@ class PumpDetailOut(Schema):
     mech_material: str = None
     concentration: int = None
     pump_status: str
-    timestamp: str
