@@ -138,3 +138,10 @@ AUTH_USER_MODEL = 'users.CustomUser'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
 ]
+
+from datetime import timedelta
+
+NINJA_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
