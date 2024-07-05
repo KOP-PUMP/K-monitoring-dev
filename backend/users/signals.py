@@ -6,5 +6,9 @@ from users.models import CustomUser
 @receiver(post_save, sender=CustomUser)
 def add_user_to_group(sender, instance, created, **kwargs):
     if created:
-        customer_group = Group.objects.get(name='Customer')
-        instance.groups.add(customer_group)
+        try:
+            customer_group = Group.objects.get(name='Customer')
+        except:
+            pass
+        if not instance.is_superuser:
+            instance.groups.add(customer_group)
