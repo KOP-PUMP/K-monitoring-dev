@@ -1,26 +1,32 @@
+import logging
+
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 
+logger = logging.getLogger(__name__)
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, username, password, **extra_fields):
+    def create_user(self, email: str, username: str, password: str, **extra_fields) -> 'CustomUser':
         if not email:
             raise ValueError('The Email field must be set')
 
-        user = self.model(email=self.normalize_email(email), **extra_fields)
-        user.username = username
+        email = self.normalize_email(email)
+        user = self.model(email=email, username=username, **extra_fields)
         
-        # permission = Permission.objects.get(codename='pumpdetail')
-        # user.user_permissions.add(permission)
+        try:
+            user.set_password(password)
+            user.save(using=self._db)
+            logger.info(f'User {username} created successfully.')
+            return user
+        except Exception as e:
+            logger.error(f'Error creating user {username}: {e}')
+            raise ValidationError(f'Error creating user: {e}')
 
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, username, password, **extra_fields):
+    def create_superuser(self, email: str, username: str, password: str, **extra_fields) -> 'CustomUser':
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -31,17 +37,11 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, username, password, **extra_fields)
 
+
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(_('email address'), unique=True)
-    role = models.CharField(max_length=30)
-    phone = models.CharField(max_length=30)
-    surname = models.CharField(max_length=50, blank=True, null=True)
-    lastname = models.CharField(max_length=50, blank=True, null=True)
-    user_customer = models.CharField(max_length=100, blank=True, null=True)
-    user_address = models.CharField(max_length=50, blank=True, null=True)
-    user_image = models.CharField(max_length=10, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     
@@ -70,3 +70,26 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+    class Meta:
+        db_table = 'tbl_users_lov'
+
+    def __str__(self):
+        return self.username
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=30)
+    phone = models.CharField(max_length=30)
+    surname = models.CharField(max_length=50, blank=True, null=True)
+    lastname = models.CharField(max_length=50, blank=True, null=True)
+    user_customer = models.CharField(max_length=100, blank=True, null=True)
+    user_address = models.CharField(max_length=50, blank=True, null=True)
+    user_image = models.CharField(max_length=10, blank=True, null=True)
+
+    class Meta:
+        db_table = 'tbl_user_profiles'
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
