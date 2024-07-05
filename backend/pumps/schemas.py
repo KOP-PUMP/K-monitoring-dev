@@ -4,7 +4,7 @@ from ninja.orm import create_schema
 
 from pumps.models import EngineeringDetail
 
-EngineeringDetailIn = create_schema(model=EngineeringDetail, exclude=['doc_id'])
+EngineeringDetailIn = create_schema(model=EngineeringDetail)
 EngineeringDetailOut = create_schema(model=EngineeringDetail)
 
 class PumpDetailIn(Schema):
