@@ -309,7 +309,7 @@ class PumpDetail(models.Model):
 
     pump_id = models.AutoField(primary_key=True)
     doc_customer = models.TextField()
-    doc_no = models.TextField()
+    doc_no = models.TextField() # three character of doc_customer + two character of brand + running_number (think on the case that might be duplicate)
     doc_date = models.TextField()
     brand = models.TextField()
     model = models.TextField()
@@ -363,7 +363,7 @@ class PumpDetail(models.Model):
     hyd_power_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='hyd_power_units')
     voltage = models.TextField()
     voltage_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='voltage_units')
-    power_required_cal = models.TextField()
+    power_required_cal = models.FloatField() # Change to Float
     power_required_cal_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='power_required_cal_units')
     power_min_flow = models.IntegerField()
     power_min_flow_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='power_min_flow_units')
@@ -483,6 +483,53 @@ class PumpDetail(models.Model):
     concentration = models.IntegerField(blank=True, null=True)
     pump_status = models.TextField()
     timestamp = models.DateTimeField(auto_now=True)
+
+    # TODO: These are variable that need to be calculated
+    # max_flow : Derived from curve at 30 % BEP in case no curve can be input
+    # min_flow : Derived from curve at 110 % BEP
+    # min_head : Derived from curve at 30 % BEP
+    # max_head : Derived from curve at 110 % BEP
+    # suction_velo : Derived from tbl_pump_detail.design_flow/ (π*900*tbl_pump_detail.suction_pipe_id*tbl_pump_detail.suction_pipe_id in meter)
+    # discharge_velo : Derived from tbl_pump_detail.design_flow/ (π*900*tbl_pump_detail.discharge_pipe_id*tbl_pump_detail.discharge_pipe_id in meter)
+    # bep_head : Derived from curve at BEP
+    # bep_flow : Derived from curve at BEP
+    # npshr : Derived from curve at  tbl_pump_detail.design_flow
+    # pump_efficiency : Derived from curve at  tbl_pump_detail.design_flow
+    # hyd_power : Derived from tbl_pump_detail.design_flow in m³/h * tbl_pump_detail.design_head in meter *tbl_pump_detail.density in sg *9.81/3600 the result will be in kW
+    # DONE: power_required_cal : Derived from tbl_pump_detail.hyd_power/tbl_pump_detail.pump_efficiency in decimal of percentage
+    # DONE: power_min_flow : Derived from tbl_pump_detail.min_flow_unit in m³/h*tbl_pump_detail.min_head in meter *tbl_pump_detail.density in sg *9.81/3600*tbl_pump_detail.pump_efficiency in decimal of percentage the result will be in kW
+    # power_max_flow : Derived from tbl_pump_detail.max_flow in m³/h * tbl_pump_detail.max_head in meter *tbl_pump_detail.density in sg *9.81/3600*tbl_pump_detail.pump_efficiency in decimal of percentage the result will be in kW
+    # power_bep_flow : Derived from tbl_pump_detail.bep_flow in m³/h *tbl_pump_detail.bep_head in meter *tbl_pump_detail.density in sg *9.81/3600*tbl_pump_detail.pump_efficiency in decimal of percentage the result will be in kW
+    # DONE: suggest_motor : Derived from tbl_pump_detail.power_required_cal *1.15 and selected the upper motor size from tbl_k_monitoring_lov.field_value where tbl_k_monitoring_lov.field_id = "tbl_pump_detail_suggest_motor_range"
+    # doc_number_engineer : "Derived from the latest tbl_engineering_check.doc_number_engineer + 1/year where tbl_engineering_check.doc_no = tbl_pump_detail.doc_no"
+    # suction_fluid_velo : Derived from tbl_engineering_check.flow_ope/ (π*900*tbl_pump_detail.suction_pipe_id*tbl_pump_detail.suction_pipe_id in meter)
+    # discharge_fluid_velo : Derived from tbl_engineering_check.flow_ope/ (π*900*tbl_pump_detail.discharge_pipe_id*tbl_pump_detail.discharge_pipe_id in meter)
+
+
+    def calculate_power_required_cal(self):
+        # Derived from tbl_pump_detail.hyd_power/tbl_pump_detail.pump_efficiency in decimal of percentage
+        self.power_required_cal = self.hyd_power / (self.pump_efficiency / 100)
+
+    def calculate_power_min_flow(self):
+        # Derived from tbl_pump_detail.min_flow_unit in m³/h*tbl_pump_detail.min_head in meter *tbl_pump_detail.density in sg *9.81/3600*tbl_pump_detail.pump_efficiency 
+        # in decimal of percentage the result will be in kW
+        # TODO: Check if the formula is correct
+        self.power_min_flow = self.min_flow * self.min_head * self.density * 9.81 / 3600 * self.pump_efficiency
+
+    def calculate_suggest_motor(self):
+        # Derived from tbl_pump_detail.power_required_cal *1.15 and selected the upper motor size from 
+        # tbl_k_monitoring_lov.field_value where tbl_k_monitoring_lov.field_id = "tbl_pump_detail_suggest_motor_range"
+        power_required = self.power_required_cal * 1.15
+        motor_size = UnitList.objects.filter(field_id='tbl_pump_detail_suggest_motor_range').filter(field_value__gte=power_required).first()
+        if motor_size:
+            self.suggest_motor = motor_size.field_value
+        else:
+            self.suggest_motor = 11
+
+    def save(self, *args, **kwargs):
+        self.calculate_power_required_cal()
+        self.calculate_suggest_motor()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'tbl_pump_detail'
