@@ -309,7 +309,6 @@ class PumpImpellerDetails(Schema):
     design_impeller_dia: float
     impeller_max: float = None
 
-
 class DropDownData(ImpellerListSchema, MechSealApiPlanListSchema, BearingListSchema, CasingMaterialListSchema,
                    FlangRatingListSchema, UnitListSchema, MechanicalDesignListSchema, PumpDetailListSchema,
                    MotorDetailListSchema, SuctionPipeInfoListSchema, PumpStandardListSchema, SuctionDischargeDetailListSchema,
