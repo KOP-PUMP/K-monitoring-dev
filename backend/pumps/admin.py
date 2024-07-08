@@ -23,7 +23,7 @@ from .models import (
 
 class PumpDetailAdmin(admin.ModelAdmin):
     list_display = ('pump_id', 'user', 'brand', 'model', 'serial_no', 'location', 'timestamp')
-    fields = ('user', 'doc_customer', 'doc_no', 'doc_date', 'brand', 'model', 'tag_no', 'pump_type_id', 
+    fields = ('user', 'doc_customer', 'doc_date', 'brand', 'model', 'tag_no', 'pump_type_id', 
               'serial_no', 'media', 'stage', 'location', 'design_temp', 'max_temp', 'solid_type', 
               'solid_diameter', 'density', 'density_unit', 'viscosity', 'viscosity_unit', 'max_flow', 
               'max_flow_unit', 'min_flow', 'min_flow_unit', 'vapor_pressure', 'vapor_pressure_unit', 
@@ -59,7 +59,6 @@ class PumpDetailAdmin(admin.ModelAdmin):
     # exclude = ('motor_drive', 'pump_standard', 'mech_api_plan', 'pump_discharge_size', 'pump_discharge_rating', 
     #            'rotation_de', 'motor_standard', 'pump_suction_size', 'pump_type_name', 'impeller_type', 
     #            'pump_suction_rating', 'motor_ie')
-
 
 @admin.register(ImpellerList)
 class ImpellerListAdmin(admin.ModelAdmin):
