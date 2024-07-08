@@ -6,8 +6,8 @@ from django.db.models import Max
 from users.models import CustomUser
 
 class ImpellerList(models.Model):
-    lmpeller_type_id = models.AutoField(primary_key=True)
-    lmpeller_type_name = models.TextField()
+    impeller_type_id = models.AutoField(primary_key=True)
+    impeller_type_name = models.TextField()
 
     def __str__(self):
         return self.lmpeller_type_name

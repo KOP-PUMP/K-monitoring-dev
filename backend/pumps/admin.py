@@ -62,8 +62,8 @@ class PumpDetailAdmin(admin.ModelAdmin):
 
 @admin.register(ImpellerList)
 class ImpellerListAdmin(admin.ModelAdmin):
-    list_display = ('lmpeller_type_id', 'lmpeller_type_name')
-    search_fields = ('lmpeller_type_name',)
+    list_display = ('impeller_type_id', 'impeller_type_name')
+    search_fields = ('impeller_type_name',)
 
 @admin.register(MechSealApiPlanList)
 class MechSealApiPlanListAdmin(admin.ModelAdmin):
