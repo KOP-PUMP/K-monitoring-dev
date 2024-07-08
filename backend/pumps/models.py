@@ -1,5 +1,7 @@
+import re
 from django.db import models
 from django.utils import timezone
+from django.db.models import Max
 
 from users.models import CustomUser
 
@@ -7,6 +9,8 @@ class ImpellerList(models.Model):
     lmpeller_type_id = models.AutoField(primary_key=True)
     lmpeller_type_name = models.TextField()
 
+    def __str__(self):
+        return self.lmpeller_type_name
     class Meta:
         db_table = 'tbl_impeller_type_lov'
 
@@ -14,12 +18,18 @@ class MechSealApiPlanList(models.Model):
     mech_api_id = models.AutoField(primary_key=True)
     mech_api_plan = models.CharField(max_length=25)
 
+    def __str__(self) -> str:
+        return self.mech_api_plan
+
     class Meta:
         db_table = 'tbl_api_lov'
 
 class BearingList(models.Model):
     rotation_de_id = models.AutoField(primary_key=True)
     rotation = models.TextField()
+
+    def __str__(self) -> str:
+        return self.rotation
 
     class Meta:
         db_table = 'tbl_bearing_lov'
@@ -29,6 +39,9 @@ class CasingMaterialList(models.Model):
     mat_cover_name = models.TextField()
     mat_cover_type = models.TextField()
 
+    def __str__(self) -> str:
+        return self.mat_cover_name
+
     class Meta:
         db_table = 'tbl_cover_mat_lov'
 
@@ -36,15 +49,41 @@ class FlangRatingList(models.Model):
     flang_rating_id = models.AutoField(primary_key=True) # pump_suction_rating_id / discharge_rating_id
     flang_rating_name = models.TextField() # pump_suction_rating / discharge_rating
 
+    def __str__(self) -> str:
+        return self.flang_rating_name
+
     class Meta:
         db_table = 'tbl_flang_rating_lov'
 
 
 class UnitList(models.Model):
     """Store unit of measurement."""
+    # CATEGORY_CHOICES = [
+    #     ('density', 'Density'),
+    #     ('viscosity', 'Viscosity'),
+    #     ('flow', 'Flow'),
+    #     ('pressure', 'Pressure'),
+    #     ('speed', 'Speed'),
+    #     ('head', 'Head'),
+    #     ('npsh', 'NPSH'),
+    #     ('power', 'Power'),
+    #     ('voltage', 'Voltage'),
+    #     ('efficiency', 'Efficiency'),
+    #     ('size', 'Size'),
+    #     ('current', 'Current'),
+    #     ('vibration', 'Vibration'),
+    #     ('acceleration', 'Acceleration'),
+    #     ('temperature', 'Temperature'),
+    #     ('velocity', 'Velocity'),
+    #     ('other', 'Other'),
+    # ]
     k_lov_id = models.AutoField(primary_key=True)
     field_id = models.CharField(max_length=50)
     field_value = models.CharField(max_length=50)
+    # category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+
+    def __str__(self) -> str:
+        return f"{self.field_id} | {self.field_value}"
 
     class Meta:
         db_table = 'tbl_k_monitoring_lov'
@@ -52,6 +91,9 @@ class UnitList(models.Model):
 class MechanicalDesignList(models.Model):
     mech_design_id = models.AutoField(primary_key=True)
     mech_design_name = models.TextField()
+
+    def __str__(self) -> str:
+        return self.mech_design_name
 
     class Meta:
         db_table = 'tbl_mech_design_lov'
@@ -61,6 +103,9 @@ class PumpDetailList(models.Model):
     pump_design = models.TextField() # pump_design
     pump_type = models.TextField() # pump_type_name
 
+    def __str__(self) -> str:
+        return self.pump_type
+
     class Meta:
         db_table = 'tbl_pump_detail_lov'
 
@@ -69,6 +114,9 @@ class MotorDetailList(models.Model):
     drive_system = models.CharField(max_length=30, blank=True, null=True)
     ie_class = models.CharField(max_length=30, blank=True, null=True)
     standard = models.CharField(max_length=30, blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.drive_system} | {self.ie_class} | {self.standard}" 
 
     class Meta:
         db_table = 'tbl_motor_detail_lov'
@@ -109,6 +157,9 @@ class PumpStandardList(models.Model):
     pump_standard_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
 
+    def __str__(self) -> str:
+        return self.name
+
     class Meta:
         db_table = 'tbl_pump_standard_lov'
 
@@ -118,6 +169,9 @@ class SuctionDischargeDetailList(models.Model):
     # flang_sch_name = models.TextField(db_column='flang_SCH_name')  # Field name made lowercase.
     id = models.AutoField(primary_key=True)
     suction_discharge_value = models.TextField()
+
+    def __str__(self) -> str:
+        return self.suction_discharge_value
 
     class Meta:
         db_table = 'tbl_suction_discharge_lov'
@@ -131,7 +185,7 @@ class PumpDetail(models.Model):
 
     pump_id = models.AutoField(primary_key=True)
     doc_customer = models.TextField()
-    doc_no = models.TextField() # three character of doc_customer + two character of brand + running_number (think on the case that might be duplicate)
+    doc_no = models.TextField(unique=True, max_length=500) # three character of doc_customer + two character of brand + running_number (think on the case that might be duplicate)
     doc_date = models.TextField()
     brand = models.TextField()
     model = models.TextField()
@@ -269,7 +323,7 @@ class PumpDetail(models.Model):
     base_plate = models.TextField(blank=True, null=True)
     coup_model = models.TextField(blank=True, null=True)
     coup_brand = models.TextField(blank=True, null=True)
-    coup_type = models.TextField()
+    coup_type = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='coup_type')
     coup_size = models.TextField(blank=True, null=True)
     coup_spacer = models.IntegerField(blank=True, null=True)
     motor_brand = models.TextField(blank=True, null=True)
@@ -327,10 +381,27 @@ class PumpDetail(models.Model):
     # suction_fluid_velo : Derived from tbl_engineering_check.flow_ope/ (π*900*tbl_pump_detail.suction_pipe_id*tbl_pump_detail.suction_pipe_id in meter)
     # discharge_fluid_velo : Derived from tbl_engineering_check.flow_ope/ (π*900*tbl_pump_detail.discharge_pipe_id*tbl_pump_detail.discharge_pipe_id in meter)
 
+    
+    def generate_doc_no(self):
+        """Generate a unique document number."""
+        customer_initials = re.sub(r'[^A-Za-z]', '', self.doc_customer)[:3].upper()
+        brand_initials = re.sub(r'[^A-Za-z]', '', self.brand)[:2].upper()
+        
+        prefix = f"{customer_initials}{brand_initials}"
+        existing_docs = PumpDetail.objects.filter(doc_no__startswith=prefix)
+        if existing_docs.exists():
+            max_doc_no = existing_docs.aggregate(Max('doc_no'))['doc_no__max']
+            running_number = int(max_doc_no[-3:]) + 1
+        else:
+            running_number = 1
+        
+        running_number_str = f"{running_number:03d}"
+        new_doc_no = f"{prefix}{running_number_str}"
+        return new_doc_no
 
     def calculate_power_required_cal(self):
         # Derived from tbl_pump_detail.hyd_power/tbl_pump_detail.pump_efficiency in decimal of percentage
-        self.power_required_cal = self.hyd_power / (self.pump_efficiency / 100)
+        self.power_required_cal = self.hyd_power / (float(self.pump_efficiency) / 100)
 
     def calculate_power_min_flow(self):
         # Derived from tbl_pump_detail.min_flow_unit in m³/h*tbl_pump_detail.min_head in meter *tbl_pump_detail.density in sg *9.81/3600*tbl_pump_detail.pump_efficiency 
@@ -349,6 +420,7 @@ class PumpDetail(models.Model):
             self.suggest_motor = 11
 
     def save(self, *args, **kwargs):
+        self.doc_no = self.generate_doc_no()
         self.calculate_power_required_cal()
         self.calculate_suggest_motor()
         super().save(*args, **kwargs)
@@ -419,6 +491,9 @@ class FaceMaterialDetail(models.Model):
     mat_face_name = models.TextField()
     mat_face_type = models.TextField()
 
+    def __str__(self) -> str:
+        return self.mat_face_name + ' | ' + self.mat_face_type
+
     class Meta:
         db_table = 'tbl_face_mat_lov'
 
@@ -426,6 +501,9 @@ class SpringMaterialDetail(models.Model):
     mat_spring_id = models.AutoField(primary_key=True)
     mat_spring_name = models.TextField()
     mat_spring_type = models.TextField()
+
+    def __str__(self) -> str:
+        return self.mat_spring_id + ' | ' + self.mat_spring_type
 
     class Meta:
         db_table = 'tbl_spring_mat_lov'
@@ -435,6 +513,9 @@ class VibrationDetail(models.Model):
     acceptable = models.CharField(max_length=10, blank=True, null=True)
     unsatisfied = models.CharField(max_length=10, blank=True, null=True)
     unacceptable = models.CharField(max_length=10, blank=True, null=True)
+
+    def __str__(self) -> str:
+        return self.voltage + ' | ' + self.acceptable + ' | ' + self.unsatisfied + ' | ' + self.unacceptable
 
     class Meta:
         db_table = 'tbl_vibration_lov'
