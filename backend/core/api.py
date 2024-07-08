@@ -2,6 +2,7 @@ from ninja_jwt.controller import NinjaJWTDefaultController
 from ninja_extra import NinjaExtraAPI
 
 from pumps.api import PumpDetailController, EngineeringDetailController, DropDownDataController, UnitDataController
+from users.api import UserProfileController
 
 api = NinjaExtraAPI()
 
@@ -11,5 +12,6 @@ api.register_controllers(
     EngineeringDetailController,
     DropDownDataController,
     UnitDataController,
+    UserProfileController
 )
 api.register_controllers(NinjaJWTDefaultController)
