@@ -12,7 +12,7 @@ class ImpellerList(models.Model):
 
 class MechSealApiPlanList(models.Model):
     mech_api_id = models.AutoField(primary_key=True)
-    mech_api_plan = models.CharField(primary_key=True, max_length=25)
+    mech_api_plan = models.CharField(max_length=25)
 
     class Meta:
         db_table = 'tbl_api_lov'
@@ -81,7 +81,7 @@ class SuctionPipeInfoList(models.Model):
     fac_number = models.CharField(max_length=20)
     equipment = models.CharField(max_length=50)
     brand = models.CharField(max_length=50)
-    model_short = models.CharField(max_length=50)
+    short_model = models.CharField(max_length=50) # change
     model = models.CharField(max_length=50)
     data_type = models.CharField(max_length=10)
     sequence = models.IntegerField()
@@ -136,11 +136,11 @@ class PumpDetail(models.Model):
     brand = models.TextField()
     model = models.TextField()
     tag_no = models.TextField()
-    pump_type_id = models.ForeignKey(PumpDetailList, on_delete=models.SET_NULL, null=True, blank=True)
+    pump_type_id = models.ForeignKey(PumpDetailList, on_delete=models.SET_NULL, null=True, blank=True, related_name='pump_type_name')
     # pump_type_name = models.TextField()
     serial_no = models.TextField()
     media = models.TextField()
-    pump_standard_id = models.ForeignKey(PumpStandardList, on_delete=models.SET_NULL, null=True, blank=True)
+    pump_standard_id = models.ForeignKey(PumpStandardList, on_delete=models.SET_NULL, null=True, blank=True, related_name='pump_standard')
     # pump_standard = models.TextField()
     # pump_design = models.TextField()
     stage = models.IntegerField(blank=True, null=True)
@@ -194,19 +194,19 @@ class PumpDetail(models.Model):
     power_bep_flow = models.IntegerField()
     power_bep_flow_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='power_bep_flow_units')
     suggest_motor = models.FloatField()
-    pump_suction_size_id = models.ForeignKey(SuctionDischargeDetailList, on_delete=models.SET_NULL, null=True, blank=True)
+    pump_suction_size_id = models.ForeignKey(SuctionDischargeDetailList, on_delete=models.SET_NULL, null=True, blank=True, related_name='pump_suction_size')
     # pump_suction_size = models.TextField(blank=True, null=True)
-    pump_suction_rating_id = models.ForeignKey(FlangRatingList, on_delete=models.SET_NULL, null=True, blank=True)
+    pump_suction_rating_id = models.ForeignKey(FlangRatingList, on_delete=models.SET_NULL, null=True, blank=True, related_name='pump_suction_rating')
     # pump_suction_rating = models.TextField(blank=True, null=True)
-    pump_discharge_size_id = models.ForeignKey(SuctionDischargeDetailList, on_delete=models.SET_NULL, null=True, blank=True)
+    pump_discharge_size_id = models.ForeignKey(SuctionDischargeDetailList, on_delete=models.SET_NULL, null=True, blank=True, related_name='pump_discharge_size')
     # pump_discharge_size = models.TextField(blank=True, null=True)
-    pump_discharge_rating_id = models.ForeignKey(FlangRatingList, on_delete=models.SET_NULL, null=True, blank=True)
+    pump_discharge_rating_id = models.ForeignKey(FlangRatingList, on_delete=models.SET_NULL, null=True, blank=True, related_name='pump_discharge_rating')
     # pump_discharge_rating = models.TextField(blank=True, null=True)
-    suction_pipe_data_id = models.ForeignKey(SuctionPipeInfoList, on_delete=models.SET_NULL, null=True, blank=True)
+    suction_pipe_data_id = models.ForeignKey(SuctionPipeInfoList, on_delete=models.SET_NULL, null=True, blank=True, related_name='suction_pipe_data')
     suction_pipe_size = models.TextField()
     suction_pipe_rating = models.TextField(blank=True, null=True)
     suction_pipe_sch = models.TextField()
-    discharge_pipe_data_id = models.ForeignKey(SuctionPipeInfoList, on_delete=models.SET_NULL, null=True, blank=True)
+    discharge_pipe_data_id = models.ForeignKey(SuctionPipeInfoList, on_delete=models.SET_NULL, null=True, blank=True, related_name='discharge_pipe_data')
     discharge_pipe_size = models.TextField()
     discharge_pipe_rating = models.TextField(blank=True, null=True)
     discharge_pipe_sch = models.TextField()
@@ -217,8 +217,8 @@ class PumpDetail(models.Model):
     suction_pipe_length = models.FloatField(blank=True, null=True)
     discharge_pipe_length_h = models.IntegerField(blank=True, null=True)
     discharge_pipe_length_v = models.IntegerField(blank=True, null=True)
-    suction_pipe_id = models.ForeignKey(SuctionPipeInfoList, on_delete=models.SET_NULL, null=True, blank=True)
-    discharge_pipe_id = models.ForeignKey(SuctionPipeInfoList, on_delete=models.SET_NULL, null=True, blank=True)
+    suction_pipe_id = models.ForeignKey(SuctionPipeInfoList, on_delete=models.SET_NULL, null=True, blank=True, related_name='suction_pipe_id')
+    discharge_pipe_id = models.ForeignKey(SuctionPipeInfoList, on_delete=models.SET_NULL, null=True, blank=True, related_name='discharge_pipe_id')
     suction_elbow = models.IntegerField(blank=True, null=True)
     suction_tee = models.FloatField(blank=True, null=True)
     suction_reducer = models.FloatField(blank=True, null=True)
@@ -233,13 +233,13 @@ class PumpDetail(models.Model):
     discharge_valve = models.FloatField(blank=True, null=True)
     discharge_y_strainer = models.FloatField(blank=True, null=True)
     discharge_other = models.FloatField(blank=True, null=True)
-    casing_mat_id = models.ForeignKey(CasingMaterialList, on_delete=models.SET_NULL, null=True, blank=True)
+    casing_mat_id = models.ForeignKey(CasingMaterialList, on_delete=models.SET_NULL, null=True, blank=True, related_name='casing_mat')
     # casing_mat = models.TextField(blank=True, null=True)
     shaft_mat_id = models.IntegerField(blank=True, null=True)
     shaft_mat = models.TextField(blank=True, null=True)
     diffuser_mat_id = models.IntegerField(blank=True, null=True)
     diffuser_mat = models.IntegerField(blank=True, null=True)
-    impeller_type_id = models.ForeignKey(ImpellerList, on_delete=models.SET_NULL, null=True, blank=True)
+    impeller_type_id = models.ForeignKey(ImpellerList, on_delete=models.SET_NULL, null=True, blank=True, related_name='impeller_type')
     # impeller_type = models.TextField(blank=True, null=True)
     design_impeller_dia = models.IntegerField()
     impeller_max = models.IntegerField(blank=True, null=True)
@@ -252,7 +252,7 @@ class PumpDetail(models.Model):
     bearing_lubric_type = models.TextField(blank=True, null=True)
     bearing_lubric_brand = models.TextField(blank=True, null=True)
     bearing_lubric_no = models.TextField(blank=True, null=True)
-    rotation_de_id = models.ForeignKey(BearingList, on_delete=models.SET_NULL, null=True, blank=True)
+    rotation_de_id = models.ForeignKey(BearingList, on_delete=models.SET_NULL, null=True, blank=True, related_name='rotation_de')
     # rotation_de = models.TextField()
     bearing_de = models.TextField(blank=True, null=True)
     bearing_de_no = models.TextField(blank=True, null=True)
@@ -275,7 +275,7 @@ class PumpDetail(models.Model):
     motor_brand = models.TextField(blank=True, null=True)
     motor_model = models.TextField(blank=True, null=True)
     motor_serial_no = models.TextField(blank=True, null=True)
-    motor_drive_id = models.ForeignKey(MotorDetailList, on_delete=models.SET_NULL, null=True, blank=True)
+    motor_drive_id = models.ForeignKey(MotorDetailList, on_delete=models.SET_NULL, null=True, blank=True, related_name='motor')
     # motor_drive = models.TextField(blank=True, null=True)
     motor_frame = models.TextField(blank=True, null=True)
     motor_protection = models.TextField(blank=True, null=True)
@@ -290,7 +290,7 @@ class PumpDetail(models.Model):
     motor_phase = models.IntegerField()
     motor_efficiency = models.TextField()
     motor_efficiency_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='motor_efficiency_units')
-    mech_api_id = models.ForeignKey(MechSealApiPlanList, on_delete=models.SET_NULL, null=True, blank=True)
+    mech_api_id = models.ForeignKey(MechSealApiPlanList, on_delete=models.SET_NULL, null=True, blank=True, related_name='mech_api')
     # mech_api_plan = models.CharField(max_length=25, blank=True, null=True)
     mech_main_temp = models.IntegerField(blank=True, null=True)
     mech_main_pre = models.IntegerField(blank=True, null=True)
@@ -299,7 +299,7 @@ class PumpDetail(models.Model):
     mech_model = models.TextField(blank=True, null=True)
     mech_size = models.IntegerField(blank=True, null=True)
     mech_size_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='mech_size_units')
-    mech_design_id = models.ForeignKey(MechanicalDesignList, on_delete=models.SET_NULL, null=True, blank=True)
+    mech_design_id = models.ForeignKey(MechanicalDesignList, on_delete=models.SET_NULL, null=True, blank=True, related_name='mech_design')
     mech_design = models.TextField(blank=True, null=True) # ref
     mech_material = models.TextField(blank=True, null=True)
     concentration = models.IntegerField(blank=True, null=True)
@@ -396,7 +396,7 @@ class PumpDetail(models.Model):
     @property
     def motor_drive(self):
         return self.motor_drive_id.drive_system
-    
+
     @property
     def motor_standard(self):
         return self.motor_drive_id.standard
@@ -411,7 +411,8 @@ class PumpDetail(models.Model):
 
     class Meta:
         db_table = 'tbl_pump_detail'
-
+        verbose_name = "PUMP"
+        verbose_name_plural = "PUMPS"
 
 class FaceMaterialDetail(models.Model):
     mat_face_id = models.AutoField(primary_key=True)
@@ -420,7 +421,6 @@ class FaceMaterialDetail(models.Model):
 
     class Meta:
         db_table = 'tbl_face_mat_lov'
-
 
 class SpringMaterialDetail(models.Model):
     mat_spring_id = models.AutoField(primary_key=True)

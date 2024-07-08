@@ -2,7 +2,8 @@ from ninja_extra import api_controller, http_get, http_post, http_put, http_dele
 from ninja_jwt.authentication import JWTAuth
 from django.shortcuts import get_object_or_404
 from pumps.models import PumpDetail, EngineeringDetail
-from pumps.schemas import (PumpDetailIn, PumpDetailOut, EngineeringDetailIn, EngineeringDetailOut)
+from pumps.schemas import (PumpDetailIn, PumpDetailOut, EngineeringDetailIn, EngineeringDetailOut,
+                           DropDownData)
 
 from pumps.permissions import *
 
@@ -70,3 +71,10 @@ class EngineeringDetailController:
         engineering = get_object_or_404(EngineeringDetail, pk=pump_id)
         engineering.delete()
         return {"success": True}
+
+
+@api_controller('/dropdown', tags=['Dropdown'], auth=JWTAuth())
+class DropDownDataController:
+    @http_get('/', response=DropDownData)
+    def get_dropdown_data(self, request):
+        return DropDownData()
