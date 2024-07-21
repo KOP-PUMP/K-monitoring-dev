@@ -215,29 +215,29 @@ class PumpDetail(models.Model):
     vapor_pressure_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='vapor_pressure_units')
     pump_speed = models.IntegerField()
     pump_speed_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='pump_speed_units')
-    design_flow = models.TextField()
+    design_flow = models.FloatField()
     design_flow_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='design_flow_units')
-    design_head = models.TextField()
+    design_head = models.FloatField()
     design_head_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='design_head_units')
-    min_head = models.TextField()
+    min_head = models.FloatField()
     min_head_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='min_head_units')
-    max_head = models.TextField()
+    max_head = models.FloatField()
     max_head_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='max_head_units')
-    suction_velo = models.TextField()
+    suction_velo = models.FloatField()
     suction_velo_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='suction_velo_units')
-    discharge_velo = models.TextField()
+    discharge_velo = models.FloatField()
     discharge_velo_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='discharge_velo_units')
     bep_head = models.IntegerField()
     bep_head_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='bep_head_units')
-    bep_flow = models.TextField()
+    bep_flow = models.FloatField()
     bep_flow_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='bep_flow_units')
-    npshr = models.TextField()
+    npshr = models.FloatField()
     npshr_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='npshr_units')
-    pump_efficiency = models.TextField()
+    pump_efficiency = models.FloatField()
     pump_efficiency_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='pump_efficiency_units')
     hyd_power = models.FloatField()
     hyd_power_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='hyd_power_units')
-    voltage = models.TextField()
+    voltage = models.FloatField()
     voltage_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='voltage_units')
     power_required_cal = models.FloatField() # Change to Float
     power_required_cal_unit = models.ForeignKey(UnitList, on_delete=models.SET_NULL, null=True, blank=True, related_name='power_required_cal_units')
@@ -415,7 +415,7 @@ class PumpDetail(models.Model):
         power_required = self.power_required_cal * 1.15
         motor_size = UnitList.objects.filter(field_id='tbl_pump_detail_suggest_motor_range').filter(field_value__gte=power_required).first()
         if motor_size:
-            self.suggest_motor = motor_size.field_value
+            self.suggest_motor = float(motor_size.field_value[:-2])
         else:
             self.suggest_motor = 11
 
