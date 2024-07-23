@@ -713,3 +713,33 @@ class EngineeringDetail(models.Model):
 
     class Meta:
         db_table = 'tbl_engineering_check'
+
+
+class FactoryTable(models.Model):
+    id = models.AutoField(primary_key=True)
+    fac_number = models.CharField(max_length=20, null=True)
+    equipment = models.CharField(max_length=50, null=True)
+    brand = models.CharField(max_length=50)
+    model_short = models.CharField(max_length=20)
+    model = models.CharField(max_length=50, null=True)
+    data_type = models.CharField(max_length=10, null=True)
+    se_quence = models.IntegerField()
+    rpm = models.IntegerField()
+    imp_dia = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    flow = models.DecimalField(max_digits=15, decimal_places=4, null=True)
+    head = models.DecimalField(max_digits=15, decimal_places=4, null=True)
+    eff = models.IntegerField(null=True, blank=True)
+    npshr = models.DecimalField(max_digits=15, decimal_places=4, null=True)
+    kw = models.DecimalField(max_digits=15, decimal_places=4, null=True)
+    curve_format = models.CharField(max_length=20)
+    eff_rl = models.CharField(max_length=10)
+    eff_status = models.IntegerField()
+    eff_distance = models.DecimalField(max_digits=15, decimal_places=4)
+    tolerance = models.IntegerField()
+    scale_xy = models.DecimalField(max_digits=15, decimal_places=4)
+    update_time = models.DateTimeField()
+    dry_sat = models.CharField(max_length=10)
+    liquid = models.DecimalField(max_digits=15, decimal_places=4)
+
+    class Meta:
+        db_table = 'factory_table'
