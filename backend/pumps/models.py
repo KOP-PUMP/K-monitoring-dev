@@ -13,7 +13,7 @@ class ImpellerList(models.Model):
     impeller_type_name = models.TextField()
 
     def __str__(self):
-        return self.lmpeller_type_name
+        return self.impeller_type_name
     class Meta:
         db_table = 'tbl_impeller_type_lov'
 
