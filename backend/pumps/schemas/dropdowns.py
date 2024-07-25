@@ -1,3 +1,4 @@
+from datetime import datetime
 from ninja import Schema
 
 class ImpellerListSchema(Schema):
@@ -61,7 +62,7 @@ class SuctionPipeInfoListSchema(Schema):
     eff_distance: float
     tolerance: int
     scale_xy: float
-    update_time: str
+    update_time: datetime
     dry_sat: str
     liquid: float
 

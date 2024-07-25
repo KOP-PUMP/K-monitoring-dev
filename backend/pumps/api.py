@@ -1,3 +1,6 @@
+from typing import List
+from django.forms.models import model_to_dict
+from django.db.models import F, Func, Value, Q
 from django.http import JsonResponse
 from ninja_extra import api_controller, http_get, http_post, http_put, http_delete
 from ninja_jwt.authentication import JWTAuth
@@ -9,10 +12,11 @@ from .models import (PumpDetail, EngineeringDetail, UnitList,
                      CasingMaterialList, FlangRatingList, MechanicalDesignList,
                      PumpDetailList, MotorDetailList, SuctionPipeInfoList,
                      PumpStandardList, SuctionDischargeDetailList, FaceMaterialDetail,
-                     SpringMaterialDetail, VibrationDetail)
+                     SpringMaterialDetail, VibrationDetail, FactoryTable)
 from .schemas.pumps import (PumpDetailIn, PumpDetailOut, EngineeringDetailIn, EngineeringDetailOut)
 from .schemas.units import *
 from .schemas.dropdowns import DropDownData
+from .schemas.charts import FlowPowerChartData, HeadFlowChartData, NPSHRFlowChartData, EffHeadFlowChartData
 from .permissions import *
 
 @api_controller('/pumps', tags=['PumpDetail'], auth=JWTAuth())
@@ -27,10 +31,11 @@ class PumpDetailController:
         user = request.user
         return PumpDetail.objects.filter(user=user)
 
-    @http_get('/{pump_id}/', response=PumpDetailOut, permissions=[CanViewPump])
+    @http_get('/{pump_id}/', permissions=[CanViewPump])
     def get_pump(self, request, pump_id: int):
         user = request.user
         pump = get_object_or_404(PumpDetail, pk=pump_id, user=user)
+        pump = model_to_dict(pump)
         return pump
 
     @http_put('/{pump_id}/', response=PumpDetailOut, permissions=[CanChangePump])
@@ -116,10 +121,18 @@ class DropDownDataController:
             "spring_material_detail": list(spring_material_detail),
             "vibration_detail": list(vibration_detail),
         }
-
-        print(data)
-        print("-------------------")
         return data
+
+    @http_get('/types/')
+    def get_types(self, request):
+        pump_types = PumpDetailList.objects.values('pump_type').distinct()
+        return JsonResponse(list(pump_types), safe=False)
+
+
+    @http_get('/designs/{pump_type}/')
+    def get_designs(self, request, pump_type: str):
+        designs = list(PumpDetailList.objects.filter(pump_type=pump_type).values('pump_id', 'pump_design'))
+        return JsonResponse(designs, safe=False)
 
 
 @api_controller('/units', tags=['Units'], auth=JWTAuth())
@@ -142,3 +155,45 @@ class UnitDataController:
 
         formatted_data = dict(grouped_data)
         return JsonResponse(formatted_data, safe=False)
+
+@api_controller('/chart', tags=['Chart'])
+class ChartDataController:
+    @http_get('/powerflow/{model}/', response=List[FlowPowerChartData])
+    def get_power_flow_data(self, request, model: str):
+        imp_dia_values = FactoryTable.objects.filter(model=model).values_list('imp_dia', flat=True).distinct()
+        data = (FactoryTable.objects
+                .filter(~Q(imp_dia=None) & ~Q(flow=None) & ~Q(kw=None))
+                .filter(model=model)
+                .filter(imp_dia__in=imp_dia_values)
+                .values('imp_dia', 'flow', 'kw'))
+        return data
+
+    @http_get('/headflow/{model}/', response=List[HeadFlowChartData])
+    def get_head_flow_data(self, request, model: str):
+        imp_dia_values = FactoryTable.objects.filter(model=model).values_list('imp_dia', flat=True).distinct()
+        data = (FactoryTable.objects
+                .filter(~Q(imp_dia=None) & ~Q(flow=None) & ~Q(head=None))
+                .filter(model=model)
+                .filter(imp_dia__in=imp_dia_values)
+                .values('imp_dia', 'flow', 'head'))
+        return data
+    
+    @http_get('/npshrflow/{model}/', response=List[NPSHRFlowChartData])
+    def get_npshr_flow_data(self, request, model: str):
+        imp_dia_values = FactoryTable.objects.filter(model=model).values_list('imp_dia', flat=True).distinct()
+        data = (FactoryTable.objects
+                .filter(~Q(imp_dia=None) & ~Q(flow=None) & ~Q(npshr=None))
+                .filter(model=model)
+                .filter(imp_dia__in=imp_dia_values)
+                .values('imp_dia', 'flow', 'npshr'))
+        return data
+
+    @http_get('/efficiencyheadflow/{model}/', response=List[EffHeadFlowChartData])
+    def get_efficiency_head_flow_data(self, request, model: str):
+        eff_values = FactoryTable.objects.filter(model=model).values_list('eff', flat=True).distinct()
+        data = (FactoryTable.objects
+                .filter(~Q(eff=None) & ~Q(flow=None) & ~Q(head=None))
+                .filter(model=model)
+                .filter(eff__in=eff_values)
+                .values('eff', 'flow', 'head'))
+        return data
