@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { CaretSortIcon, CheckCircledIcon } from "@radix-ui/react-icons";
 
 import { cn } from "@/lib/utils";
@@ -20,8 +20,15 @@ interface ComboboxProps {
 }
 
 export function Combobox({ items, className, searchable = true, default_value = "", onChange }: ComboboxProps) {
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState(default_value);
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(default_value);
+
+  useEffect(() => {
+    if (default_value) {
+      setValue(default_value);
+      onChange(default_value);
+    }
+  }, [default_value, onChange]);
 
   return (
     <div className={cn("block", className)}>
