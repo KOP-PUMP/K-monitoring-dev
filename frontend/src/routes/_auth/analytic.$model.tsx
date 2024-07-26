@@ -10,9 +10,7 @@ import { EfficiencyHeadFlowGraph } from "@/components/chart/EfficiencyHeadFlowGr
 
 const Analytic = () => {
   const { model } = Route.useParams();
-
   const [displayMode, setDisplayMode] = useState("line");
-  const [pumpName, setPumpName] = useState("");
 
   const graphTypes: ComboboxItemProps[] = [
     { value: "line", label: "Show Lines Plot" },
@@ -46,19 +44,15 @@ const Analytic = () => {
           </select>
         </div>
         <div className="px-3">
-          <label htmlFor="pumpName" className="block text-sm font-medium text-gray-700">
-            Model
-          </label>
-          <label htmlFor="pumpName" className="block text-sm font-medium text-gray-700">
-            {model}
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Model</label>
+          <label className="block text-sm font-medium text-gray-700">{model}</label>
         </div>
       </div>
       <div className="flex flex-wrap">
         <FlowPowerGraph model={model} scatter={displayMode == "scatter" ? true : false} />
-        <HeadFlowGraph model={model} />
-        <NpshrFlowGraph model={model} />
-        <EfficiencyHeadFlowGraph model={model} />
+        <HeadFlowGraph model={model} scatter={displayMode == "scatter" ? true : false} />
+        <NpshrFlowGraph model={model} scatter={displayMode == "scatter" ? true : false} />
+        <EfficiencyHeadFlowGraph model={model} scatter={displayMode == "scatter" ? true : false} />
       </div>
     </div>
   );

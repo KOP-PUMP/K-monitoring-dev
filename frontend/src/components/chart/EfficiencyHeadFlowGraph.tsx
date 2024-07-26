@@ -3,9 +3,10 @@ import { useEfficiencyHeadFlowData } from "@/api/chart";
 
 export interface EfficiencyHeadFlowGraphProps {
   model: string;
+  scatter?: boolean;
 }
 
-export const EfficiencyHeadFlowGraph = ({ model }: EfficiencyHeadFlowGraphProps) => {
+export const EfficiencyHeadFlowGraph = ({ model, scatter = false }: EfficiencyHeadFlowGraphProps) => {
   const { data: chartData, isLoading, isError } = useEfficiencyHeadFlowData(model);
 
   const XAxisDefaultProps = {
@@ -32,6 +33,8 @@ export const EfficiencyHeadFlowGraph = ({ model }: EfficiencyHeadFlowGraphProps)
   }
 
   if (chartData) {
+    const uniqueEfficiencies = [...new Set(chartData.map((item) => item.eff))];
+
     return (
       <ResponsiveContainer width="50%" height={400} className="w-1/2 p-2">
         <ComposedChart title="KW Graph" data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -39,54 +42,21 @@ export const EfficiencyHeadFlowGraph = ({ model }: EfficiencyHeadFlowGraphProps)
           <XAxis {...XAxisDefaultProps} />
           <YAxis {...YAxisDefaultProps} />
           <Legend verticalAlign="top" height={36} />
-          <Line
-            type="monotone"
-            dataKey="head"
-            stroke="#264653"
-            strokeWidth={3}
-            name="46%"
-            data={chartData.filter((item) => item.eff === 46)}
-            dot={false}></Line>
-          {/* <Line
-              type="monotone"
-              dataKey="head"
-              stroke="#2a9d8f"
-              strokeWidth={3}
-              name="50%"
-              data={chartData.filter((item) => item.eff === 50)}
-              dot={false}></Line> */}
-          <Line
-            type="monotone"
-            dataKey="head"
-            stroke="#e9c46a"
-            strokeWidth={3}
-            name="54%"
-            data={chartData.filter((item) => item.eff === 54)}
-            dot={false}></Line>
-          <Line
-            type="monotone"
-            dataKey="head"
-            stroke="#f4a261"
-            strokeWidth={3}
-            name="56%"
-            data={chartData.filter((item) => item.eff === 56)}
-            dot={false}></Line>
-          <Line
-            type="monotone"
-            dataKey="head"
-            stroke="#e76f51"
-            strokeWidth={3}
-            name="58%"
-            data={chartData.filter((item) => item.eff === 58)}
-            dot={false}></Line>
-          <Line
-            type="monotone"
-            dataKey="head"
-            stroke="#e76f51"
-            strokeWidth={3}
-            name="60%"
-            data={chartData.filter((item) => item.eff === 60)}
-            dot={false}></Line>
+          {uniqueEfficiencies.map((eff, index) => {
+            const colors = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
+            return (
+              <Line
+                key={eff}
+                type="monotone"
+                dataKey="head"
+                stroke={scatter ? "none" : colors[index % colors.length]}
+                strokeWidth={3}
+                name={`${eff}%`}
+                data={chartData.filter((item) => item.eff === eff)}
+                dot={scatter ? { stroke: colors[index % colors.length], strokeWidth: 1.2 } : false}
+              />
+            );
+          })}
         </ComposedChart>
       </ResponsiveContainer>
     );
@@ -95,4 +65,6 @@ export const EfficiencyHeadFlowGraph = ({ model }: EfficiencyHeadFlowGraphProps)
   if (isError) {
     return <div>Error</div>;
   }
+
+  return null;
 };

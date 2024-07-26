@@ -3,9 +3,10 @@ import { useHeadFlowData } from "@/api/chart";
 
 export interface HeadFlowGraphProps {
   model: string;
+  scatter?: boolean;
 }
 
-export const HeadFlowGraph = ({ model }: HeadFlowGraphProps) => {
+export const HeadFlowGraph = ({ model, scatter = false }: HeadFlowGraphProps) => {
   const { data: chartData, isLoading, isError } = useHeadFlowData(model);
 
   const XAxisDefaultProps = {
@@ -32,6 +33,9 @@ export const HeadFlowGraph = ({ model }: HeadFlowGraphProps) => {
   }
 
   if (chartData) {
+    const uniqueImpDiameters = [...new Set(chartData.map((item) => item.imp_dia))];
+    const colors = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
+
     return (
       <ResponsiveContainer width="50%" height={400} className="w-1/2 p-2">
         <ComposedChart title="QH Graph" data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -39,46 +43,18 @@ export const HeadFlowGraph = ({ model }: HeadFlowGraphProps) => {
           <XAxis {...XAxisDefaultProps} />
           <YAxis {...YAxisDefaultProps} />
           <Legend verticalAlign="top" height={36} />
-          <Line
-            type="monotone"
-            dataKey="head"
-            stroke="#264653"
-            strokeWidth={3}
-            name="100mm"
-            data={chartData.filter((item) => item.imp_dia === 100)}
-            dot={false}></Line>
-          <Line
-            type="monotone"
-            dataKey="head"
-            stroke="#2a9d8f"
-            strokeWidth={3}
-            name="110mm"
-            data={chartData.filter((item) => item.imp_dia === 110)}
-            dot={false}></Line>
-          <Line
-            type="monotone"
-            dataKey="head"
-            stroke="#e9c46a"
-            strokeWidth={3}
-            name="120mm"
-            data={chartData.filter((item) => item.imp_dia === 120)}
-            dot={false}></Line>
-          <Line
-            type="monotone"
-            dataKey="head"
-            stroke="#f4a261"
-            strokeWidth={3}
-            name="130mm"
-            data={chartData.filter((item) => item.imp_dia === 130)}
-            dot={false}></Line>
-          <Line
-            type="monotone"
-            dataKey="head"
-            stroke="#e76f51"
-            strokeWidth={3}
-            name="139mm"
-            data={chartData.filter((item) => item.imp_dia === 139)}
-            dot={false}></Line>
+          {uniqueImpDiameters.map((imp_dia, index) => (
+            <Line
+              key={imp_dia}
+              type="monotone"
+              dataKey="head"
+              stroke={scatter ? "none" : colors[index % colors.length]}
+              strokeWidth={3}
+              name={`${imp_dia}mm`}
+              data={chartData.filter((item) => item.imp_dia === imp_dia)}
+              dot={scatter ? { stroke: colors[index % colors.length], strokeWidth: 1.2 } : false}
+            />
+          ))}
         </ComposedChart>
       </ResponsiveContainer>
     );
@@ -87,4 +63,6 @@ export const HeadFlowGraph = ({ model }: HeadFlowGraphProps) => {
   if (isError) {
     return <div>Error</div>;
   }
+
+  return null;
 };
