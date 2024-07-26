@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import PumpList from "@/components/PumpList";
+import PumpDetail from "@/components/PumpDetail";
 
 export const Route = createFileRoute("/_auth/pump/detail")({
-  component: PumpList,
+  component: PumpDetail,
 });
