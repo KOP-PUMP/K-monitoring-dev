@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CaretSortIcon, CheckCircledIcon } from "@radix-ui/react-icons";
 
 import { cn } from "@/lib/utils";
@@ -7,35 +7,46 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export interface ComboboxItemProps {
-  value: string;
+  id: string;
   label: string;
 }
 
 interface ComboboxProps {
+  name?: string;
   items: ComboboxItemProps[];
   className?: string;
   searchable?: boolean;
-  onChange: (value: string) => void;
-  default_value?: string;
+  onChange: (id: string) => void;
+  default_id?: string | null;
 }
 
-export function Combobox({ items, className, searchable = true, default_value = "", onChange }: ComboboxProps) {
+export function Combobox({
+  name = "items",
+  items,
+  className,
+  searchable = true,
+  onChange,
+  default_id = null,
+}: ComboboxProps) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(default_value);
+  const [id, setId] = useState("");
+
+  const calledOnce = useRef(false);
 
   useEffect(() => {
-    if (default_value) {
-      setValue(default_value);
-      onChange(default_value);
+    if (!calledOnce.current && default_id) {
+      setId(default_id);
+      onChange(default_id);
+      calledOnce.current = true;
     }
-  }, [default_value, onChange]);
+  }, [default_id, onChange]);
 
   return (
     <div className={cn("block", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" role="combobox" aria-expanded={open} className="w-[200px] justify-between">
-            {value ? items.find((item) => item.value === value)?.label : `Select ${name}...`}
+            {id ? items.find((item) => item.id === id)?.label : `Select ${name}...`}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -47,16 +58,14 @@ export function Combobox({ items, className, searchable = true, default_value = 
               <CommandGroup>
                 {items.map((item) => (
                   <CommandItem
-                    key={item.value}
-                    value={item.value}
-                    onSelect={(currentValue) => {
-                      onChange(item.value);
-                      setValue(currentValue === value ? "" : currentValue);
+                    key={item.id}
+                    value={item.id}
+                    onSelect={(currentid) => {
+                      onChange(item.id);
+                      setId(currentid === id ? "" : currentid);
                       setOpen(false);
                     }}>
-                    <CheckCircledIcon
-                      className={cn("mr-2 h-4 w-4", value === item.value ? "opacity-100" : "opacity-0")}
-                    />
+                    <CheckCircledIcon className={cn("mr-2 h-4 w-4", id === item.id ? "opacity-100" : "opacity-0")} />
                     {item.label}
                   </CommandItem>
                 ))}
