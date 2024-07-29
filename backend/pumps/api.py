@@ -55,7 +55,7 @@ class PumpDetailController:
         return {"success": True}
 
 
-@api_controller('/engineering', tags=['EngineeringDetail'], auth=JWTAuth(), permissions=[CanViewEngineering, CanAddEngineering, CanChangeEngineering, CanDeleteEngineering])
+@api_controller('/engineering', tags=['EngineeringDetail'], auth=JWTAuth(), permissions=[CanViewEngineering, CanAddEngineering, CanChangeEngineering, CanDeleteEngineering], auth=JWTAuth())
 class EngineeringDetailController:
     @http_post('/', response=EngineeringDetailOut, permissions=[CanAddEngineering])
     def create_engineering(self, request, payload):
@@ -122,17 +122,11 @@ class DropDownDataController:
             "vibration_detail": list(vibration_detail),
         }
         return data
-
-    @http_get('/types/')
-    def get_types(self, request):
-        pump_types = PumpDetailList.objects.values('pump_type').distinct()
-        return JsonResponse(list(pump_types), safe=False)
-
-
-    @http_get('/designs/{pump_type}/')
-    def get_designs(self, request, pump_type: str):
-        designs = list(PumpDetailList.objects.filter(pump_type=pump_type).values('pump_id', 'pump_design'))
-        return JsonResponse(designs, safe=False)
+    
+    @http_post('/dropdown/', response=PumpDetailOut)
+    def create_dropdown(self, request, payload: PumpDetailIn):
+        pump = PumpDetail.objects.create(**payload.dict())
+        return pump
 
 
 @api_controller('/units', tags=['Units'], auth=JWTAuth())
