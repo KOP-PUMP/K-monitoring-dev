@@ -107,3 +107,19 @@ class DropDownData(Schema):
     vibration_detail : list[VibrationDetailListSchema]
 
 
+class DropDownDataResponse(Schema):
+    impeller_type_id: int = None
+    mech_api_id: int = None
+    rotation_de_id: int = None
+    mat_cover_id: int = None
+    flang_rating_id: int = None
+    mech_design_id: int = None
+    pump_id: int = None
+    motor_drive_id: int = None
+    pipe_lov_id: int = None
+    pump_standard_id: int = None
+    # suction id lacking
+    mat_face_id: int = None
+    mat_spring_id: int = None
+    # vibrations
+    
