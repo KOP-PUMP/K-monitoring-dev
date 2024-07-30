@@ -470,7 +470,9 @@ class PumpDetail(models.Model):
     
     @property
     def casing_mat(self):
-        return self.casing_mat_id.mat_cover_name
+        if self.casing_mat_id:
+            return self.casing_mat_id.mat_cover_name
+        return ""
     
     @property
     def impeller_type(self):
@@ -539,7 +541,7 @@ class VibrationDetail(models.Model):
 class EngineeringDetail(models.Model):
     """Details of pump those engineer need to check."""
     id = models.AutoField(primary_key=True)
-    pump_id = models.ForeignKey(PumpDetail, on_delete=models.CASCADE)
+    pump_id = models.ForeignKey(PumpDetail, on_delete=models.CASCADE, related_name='engineering_details')
 
     check_id = models.IntegerField()
     doc_customer = models.CharField(max_length=50)
