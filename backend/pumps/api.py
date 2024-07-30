@@ -55,7 +55,7 @@ class PumpDetailController:
         return {"success": True}
 
 
-@api_controller('/engineering', tags=['EngineeringDetail'], auth=JWTAuth(), permissions=[CanViewEngineering, CanAddEngineering, CanChangeEngineering, CanDeleteEngineering], auth=JWTAuth())
+@api_controller('/engineering', tags=['EngineeringDetail'], auth=JWTAuth(), permissions=[CanViewEngineering, CanAddEngineering, CanChangeEngineering, CanDeleteEngineering])
 class EngineeringDetailController:
     @http_post('/', response=EngineeringDetailOut, permissions=[CanAddEngineering])
     def create_engineering(self, request, payload):
