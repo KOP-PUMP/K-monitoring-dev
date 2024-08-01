@@ -1,0 +1,24 @@
+name: Deploy Website
+
+on:
+  push:
+    branches:
+      - main # Specify branch name
+
+jobs:
+  web-deploy:
+    name: Deploying to Production
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get latest code
+        uses: actions/checkout@v2
+
+      - name: Sync files
+        uses: SamKirkland/FTP-Deploy-Action@4.3.5
+        with:
+          server: ftp.ts2337.com
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: "/"
