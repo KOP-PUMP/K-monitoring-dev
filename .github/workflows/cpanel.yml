@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Sync files
-        uses: SamKirkland/FTP-Deploy-Action@4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.ts2337.com
           username: ${{ secrets.FTP_USERNAME }}
