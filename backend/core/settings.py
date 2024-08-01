@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["kmonitoring.ts2337.com", "localhost"]
 
 
 # Application definition
@@ -137,6 +137,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
+    'https://project5.ts2337.com'
 ]
 
 from datetime import timedelta
