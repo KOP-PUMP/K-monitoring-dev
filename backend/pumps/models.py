@@ -188,7 +188,7 @@ class PumpDetail(models.Model):
 
     pump_id = models.AutoField(primary_key=True)
     doc_customer = models.TextField()
-    doc_no = models.TextField(unique=True, max_length=500) # three character of doc_customer + two character of brand + running_number (think on the case that might be duplicate)
+    doc_no = models.CharField(unique=True, max_length=255) # three character of doc_customer + two character of brand + running_number (think on the case that might be duplicate)
     doc_date = models.TextField()
     brand = models.TextField()
     model = models.TextField()
