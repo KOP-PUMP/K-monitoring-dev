@@ -29,6 +29,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="pumpdetail",
             name="doc_no",
-            field=models.TextField(unique=True),
+            field=models.TextField(max_length=500, unique=True),
         ),
     ]
