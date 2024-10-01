@@ -24,6 +24,13 @@ mysqlsh -u root -h localhost --port 3306
 # Save password for 'root@localhost:3306'? [Y]es/[N]o/Ne[v]er (default No):
 ```
 
+After this it will enter shell of MySQL, then create database
+
+```sql
+CREATE DATABASE kmonitoring;
+\quit
+```
+
 #### Setup Django
 
 5. Create virtual environment
