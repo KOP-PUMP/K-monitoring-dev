@@ -25,9 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(os.environ.get("DEBUG"))
 
-ALLOWED_HOSTS = ["kmonitoring.ts2337.com", "localhost"]
+ALLOWED_HOSTS = ["kmonitoring.ts2337.com", "localhost", "127.0.0.1"]
 
 
 # Application definition
