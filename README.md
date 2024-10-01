@@ -12,6 +12,7 @@
 3. [Download DBEngin](https://dbngin.com/)
    - After install DBEngin, Click **+** sign on top left corner to create new **MySQL** instance.
    - In this popup window set it up like this (values are depend on .env file)
+   ![dbengin1](https://github.com/user-attachments/assets/83d97dd8-7c43-4517-aee4-d91746064389)
    - Then click **Start**, wait until DBEngin download all important files.
 4. Create database
 
