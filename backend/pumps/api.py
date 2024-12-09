@@ -129,7 +129,7 @@ class DropDownDataController:
         return pump
 
 
-@api_controller('/units', tags=['Units'], auth=JWTAuth())
+@api_controller('/units', tags=['Units'])
 class UnitDataController:
     @http_get('/', response=UnitsData)
     def get_unit_data(self, request):

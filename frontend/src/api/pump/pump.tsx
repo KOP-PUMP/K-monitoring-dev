@@ -1,4 +1,4 @@
-import { PumpDetailOut, ApiResponse, FetchDataResponse } from "@/types/index";
+import { PumpDetailOut,LOVOut, ApiResponse, FetchDataResponse } from "@/types/index";
 import { axiosInstance } from "../utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
@@ -41,3 +41,13 @@ export const useAddPumpDetail = () => {
     mutationFn: addPumpDetail,
   });
 };
+
+export const AddPumpListData = async(PumpDataForAdd: LOVOut): Promise<ApiResponse<LOVOut>> => {
+  const response = await axiosInstance.post(`${API_BASE_URL}/pumps`, PumpDataForAdd);
+  return response.data;
+}
+
+export const AddUnitListData = async(UnitDataForAdd: LOVOut): Promise<ApiResponse<LOVOut>> => {
+  const response = await axiosInstance.post(`${API_BASE_URL}/pumps`, UnitDataForAdd);
+  return response.data;
+}

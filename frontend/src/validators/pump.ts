@@ -92,6 +92,20 @@ export const PumpGeneralDetailSchema = z.object({
   pump_design: z.string(),
 });
 
+
+export const AddingUnitLOVSchema = z.object({
+  unit_name: z.string(),
+  unit_value: z.string(),
+});
+export const AddingPumpLOVSchema = z.object({
+  data_type: z.string(),
+  data_name: z.string(),
+  data_value: z.string(),
+  additional_1: z.string().optional(),
+  additional_2: z.string().optional(),
+  additional_3: z.string().optional(),
+})
+
 export const PumpMaterialDetailSchema = z.object({
   casing_mat_id: z.number().optional(),
   casing_mat: z.string().optional(),

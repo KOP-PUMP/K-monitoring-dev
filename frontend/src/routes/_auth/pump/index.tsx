@@ -36,6 +36,17 @@ function PumpIndex() {
           <Button onClick={() => handleButtonClick("engineering")}>Go to Pump Engineering</Button>
         </CardFooter>
       </Card>
+      <Card className="sm:col-span-2">
+        <CardHeader className="pb-3">
+          <CardTitle>Update list data</CardTitle>
+          <CardDescription className="text-balance max-w-lg leading-relaxed">
+            Update list data of unit and pump data
+          </CardDescription>
+        </CardHeader>
+        <CardFooter>
+          <Button onClick={() => handleButtonClick("list_edit")}>Go to list data edit</Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

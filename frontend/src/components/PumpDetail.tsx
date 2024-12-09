@@ -192,7 +192,7 @@ export default function PumpList() {
                               </FormItem>
                             )}
                           />
-                          <FormField
+                          {/* <FormField
                             control={form.control}
                             name="pump_standard_id"
                             render={({ field }) => (
@@ -213,8 +213,8 @@ export default function PumpList() {
                                 <FormMessage />
                               </FormItem>
                             )}
-                          />
-                          <FormItem>
+                          /> */}
+                          {/* <FormItem>
                             <div className="flex items-center ">
                               <FormLabel className="w-1/12 text-destructive">
                                 Type
@@ -226,8 +226,8 @@ export default function PumpList() {
                             </div>
                             {showDescriptions && <FormDescription>This is the pump standard.</FormDescription>}
                             <FormMessage />
-                          </FormItem>
-                          <FormItem>
+                          </FormItem> */}
+                          {/* <FormItem>
                             <div className="flex items-center ">
                               <FormLabel className="w-1/12 text-destructive">
                                 Design
@@ -239,7 +239,7 @@ export default function PumpList() {
                             </div>
                             {showDescriptions && <FormDescription>This is the pump type ID.</FormDescription>}
                             <FormMessage />
-                          </FormItem>
+                          </FormItem> */}
                         </div>
                       </FormBox>
                     </div>

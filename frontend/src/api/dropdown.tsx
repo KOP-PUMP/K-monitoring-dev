@@ -1,5 +1,4 @@
 import { axiosInstance } from "./utils";
-import DropdownSchema from "@/components/types/dropdown";
 import { useQuery } from "@tanstack/react-query";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;

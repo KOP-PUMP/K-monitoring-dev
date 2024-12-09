@@ -246,3 +246,16 @@ export interface PumpDetailOut {
   concentration?: number;
   pump_status: string;
 }
+
+export interface LOVOut {
+  data_type: string;
+  data_name: string;
+  data_value: string;
+  additional_1?: string;
+  additional_2?: string;
+  additional_3?: string;
+  created_at: string;
+  created_by: string;
+  updated_at: string;
+  updated_by: string;
+}

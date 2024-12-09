@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "ninja_extra",
     "users",
     "pumps",
+    "pump_data",
 ]
 
 MIDDLEWARE = [

@@ -8,6 +8,7 @@ import { FlowPowerGraph } from "@/components/chart/FlowPowerGraph";
 import { NpshrFlowGraph } from "@/components/chart/NpshrFlowGraph";
 import { EfficiencyHeadFlowGraph } from "@/components/chart/EfficiencyHeadFlowGraph";
 
+
 const Analytic = () => {
   const { model } = Route.useParams();
   const [displayMode, setDisplayMode] = useState("line");
