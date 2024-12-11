@@ -55,6 +55,8 @@ class PumpDetailController:
         return {"success": True}
 
 
+
+
 @api_controller('/engineering', tags=['EngineeringDetail'], auth=JWTAuth(), permissions=[CanViewEngineering, CanAddEngineering, CanChangeEngineering, CanDeleteEngineering])
 class EngineeringDetailController:
     @http_post('/', response=EngineeringDetailOut, permissions=[CanAddEngineering])
@@ -182,12 +184,5 @@ class ChartDataController:
                 .values('imp_dia', 'flow', 'npshr'))
         return data
 
-    @http_get('/efficiencyheadflow/{model}/', response=List[EffHeadFlowChartData])
-    def get_efficiency_head_flow_data(self, request, model: str):
-        eff_values = FactoryTable.objects.filter(model=model).values_list('eff', flat=True).distinct()
-        data = (FactoryTable.objects
-                .filter(~Q(eff=None) & ~Q(flow=None) & ~Q(head=None))
-                .filter(model=model)
-                .filter(eff__in=eff_values)
-                .values('eff', 'flow', 'head'))
-        return data
+     
+     

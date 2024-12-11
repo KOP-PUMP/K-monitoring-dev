@@ -18,6 +18,10 @@ import { Route as AuthSettingsImport } from './routes/_auth/settings'
 import { Route as AuthCustomersImport } from './routes/_auth/customers'
 import { Route as AuthPumpIndexImport } from './routes/_auth/pump/index'
 import { Route as AuthDashboardIndexImport } from './routes/_auth/dashboard/index'
+import { Route as AuthPumpUnitlistImport } from './routes/_auth/pump/unit_list'
+import { Route as AuthPumpUniteditImport } from './routes/_auth/pump/unit_edit'
+import { Route as AuthPumpLovlistImport } from './routes/_auth/pump/lov_list'
+import { Route as AuthPumpLoveditImport } from './routes/_auth/pump/lov_edit'
 import { Route as AuthPumpListeditImport } from './routes/_auth/pump/list_edit'
 import { Route as AuthPumpEngineeringImport } from './routes/_auth/pump/engineering'
 import { Route as AuthPumpDetailImport } from './routes/_auth/pump/detail'
@@ -57,6 +61,26 @@ const AuthPumpIndexRoute = AuthPumpIndexImport.update({
 
 const AuthDashboardIndexRoute = AuthDashboardIndexImport.update({
   path: '/dashboard/',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpUnitlistRoute = AuthPumpUnitlistImport.update({
+  path: '/pump/unit_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpUniteditRoute = AuthPumpUniteditImport.update({
+  path: '/pump/unit_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpLovlistRoute = AuthPumpLovlistImport.update({
+  path: '/pump/lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpLoveditRoute = AuthPumpLoveditImport.update({
+  path: '/pump/lov_edit',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -147,6 +171,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPumpListeditImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/pump/lov_edit': {
+      id: '/_auth/pump/lov_edit'
+      path: '/pump/lov_edit'
+      fullPath: '/pump/lov_edit'
+      preLoaderRoute: typeof AuthPumpLoveditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/lov_list': {
+      id: '/_auth/pump/lov_list'
+      path: '/pump/lov_list'
+      fullPath: '/pump/lov_list'
+      preLoaderRoute: typeof AuthPumpLovlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/unit_edit': {
+      id: '/_auth/pump/unit_edit'
+      path: '/pump/unit_edit'
+      fullPath: '/pump/unit_edit'
+      preLoaderRoute: typeof AuthPumpUniteditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/unit_list': {
+      id: '/_auth/pump/unit_list'
+      path: '/pump/unit_list'
+      fullPath: '/pump/unit_list'
+      preLoaderRoute: typeof AuthPumpUnitlistImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/dashboard/': {
       id: '/_auth/dashboard/'
       path: '/dashboard'
@@ -175,6 +227,10 @@ export const routeTree = rootRoute.addChildren({
     AuthPumpDetailRoute,
     AuthPumpEngineeringRoute,
     AuthPumpListeditRoute,
+    AuthPumpLoveditRoute,
+    AuthPumpLovlistRoute,
+    AuthPumpUniteditRoute,
+    AuthPumpUnitlistRoute,
     AuthDashboardIndexRoute,
     AuthPumpIndexRoute,
   }),
@@ -203,6 +259,10 @@ export const routeTree = rootRoute.addChildren({
         "/_auth/pump/detail",
         "/_auth/pump/engineering",
         "/_auth/pump/list_edit",
+        "/_auth/pump/lov_edit",
+        "/_auth/pump/lov_list",
+        "/_auth/pump/unit_edit",
+        "/_auth/pump/unit_list",
         "/_auth/dashboard/",
         "/_auth/pump/"
       ]
@@ -236,6 +296,22 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_auth/pump/list_edit": {
       "filePath": "_auth/pump/list_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/lov_edit": {
+      "filePath": "_auth/pump/lov_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/lov_list": {
+      "filePath": "_auth/pump/lov_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/unit_edit": {
+      "filePath": "_auth/pump/unit_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/unit_list": {
+      "filePath": "_auth/pump/unit_list.tsx",
       "parent": "/_auth"
     },
     "/_auth/dashboard/": {
