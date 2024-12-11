@@ -90,7 +90,6 @@ export const AddUnitListData = async (
 export const getAllUnitLOV = async (): Promise<LOVOut[]> => {
   try {
     const response = await axiosInstance.get("/pump-data/unit_lov");
-    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching unit LOV data:", error);
@@ -105,6 +104,11 @@ export const getLOVById = async (id: string) => {
 
 export const createLOV = async (data: LOVOut) => {
   const response = await axiosInstance.post("/pump-data/lov", data);
+  return response.data;
+};
+
+export const deleteLOV = async (id: string) => {
+  const response = await axiosInstance.delete(`/pump-data/lov/${id}`);
   return response.data;
 };
 

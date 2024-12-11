@@ -174,7 +174,6 @@
 //   concentration?: number;
 //   pump_status: string;
 // }
-import { UUID } from "crypto";
 
 export interface PumpDetailOut {
   pump_id: number;
@@ -249,6 +248,7 @@ export interface PumpDetailOut {
 }
 
 export interface LOVOut {
+  id?: any;
   type_name: string | null; 
   product_name: string | null;
   data_value: string | null;

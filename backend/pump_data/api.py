@@ -5,6 +5,7 @@ from pump_data.schema.pump_lov import KMonitoringLOV_schema
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from uuid import UUID
+from django.http import JsonResponse
 
 
 @api_controller('/pump-data/', tags=['pump-data'], auth=[JWTAuth()])
@@ -29,6 +30,13 @@ class ListOfValuesController:
         data = get_object_or_404(KMonitoringLOV, pk=uuid_id)
         data = model_to_dict(data)
         return data
+
+    @http_delete('/lov/{id}')
+    def delete_lov(self, request, id: str):
+        uuid_id = UUID(id)
+        data = get_object_or_404(KMonitoringLOV, pk=uuid_id)
+        data.delete()
+        return JsonResponse({"success": True, "message": "LOV deleted successfully"}, status=200)
 
     @http_post('/lov', response=KMonitoringLOV_schema)
     def create_lov(self, request, payload: KMonitoringLOV_schema):
