@@ -1,7 +1,9 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import AuthService from "@/lib/auth";
-
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { Link, Outlet } from "@tanstack/react-router";
+import { useState } from "react";
+import { CollapsibleState } from "@/types";
 
 import {
   Bell,
@@ -51,6 +53,18 @@ const activeProps = {
   },
 };
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 export const Route = createFileRoute("/_auth")({
   beforeLoad: async ({ location }) => {
     const isAuthenticated = await AuthService.isAuthenticated();
@@ -72,6 +86,18 @@ function Dashboard() {
   const handleLogout = () => {
     AuthService.logout();
     naviagte({ to: "/login" });
+  };
+
+  const [isOpen, setIsOpen] = useState<CollapsibleState>({
+    pumps: false,
+    pump_data: false,
+  });
+
+  const toggleClick = (tab: keyof CollapsibleState) => {
+    setIsOpen((prevState) => ({
+      ...prevState,
+      [tab]: !prevState[tab],
+    }));
   };
 
   return (
@@ -99,9 +125,19 @@ function Dashboard() {
                 Dashboard
               </Link>
               <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary">
-                  <Package className="h-4 w-4" />
-                  Pumps
+                <CollapsibleTrigger
+                  className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                  onClick={() => toggleClick("pumps")}
+                >
+                  <div className="flex gap-3 items-center">
+                    <Package className="h-4 w-4" />
+                    Pumps
+                  </div>
+                  {isOpen.pumps ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <Link
@@ -120,14 +156,37 @@ function Dashboard() {
                     Adding Pump
                     {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
                   </Link>
-                  <Link
-                    to="/pump/list_edit"
-                    className="flex  items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                    activeProps={activeProps}
-                  >
-                    Pump Data
-                    {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
-                  </Link>
+                  <Collapsible>
+                    <CollapsibleTrigger
+                      className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                      onClick={() => toggleClick("pump_data")}
+                    >
+                      <div className="flex gap-3 items-center">Pump Data</div>
+                      {isOpen.pump_data ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <Link
+                        to="/pump/unit_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Units
+                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                      </Link>
+                      <Link
+                        to="/pump/lov_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        List of Values
+                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                      </Link>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </CollapsibleContent>
               </Collapsible>
               <Link

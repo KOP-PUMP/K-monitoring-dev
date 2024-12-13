@@ -1,10 +1,11 @@
 from ninja import Schema
-from uuid import UUID
+from uuid import UUID , uuid4
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
 class KMonitoringLOV_schema(Schema):
-    id: UUID
+    id: Optional[UUID] = Field(default_factory=uuid4) 
     type_name: str
     product_name: str
     data_value: Optional[str] = None

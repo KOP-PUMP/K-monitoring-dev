@@ -248,14 +248,16 @@ export interface PumpDetailOut {
 }
 
 export interface LOVOut {
-  data_type: string;
-  data_name: string;
-  data_value: string;
-  additional_1?: string;
-  additional_2?: string;
-  additional_3?: string;
+  id?: any;
+  type_name: string | null; 
+  product_name: string | null;
+  data_value: string | null;
+  data_value2?: string | null;
+  data_value3?: string | null;
+  data_value4?: string | null;
   created_at: string;
   created_by: string;
   updated_at: string;
   updated_by: string;
 }
+

@@ -94,8 +94,12 @@ export const PumpGeneralDetailSchema = z.object({
 
 
 export const AddingUnitLOVSchema = z.object({
+  unit_type: z.string().optional(),
   unit_name: z.string(),
   unit_value: z.string(),
+  additional_1: z.string().optional(),
+  additional_2: z.string().optional(),
+  additional_3: z.string().optional(),
 });
 export const AddingPumpLOVSchema = z.object({
   data_type: z.string(),

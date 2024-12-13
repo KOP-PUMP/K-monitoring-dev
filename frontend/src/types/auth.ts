@@ -16,3 +16,9 @@ export interface RefreshRequest {
 export interface VerifyRequest {
   token: string;
 }
+
+export interface CollapsibleState {
+  pumps: boolean;
+  pump_data: boolean;
+};
+
