@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,15 +14,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
 import { AddingUnitLOVSchema } from "@/validators/pump";
 import { useSettings } from "@/lib/settings";
 import { FormBox } from "./common/FormBox";
-
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
-import { useCreateLOV } from "@/hook/pump/pump";
 import { Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useGetLOVById, useUpdateLOV, useCreateLOV } from "@/hook/pump/pump";
 
 export function UnitEdit() {
   // Unit form setup
@@ -30,33 +29,65 @@ export function UnitEdit() {
     resolver: zodResolver(AddingUnitLOVSchema),
   });
 
+  const { id } = useSearch({ from: "/_auth/pump/unit_edit" });
+  const { data } = useGetLOVById(id);
+
+  useEffect(() => {
+    if (id && data) {
+      unitForm.setValue("unit_name", data?.product_name ?? "");
+      unitForm.setValue("unit_value", data?.data_value ?? "");
+      unitForm.setValue("additional_1", data?.data_value2 ?? "");
+      unitForm.setValue("additional_2", data?.data_value3 ?? "");
+      unitForm.setValue("additional_3", data?.data_value4 ?? "");
+    }
+  }, [id, data]);
+
   const { showDescriptions } = useSettings();
   const localstorage = window.localStorage.getItem("user");
   const userData = localstorage !== null ? JSON.parse(localstorage) : null;
   const addData = {
-    type_name: null,
-    product_name: null,
-    data_value: null,
-    data_value_2: null,
-    data_value_3: null,
-    data_value_4: null,
+    type_name: "unit",
+    product_name: "",
+    data_value: "",
+    data_value2: "",
+    data_value3: "",
+    data_value4: "",
     created_at: new Date().toISOString(),
     created_by: userData?.email,
     updated_at: new Date().toISOString(),
     updated_by: userData?.email,
   };
-  // Submission handlers
 
-  const mutation = useCreateLOV();
+  //Get data for update when URL has id for update data
+  
 
+  const createMutation = useCreateLOV();
+  const updateMutation = useUpdateLOV();
+  
   const handleUnitSubmit = (values: z.infer<typeof AddingUnitLOVSchema>) => {
     console.log("Unit Data Submitted:", values);
-    mutation.mutate({
-      ...addData,
-      type_name: "unit",
-      product_name: values.unit_name,
-      data_value: values.unit_value,
-    });
+    if (!id) {
+      createMutation.mutate({
+        ...addData,
+        product_name: values.unit_name,
+        data_value: values.unit_value,
+        data_value2: values.additional_1,
+        data_value3: values.additional_2,
+        data_value4: values.additional_3,
+      });
+    } else {
+      updateMutation.mutate({
+        id,
+        data: {
+          ...addData,
+          product_name: values.unit_name,
+          data_value: values.unit_value,
+          data_value2: values.additional_1,
+          data_value3: values.additional_2,
+          data_value4: values.additional_3,
+        },
+      });
+    }
   };
 
   return (
@@ -120,10 +151,90 @@ export function UnitEdit() {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={unitForm.control}
+                      name="additional_1"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center">
+                            <FormLabel className="w-2/12 text-primary">
+                              Add. 1<span className="text-primary">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Optional"
+                                {...field}
+                                className="h-7"
+                              />
+                            </FormControl>
+                          </div>
+                          {showDescriptions && (
+                            <FormDescription>
+                              This is the Shaft.
+                            </FormDescription>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={unitForm.control}
+                      name="additional_2"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center">
+                            <FormLabel className="w-2/12 text-primary">
+                              Add. 2<span className="text-primary">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Optional"
+                                {...field}
+                                className="h-7"
+                              />
+                            </FormControl>
+                          </div>
+                          {showDescriptions && (
+                            <FormDescription>
+                              This is the Shaft.
+                            </FormDescription>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={unitForm.control}
+                      name="additional_3"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center">
+                            <FormLabel className="w-2/12 text-primary">
+                              Add. 3<span className="text-primary">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Optional"
+                                {...field}
+                                className="h-7"
+                              />
+                            </FormControl>
+                          </div>
+                          {showDescriptions && (
+                            <FormDescription>
+                              This is the Shaft.
+                            </FormDescription>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   <Button size="sm" className="sm:w-28 gap-1 " type="submit">
                     <PlusCircle className="h-3.5 w-3.5" />
-                    <span className=" sm:whitespace-nowrap">Update</span>
+                    <span className=" sm:whitespace-nowrap">
+                      {id ? "Update unit" : "Add unit"}
+                    </span>
                   </Button>
                 </FormBox>
               </div>

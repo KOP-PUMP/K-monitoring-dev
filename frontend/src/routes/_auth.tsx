@@ -53,6 +53,18 @@ const activeProps = {
   },
 };
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 export const Route = createFileRoute("/_auth")({
   beforeLoad: async ({ location }) => {
     const isAuthenticated = await AuthService.isAuthenticated();

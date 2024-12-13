@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { LOVTable } from '@/components/LOVList'
 
 export const Route = createFileRoute('/_auth/pump/lov_list')({
-  component: () => <div>Hello /_auth/pump/lov_list!</div>
+  component: LOVTable
 })

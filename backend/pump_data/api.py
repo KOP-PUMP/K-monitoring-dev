@@ -19,10 +19,28 @@ class ListOfValuesController:
             query = query.filter(product_name=name)
         return query
     
-
     @http_get('/unit_lov', response=list[KMonitoringLOV_schema])
     def get_unit_lov(self, request):
         return KMonitoringLOV.objects.filter(type_name='unit')
+    
+    @http_get('/pump_lov', response=list[KMonitoringLOV_schema])
+    def get_data_lov(self, request):
+        return KMonitoringLOV.objects.exclude(type_name='unit')
+    
+    @http_put('/lov/{id}', response=KMonitoringLOV_schema)
+    def update_lov(self, request, id: str, payload: KMonitoringLOV_schema):
+        uuid_id = UUID(id)
+        data = get_object_or_404(KMonitoringLOV, pk=uuid_id)
+        data.type_name = payload.type_name
+        data.product_name = payload.product_name
+        data.data_value = payload.data_value
+        data.data_value2 = payload.data_value2
+        data.data_value3 = payload.data_value3
+        data.data_value4 = payload.data_value4
+        data.updated_at = payload.updated_at
+        data.updated_by = payload.updated_by
+        data.save()
+        return data
 
     @http_get('/lov/{id}')
     def get_lov(self, request, id: str):

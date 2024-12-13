@@ -97,6 +97,16 @@ export const getAllUnitLOV = async (): Promise<LOVOut[]> => {
   }
 };
 
+export const getAllPumpLOV = async (): Promise<LOVOut[]> => {
+  try {
+    const response = await axiosInstance.get("/pump-data/pump_lov");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching pump LOV data:", error);
+    throw new Error("Failed to fetch pump LOV data");
+  }
+};
+
 export const getLOVById = async (id: string) => {
   const response = await axiosInstance.get(`/pump-data/lov/${id}`);
   return response.data;
