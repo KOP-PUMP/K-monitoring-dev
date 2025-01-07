@@ -78,21 +78,6 @@ export const PumpCustomerDetailSchema = z.object({
   doc_date: z.string(),
 });
 
-export const PumpGeneralDetailSchema = z.object({
-  location: z.string().optional(),
-  brand: z.string(),
-  model: z.string(),
-  tag_no: z.string(),
-  serial_no: z.string(),
-  pump_standard_id: z.string(),
-  pump_standard: z.string(),
-  pump_type_id: z.string(),
-  pump_type_name: z.string(),
-  stage: z.number().optional(),
-  pump_design: z.string(),
-});
-
-
 export const AddingUnitLOVSchema = z.object({
   unit_type: z.string().optional(),
   unit_name: z.string(),

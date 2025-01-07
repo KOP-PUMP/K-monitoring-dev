@@ -53,17 +53,6 @@ const activeProps = {
   },
 };
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_auth")({
   beforeLoad: async ({ location }) => {
@@ -197,14 +186,14 @@ function Dashboard() {
                 <Users className="h-4 w-4" />
                 Customers
               </Link>
-              {/* <Link
+              <Link
                 to="/analytic/"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                 activeProps={activeProps}
               >
                 <LineChart className="h-4 w-4" />
                 Analytics
-              </Link> */}
+              </Link>
             </nav>
           </div>
           {/* <div className="mt-auto p-4">

@@ -13,11 +13,12 @@ export interface ComboboxItemProps {
 
 interface ComboboxProps {
   items: ComboboxItemProps[];
+  label: string;
   className?: string;
   onChange: (event: string | string[]) => void;
 }
 
-export function Combobox({ items, className, onChange }: ComboboxProps) {
+export function Combobox({ items,label, className, onChange }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
 
@@ -25,8 +26,8 @@ export function Combobox({ items, className, onChange }: ComboboxProps) {
     <div className={cn("block", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" role="combobox" aria-expanded={open} className="w-[200px] justify-between">
-            {value ? items.find((item) => item.value === value)?.label : `Select ${name}...`}
+          <Button variant="outline" role="combobox" size="sm" aria-expanded={open} className="w-full justify-between">
+            {value ? items.find((item) => item.value === value)?.label : label}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
