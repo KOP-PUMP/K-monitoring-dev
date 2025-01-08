@@ -15,11 +15,11 @@ import { Route as LoginImport } from './routes/login'
 import { Route as AuthImport } from './routes/_auth'
 import { Route as AuthIndexImport } from './routes/_auth/index'
 import { Route as AuthSettingsImport } from './routes/_auth/settings'
-import { Route as AuthPumpIndexImport } from './routes/_auth/pump/index'
 import { Route as AuthDashboardIndexImport } from './routes/_auth/dashboard/index'
 import { Route as AuthCustomersIndexImport } from './routes/_auth/customers/index'
 import { Route as AuthPumpUnitlistImport } from './routes/_auth/pump/unit_list'
 import { Route as AuthPumpUniteditImport } from './routes/_auth/pump/unit_edit'
+import { Route as AuthPumpTotalpumpImport } from './routes/_auth/pump/total_pump'
 import { Route as AuthPumpLovlistImport } from './routes/_auth/pump/lov_list'
 import { Route as AuthPumpLoveditImport } from './routes/_auth/pump/lov_edit'
 import { Route as AuthPumpListeditImport } from './routes/_auth/pump/list_edit'
@@ -50,11 +50,6 @@ const AuthSettingsRoute = AuthSettingsImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
-const AuthPumpIndexRoute = AuthPumpIndexImport.update({
-  path: '/pump/',
-  getParentRoute: () => AuthRoute,
-} as any)
-
 const AuthDashboardIndexRoute = AuthDashboardIndexImport.update({
   path: '/dashboard/',
   getParentRoute: () => AuthRoute,
@@ -72,6 +67,11 @@ const AuthPumpUnitlistRoute = AuthPumpUnitlistImport.update({
 
 const AuthPumpUniteditRoute = AuthPumpUniteditImport.update({
   path: '/pump/unit_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpTotalpumpRoute = AuthPumpTotalpumpImport.update({
+  path: '/pump/total_pump',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -191,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPumpLovlistImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/pump/total_pump': {
+      id: '/_auth/pump/total_pump'
+      path: '/pump/total_pump'
+      fullPath: '/pump/total_pump'
+      preLoaderRoute: typeof AuthPumpTotalpumpImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/pump/unit_edit': {
       id: '/_auth/pump/unit_edit'
       path: '/pump/unit_edit'
@@ -219,13 +226,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardIndexImport
       parentRoute: typeof AuthImport
     }
-    '/_auth/pump/': {
-      id: '/_auth/pump/'
-      path: '/pump'
-      fullPath: '/pump'
-      preLoaderRoute: typeof AuthPumpIndexImport
-      parentRoute: typeof AuthImport
-    }
   }
 }
 
@@ -242,11 +242,11 @@ export const routeTree = rootRoute.addChildren({
     AuthPumpListeditRoute,
     AuthPumpLoveditRoute,
     AuthPumpLovlistRoute,
+    AuthPumpTotalpumpRoute,
     AuthPumpUniteditRoute,
     AuthPumpUnitlistRoute,
     AuthCustomersIndexRoute,
     AuthDashboardIndexRoute,
-    AuthPumpIndexRoute,
   }),
   LoginRoute,
 })
@@ -275,11 +275,11 @@ export const routeTree = rootRoute.addChildren({
         "/_auth/pump/list_edit",
         "/_auth/pump/lov_edit",
         "/_auth/pump/lov_list",
+        "/_auth/pump/total_pump",
         "/_auth/pump/unit_edit",
         "/_auth/pump/unit_list",
         "/_auth/customers/",
-        "/_auth/dashboard/",
-        "/_auth/pump/"
+        "/_auth/dashboard/"
       ]
     },
     "/login": {
@@ -321,6 +321,10 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth/pump/lov_list.tsx",
       "parent": "/_auth"
     },
+    "/_auth/pump/total_pump": {
+      "filePath": "_auth/pump/total_pump.tsx",
+      "parent": "/_auth"
+    },
     "/_auth/pump/unit_edit": {
       "filePath": "_auth/pump/unit_edit.tsx",
       "parent": "/_auth"
@@ -335,10 +339,6 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_auth/dashboard/": {
       "filePath": "_auth/dashboard/index.tsx",
-      "parent": "/_auth"
-    },
-    "/_auth/pump/": {
-      "filePath": "_auth/pump/index.tsx",
       "parent": "/_auth"
     }
   }

@@ -1,6 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface PumpCardProps {
   title: string;
@@ -12,11 +26,13 @@ const PumpDetailedCard = ({ title, image, description }: PumpCardProps) => {
   return (
     <div className="m-2">
       <Card>
-        <div className="flex">
-          <CardHeader className="w-2/5 h-4/5">
-            <img src={image} alt={image} />
-            <CardTitle>{title}</CardTitle>
-            <CardDescription className="w-5/6">{description}</CardDescription>
+        <div className="flex flex-col">
+          <CardHeader className="flex gap-2">
+            <img src={image} alt={image} className="basis-1/3" />
+            <div className="flex flex-col">
+              <CardTitle>{title}</CardTitle>
+              <CardDescription>{description}</CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-x-2 py-4">
@@ -68,13 +84,15 @@ const PumpDetailedCard = ({ title, image, description }: PumpCardProps) => {
                   </TableBody>
                 </Table>
               </div>
-              <div className="pt-2 space-x-3">
-                <Button className="h-7 font-bold">See more</Button>
-                <Button className="h-7 font-bold bg-destructive hover:bg-red-500">Compare</Button>
-              </div>
             </div>
           </CardContent>
         </div>
+        <CardFooter className="flex justify-between">
+          <Button className="h-7 font-bold">See more</Button>
+          <Button className="h-7 font-bold bg-destructive hover:bg-red-500">
+            Compare
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );

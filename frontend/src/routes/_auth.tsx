@@ -130,19 +130,11 @@ function Dashboard() {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <Link
-                    to="/pump"
+                    to="/pump/total_pump"
                     className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
                     activeProps={activeProps}
                   >
                     Total Pumps
-                    {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
-                  </Link>
-                  <Link
-                    to="/pump/detail"
-                    className="flex  items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                    activeProps={activeProps}
-                  >
-                    Adding Pump
                     {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
                   </Link>
                   <Collapsible>
