@@ -17,6 +17,10 @@ import { Route as AuthIndexImport } from './routes/_auth/index'
 import { Route as AuthSettingsImport } from './routes/_auth/settings'
 import { Route as AuthDashboardIndexImport } from './routes/_auth/dashboard/index'
 import { Route as AuthCustomersIndexImport } from './routes/_auth/customers/index'
+import { Route as AuthUsersUserlistImport } from './routes/_auth/users/user_list'
+import { Route as AuthUsersCustomerlistImport } from './routes/_auth/users/customer_list'
+import { Route as AuthUsersContactlistImport } from './routes/_auth/users/contact_list'
+import { Route as AuthUsersCompanylistImport } from './routes/_auth/users/company_list'
 import { Route as AuthPumpUnitlistImport } from './routes/_auth/pump/unit_list'
 import { Route as AuthPumpUniteditImport } from './routes/_auth/pump/unit_edit'
 import { Route as AuthPumpTotalpumpImport } from './routes/_auth/pump/total_pump'
@@ -57,6 +61,26 @@ const AuthDashboardIndexRoute = AuthDashboardIndexImport.update({
 
 const AuthCustomersIndexRoute = AuthCustomersIndexImport.update({
   path: '/customers/',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersUserlistRoute = AuthUsersUserlistImport.update({
+  path: '/users/user_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCustomerlistRoute = AuthUsersCustomerlistImport.update({
+  path: '/users/customer_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersContactlistRoute = AuthUsersContactlistImport.update({
+  path: '/users/contact_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCompanylistRoute = AuthUsersCompanylistImport.update({
+  path: '/users/company_list',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -212,6 +236,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPumpUnitlistImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/users/company_list': {
+      id: '/_auth/users/company_list'
+      path: '/users/company_list'
+      fullPath: '/users/company_list'
+      preLoaderRoute: typeof AuthUsersCompanylistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/contact_list': {
+      id: '/_auth/users/contact_list'
+      path: '/users/contact_list'
+      fullPath: '/users/contact_list'
+      preLoaderRoute: typeof AuthUsersContactlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/customer_list': {
+      id: '/_auth/users/customer_list'
+      path: '/users/customer_list'
+      fullPath: '/users/customer_list'
+      preLoaderRoute: typeof AuthUsersCustomerlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/user_list': {
+      id: '/_auth/users/user_list'
+      path: '/users/user_list'
+      fullPath: '/users/user_list'
+      preLoaderRoute: typeof AuthUsersUserlistImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/customers/': {
       id: '/_auth/customers/'
       path: '/customers'
@@ -245,6 +297,10 @@ export const routeTree = rootRoute.addChildren({
     AuthPumpTotalpumpRoute,
     AuthPumpUniteditRoute,
     AuthPumpUnitlistRoute,
+    AuthUsersCompanylistRoute,
+    AuthUsersContactlistRoute,
+    AuthUsersCustomerlistRoute,
+    AuthUsersUserlistRoute,
     AuthCustomersIndexRoute,
     AuthDashboardIndexRoute,
   }),
@@ -278,6 +334,10 @@ export const routeTree = rootRoute.addChildren({
         "/_auth/pump/total_pump",
         "/_auth/pump/unit_edit",
         "/_auth/pump/unit_list",
+        "/_auth/users/company_list",
+        "/_auth/users/contact_list",
+        "/_auth/users/customer_list",
+        "/_auth/users/user_list",
         "/_auth/customers/",
         "/_auth/dashboard/"
       ]
@@ -331,6 +391,22 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_auth/pump/unit_list": {
       "filePath": "_auth/pump/unit_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/company_list": {
+      "filePath": "_auth/users/company_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/contact_list": {
+      "filePath": "_auth/users/contact_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/customer_list": {
+      "filePath": "_auth/users/customer_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/user_list": {
+      "filePath": "_auth/users/user_list.tsx",
       "parent": "/_auth"
     },
     "/_auth/customers/": {

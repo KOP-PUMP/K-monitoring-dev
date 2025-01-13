@@ -16,6 +16,7 @@ import {
   Search,
   ShoppingCart,
   Users,
+  BookUser,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +54,6 @@ const activeProps = {
   },
 };
 
-
 export const Route = createFileRoute("/_auth")({
   beforeLoad: async ({ location }) => {
     const isAuthenticated = await AuthService.isAuthenticated();
@@ -80,6 +80,7 @@ function Dashboard() {
   const [isOpen, setIsOpen] = useState<CollapsibleState>({
     pumps: false,
     pump_data: false,
+    user_manage: false,
   });
 
   const toggleClick = (tab: keyof CollapsibleState) => {
@@ -151,6 +152,38 @@ function Dashboard() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <Link
+                        to="/pump/pump_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Pumps
+                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                      </Link>
+                      <Link
+                        to="/pump/mech_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Mechanical Seals
+                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                      </Link>
+                      <Link
+                        to="/pump/bearing_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Bearings
+                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                      </Link>
+                      <Link
+                        to="/pump/motor_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Motors
+                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                      </Link>
+                      <Link
                         to="/pump/unit_list"
                         className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
                         activeProps={activeProps}
@@ -186,6 +219,71 @@ function Dashboard() {
                 <LineChart className="h-4 w-4" />
                 Analytics
               </Link>
+              <Collapsible>
+                <CollapsibleTrigger
+                  className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                  onClick={() => toggleClick("pumps")}
+                >
+                  <div className="flex gap-3 items-center">
+                    <BookUser className="h-4 w-4" />
+                    Users Manage
+                  </div>
+                  {isOpen.pumps ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Link
+                    to="/users/company_list"
+                    className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                    activeProps={activeProps}
+                  >
+                    Companies
+                    {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                  </Link>
+                  <Collapsible>
+                    <CollapsibleTrigger
+                      className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                      onClick={() => toggleClick("user_manage")}
+                    >
+                      <div className="flex gap-3 items-center">Users</div>
+                      {isOpen.pump_data ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <Link
+                        to="/users/user_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Service Member
+                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                      </Link>
+                      <Link
+                        to="/users/customer_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Customer
+                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                      </Link>
+                      <Link
+                        to="/users/contact_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Contact person
+                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                      </Link>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </CollapsibleContent>
+              </Collapsible>
             </nav>
           </div>
           {/* <div className="mt-auto p-4">

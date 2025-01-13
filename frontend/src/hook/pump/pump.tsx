@@ -7,25 +7,25 @@ import {
   deleteLOV,
   getAllPumpLOV
 } from "@/api/pump/pump";
-import { LOVOut } from "@/types";
+import { LOVData } from "@/types/table";
 import toast from "react-hot-toast";
 
 export const useGetAllUnitLOVData = () => {
-  return useQuery<LOVOut[]>({
+  return useQuery<LOVData[]>({
     queryKey: ["pump", "unit_lov"],
     queryFn: getAllUnitLOV,
   });
 };
 
 export const useGetAllPumpLOVData = () => {
-    return useQuery<LOVOut[]>({
+    return useQuery<LOVData[]>({
       queryKey: ["pump", "lov_list"],
       queryFn: getAllPumpLOV,
     });
   };
 
 export const useGetLOVById = (id: string | null) => {
-  return useQuery<LOVOut>({
+  return useQuery<LOVData>({
     queryKey: ["pump", "lov", id],
     queryFn: () => {
       if (!id) {
