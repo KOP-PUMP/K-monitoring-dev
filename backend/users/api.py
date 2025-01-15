@@ -10,6 +10,8 @@ from ninja_jwt.authentication import JWTAuth
 from users.models import CustomUser
 from pumps.models import PumpDetail
 from .schema import UserProfileData, CustomerData
+from users.schemas.companies import Companies_Schema, ContactsPerson_Schema
+from users.models import CompaniesDetail, ContactPersonDetail
 
 logger = logging.getLogger(__name__)
 
@@ -57,3 +59,14 @@ class CustomerController:
         except Exception as e:
             logger.error(f'Error retrieving customers: {e}')
             return {'error': str(e)}, 500
+    
+@api_controller('/companies', tags=['Companies'], auth=JWTAuth())
+class CompaniesController:
+    @http_get('/', response = list[Companies_Schema])
+    def get_companies(self, request):
+        return CompaniesDetail.objects.all()
+    
+    @http_get('/contacts/{code}', response = list[ContactsPerson_Schema], auth=JWTAuth())
+    def get_contacts(self, request, code: str):
+        data = get_object_or_404(ContactPersonDetail, customer_code=code)
+        return [data]  

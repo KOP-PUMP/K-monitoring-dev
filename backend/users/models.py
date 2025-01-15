@@ -109,9 +109,9 @@ class CompaniesDetail(models.Model):
     province_en = models.CharField(max_length=100 , blank=False, null=False)
     sales_area = models.CharField(max_length=100 , blank=False, null=False)
     created_by = models.CharField(max_length=100 , blank=False, null=False)
-    created_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_by = models.CharField(max_length=100 , blank=False, null=False)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'tbl_company_detail'
@@ -128,10 +128,10 @@ class ContactPersonDetail(models.Model):
     tel = models.CharField(max_length=100 , blank=False, null=False)
     mobile = models.CharField(max_length=100 , blank=False, null=False)
     email = models.CharField(max_length=100 , blank=False, null=False)
-    time_stamp = models.DateTimeField(auto_now=True)
-    time_update = models.DateTimeField(auto_now=True)
+    time_stamp = models.DateTimeField(auto_now_add=True)
+    time_update = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'tbl_contact_person_detail'
     def __str__(self):
-        return self.contact_person_id
+        return self.name_surname_en
