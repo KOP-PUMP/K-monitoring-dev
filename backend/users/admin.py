@@ -41,7 +41,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     ordering = ('user__username',)
 
 class CompaniesDetail_Admin(admin.ModelAdmin):
-    list_display = ('customer_id', 'customer_code', 'customer_industry_id', 'customer_industry_group', 'company_name_en', 'address_en', 'company_name_th', 'address_th', 'map', 'province_th', 'province_en', 'sales_area', 'created_by', 'created_at', 'updated_by', 'updated_at')
+    list_display = ('customer_id', 'customer_code', 'customer_industry_id', 'customer_industry_group', 'company_name_en', 'address_en', 'company_name_th', 'address_th', 'map', 'province', 'sales_area', 'created_by', 'created_at', 'updated_by', 'updated_at')
     search_fields = ('customer_code','customer_industry_group', 'company_name_en', 'company_name_th')
 admin.site.register(CompaniesDetail, CompaniesDetail_Admin)
 

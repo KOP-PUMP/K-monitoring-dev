@@ -211,9 +211,9 @@ const LOVTable = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <Link to={`/pump/lov_edit?id=${payment.id}`}>Edit</Link>
-              </DropdownMenuItem>
+              <Link to={`/pump/lov_edit?id=${payment.id}`}>
+                <DropdownMenuItem>Edit</DropdownMenuItem>
+              </Link>
               <DropdownMenuItem
                 onClick={() => handleDeleteData(payment.id, false)}
               >

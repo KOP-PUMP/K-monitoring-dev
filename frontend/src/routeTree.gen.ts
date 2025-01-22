@@ -21,6 +21,7 @@ import { Route as AuthUsersUserlistImport } from './routes/_auth/users/user_list
 import { Route as AuthUsersCustomerlistImport } from './routes/_auth/users/customer_list'
 import { Route as AuthUsersContactlistImport } from './routes/_auth/users/contact_list'
 import { Route as AuthUsersCompanylistImport } from './routes/_auth/users/company_list'
+import { Route as AuthUsersCompanyeditImport } from './routes/_auth/users/company_edit'
 import { Route as AuthPumpUnitlistImport } from './routes/_auth/pump/unit_list'
 import { Route as AuthPumpUniteditImport } from './routes/_auth/pump/unit_edit'
 import { Route as AuthPumpTotalpumpImport } from './routes/_auth/pump/total_pump'
@@ -81,6 +82,11 @@ const AuthUsersContactlistRoute = AuthUsersContactlistImport.update({
 
 const AuthUsersCompanylistRoute = AuthUsersCompanylistImport.update({
   path: '/users/company_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCompanyeditRoute = AuthUsersCompanyeditImport.update({
+  path: '/users/company_edit',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -236,6 +242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPumpUnitlistImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/users/company_edit': {
+      id: '/_auth/users/company_edit'
+      path: '/users/company_edit'
+      fullPath: '/users/company_edit'
+      preLoaderRoute: typeof AuthUsersCompanyeditImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/users/company_list': {
       id: '/_auth/users/company_list'
       path: '/users/company_list'
@@ -297,6 +310,7 @@ export const routeTree = rootRoute.addChildren({
     AuthPumpTotalpumpRoute,
     AuthPumpUniteditRoute,
     AuthPumpUnitlistRoute,
+    AuthUsersCompanyeditRoute,
     AuthUsersCompanylistRoute,
     AuthUsersContactlistRoute,
     AuthUsersCustomerlistRoute,
@@ -334,6 +348,7 @@ export const routeTree = rootRoute.addChildren({
         "/_auth/pump/total_pump",
         "/_auth/pump/unit_edit",
         "/_auth/pump/unit_list",
+        "/_auth/users/company_edit",
         "/_auth/users/company_list",
         "/_auth/users/contact_list",
         "/_auth/users/customer_list",
@@ -391,6 +406,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_auth/pump/unit_list": {
       "filePath": "_auth/pump/unit_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/company_edit": {
+      "filePath": "_auth/users/company_edit.tsx",
       "parent": "/_auth"
     },
     "/_auth/users/company_list": {

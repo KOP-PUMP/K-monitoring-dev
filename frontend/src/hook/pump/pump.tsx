@@ -95,7 +95,7 @@ export const useUpdateLOV = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => {
       if (!id) {
-        return Promise.reject(new Error("id is required"));
+        return Promise.reject(new Error("Id is required"));
       }
       return updateLOV({ id, data });
     },
@@ -111,5 +111,6 @@ export const useUpdateLOV = () => {
     },
   });
 };
+
 
 

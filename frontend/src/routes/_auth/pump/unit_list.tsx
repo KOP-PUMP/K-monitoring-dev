@@ -25,7 +25,7 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
 
 const UnitTable = () => {
   const { data: units, isLoading, isError } = useGetAllUnitLOVData();
-  
+
   const deleteMutation = useDeleteLOVById();
   const handleDeleteData = (id: string, isUnit: boolean) => {
     deleteMutation.mutate({ id, isUnit });
@@ -193,10 +193,12 @@ const UnitTable = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <Link to={`/pump/unit_edit?id=${payment.id}`}>Edit</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDeleteData(payment.id, true)}>
+              <Link to={`/pump/unit_edit?id=${payment.id}`}>
+                <DropdownMenuItem>Edit</DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem
+                onClick={() => handleDeleteData(payment.id, true)}
+              >
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
