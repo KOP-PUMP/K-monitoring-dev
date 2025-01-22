@@ -12,11 +12,10 @@ import {
   updateCompany,
 } from "@/api/user/company";
 import toast from "react-hot-toast";
-import { get } from "http";
 
 export const useGetAllCompaniesData = () => {
   return useQuery<CompaniesResponse[]>({
-    queryKey: ["companies"],
+    queryKey: ["users", "company_list"],
     queryFn: getAllCompaniesDetail,
   });
 };
@@ -26,7 +25,7 @@ export const useDeleteCompany = () => {
   return useMutation({
     mutationFn: ({ code }: { code: string }) => deleteCompany(code),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      queryClient.invalidateQueries({ queryKey: ["users","company_list"] });
       toast.success("Company deleted successfully");
     },
     onError: () => {

@@ -18,13 +18,8 @@ export const getAllCompaniesDetail = async (): Promise<CompaniesResponse[]> => {
 };
 
 export const deleteCompany = async (code: string) => {
-  try {
     const response = await axiosInstance.delete(`/companies/${code}`);
     return response.data;
-  } catch (error) {
-    console.error("Error fetching companies detail data:", error);
-    throw new Error("Failed to fetch companies detail data");
-  }
 };
 
 export const createCompany = async (data: CompaniesResponse) => {

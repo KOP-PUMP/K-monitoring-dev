@@ -18,7 +18,6 @@ import {
 } from "@/types/users/company";
 import {
   useGetAllCompaniesData,
-  useGetAllContactData,
   useDeleteCompany,
 } from "@/hook/users/company";
 import { Card } from "@/components/ui/card";
@@ -39,7 +38,7 @@ const CompanyTable = () => {
   const handleDeleteData = (code: string) => {
     deleteMutation.mutate({ code });
   };
-  console.log()
+  
   /* Set cloumn */
   const columns: ExtendedColumnDef<CompaniesResponse>[] = [
     {
@@ -59,24 +58,6 @@ const CompanyTable = () => {
       cell: ({ row }) => {
         return <div className="pl-4">{row.getValue("customer_code")}</div>;
       },
-    },
-    {
-      accessorKey: "customer_industry_group",
-      label: "Industry Group",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Industry Group
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => (
-        <div className="pl-4">{row.getValue("customer_industry_group")}</div>
-      ),
     },
     {
       accessorKey: "company_name_en",

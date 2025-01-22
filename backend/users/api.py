@@ -67,18 +67,12 @@ class CompaniesController:
     def get_companies(self, request):
         return CompaniesDetail.objects.all()
     
-    @http_delete('/{code}', auth=JWTAuth())
+    @http_delete('{code}', auth=JWTAuth())
     def delete_companies(self, request, code: str):
-        company_data = get_object_or_404(CompaniesDetail, customer_code=code)
-        company_data.delete()
-        
-        try:
-            contact_data = ContactPersonDetail.objects.get(customer_code=code)
-            contact_data.delete()
-        except ContactPersonDetail.DoesNotExist:
-            return JsonResponse({"success": False, "message": "Company not found"}, status=404)
+        contact_data = CompaniesDetail.objects.get(customer_code=code)
+        contact_data.delete()
         return JsonResponse({"success": True, "message": "Company deleted successfully and related contacts deleted"}, status=200)
-
+        
     @http_post('/', response=list[Companies_Schema]  )
     def create_companies(self, request, payload: Companies_Schema):
         lov = CompaniesDetail.objects.create(**payload.dict())
