@@ -31,14 +31,8 @@ class ListOfValuesController:
     def update_lov(self, request, id: str, payload: KMonitoringLOV_schema):
         uuid_id = UUID(id)
         data = get_object_or_404(KMonitoringLOV, pk=uuid_id)
-        data.type_name = payload.type_name
-        data.product_name = payload.product_name
-        data.data_value = payload.data_value
-        data.data_value2 = payload.data_value2
-        data.data_value3 = payload.data_value3
-        data.data_value4 = payload.data_value4
-        data.updated_at = payload.updated_at
-        data.updated_by = payload.updated_by
+        for attr, value in payload.dict(exclude={"id","pk"}).items():
+            setattr(data, attr, value) 
         data.save()
         return data
 

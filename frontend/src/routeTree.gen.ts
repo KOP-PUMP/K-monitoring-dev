@@ -15,16 +15,22 @@ import { Route as LoginImport } from './routes/login'
 import { Route as AuthImport } from './routes/_auth'
 import { Route as AuthIndexImport } from './routes/_auth/index'
 import { Route as AuthSettingsImport } from './routes/_auth/settings'
-import { Route as AuthCustomersImport } from './routes/_auth/customers'
-import { Route as AuthPumpIndexImport } from './routes/_auth/pump/index'
 import { Route as AuthDashboardIndexImport } from './routes/_auth/dashboard/index'
+import { Route as AuthCustomersIndexImport } from './routes/_auth/customers/index'
+import { Route as AuthUsersUserlistImport } from './routes/_auth/users/user_list'
+import { Route as AuthUsersCustomerlistImport } from './routes/_auth/users/customer_list'
+import { Route as AuthUsersContactlistImport } from './routes/_auth/users/contact_list'
+import { Route as AuthUsersCompanylistImport } from './routes/_auth/users/company_list'
+import { Route as AuthUsersCompanyeditImport } from './routes/_auth/users/company_edit'
 import { Route as AuthPumpUnitlistImport } from './routes/_auth/pump/unit_list'
 import { Route as AuthPumpUniteditImport } from './routes/_auth/pump/unit_edit'
+import { Route as AuthPumpTotalpumpImport } from './routes/_auth/pump/total_pump'
 import { Route as AuthPumpLovlistImport } from './routes/_auth/pump/lov_list'
 import { Route as AuthPumpLoveditImport } from './routes/_auth/pump/lov_edit'
 import { Route as AuthPumpListeditImport } from './routes/_auth/pump/list_edit'
 import { Route as AuthPumpEngineeringImport } from './routes/_auth/pump/engineering'
 import { Route as AuthPumpDetailImport } from './routes/_auth/pump/detail'
+import { Route as AuthCustomersDashboardImport } from './routes/_auth/customers/dashboard'
 import { Route as AuthAnalyticModelImport } from './routes/_auth/analytic.$model'
 
 // Create/Update Routes
@@ -49,18 +55,38 @@ const AuthSettingsRoute = AuthSettingsImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
-const AuthCustomersRoute = AuthCustomersImport.update({
-  path: '/customers',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthPumpIndexRoute = AuthPumpIndexImport.update({
-  path: '/pump/',
-  getParentRoute: () => AuthRoute,
-} as any)
-
 const AuthDashboardIndexRoute = AuthDashboardIndexImport.update({
   path: '/dashboard/',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthCustomersIndexRoute = AuthCustomersIndexImport.update({
+  path: '/customers/',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersUserlistRoute = AuthUsersUserlistImport.update({
+  path: '/users/user_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCustomerlistRoute = AuthUsersCustomerlistImport.update({
+  path: '/users/customer_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersContactlistRoute = AuthUsersContactlistImport.update({
+  path: '/users/contact_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCompanylistRoute = AuthUsersCompanylistImport.update({
+  path: '/users/company_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCompanyeditRoute = AuthUsersCompanyeditImport.update({
+  path: '/users/company_edit',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -71,6 +97,11 @@ const AuthPumpUnitlistRoute = AuthPumpUnitlistImport.update({
 
 const AuthPumpUniteditRoute = AuthPumpUniteditImport.update({
   path: '/pump/unit_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpTotalpumpRoute = AuthPumpTotalpumpImport.update({
+  path: '/pump/total_pump',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -99,6 +130,11 @@ const AuthPumpDetailRoute = AuthPumpDetailImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AuthCustomersDashboardRoute = AuthCustomersDashboardImport.update({
+  path: '/customers/dashboard',
+  getParentRoute: () => AuthRoute,
+} as any)
+
 const AuthAnalyticModelRoute = AuthAnalyticModelImport.update({
   path: '/analytic/$model',
   getParentRoute: () => AuthRoute,
@@ -122,13 +158,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
-    '/_auth/customers': {
-      id: '/_auth/customers'
-      path: '/customers'
-      fullPath: '/customers'
-      preLoaderRoute: typeof AuthCustomersImport
-      parentRoute: typeof AuthImport
-    }
     '/_auth/settings': {
       id: '/_auth/settings'
       path: '/settings'
@@ -148,6 +177,13 @@ declare module '@tanstack/react-router' {
       path: '/analytic/$model'
       fullPath: '/analytic/$model'
       preLoaderRoute: typeof AuthAnalyticModelImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/customers/dashboard': {
+      id: '/_auth/customers/dashboard'
+      path: '/customers/dashboard'
+      fullPath: '/customers/dashboard'
+      preLoaderRoute: typeof AuthCustomersDashboardImport
       parentRoute: typeof AuthImport
     }
     '/_auth/pump/detail': {
@@ -185,6 +221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPumpLovlistImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/pump/total_pump': {
+      id: '/_auth/pump/total_pump'
+      path: '/pump/total_pump'
+      fullPath: '/pump/total_pump'
+      preLoaderRoute: typeof AuthPumpTotalpumpImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/pump/unit_edit': {
       id: '/_auth/pump/unit_edit'
       path: '/pump/unit_edit'
@@ -199,18 +242,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPumpUnitlistImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/users/company_edit': {
+      id: '/_auth/users/company_edit'
+      path: '/users/company_edit'
+      fullPath: '/users/company_edit'
+      preLoaderRoute: typeof AuthUsersCompanyeditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/company_list': {
+      id: '/_auth/users/company_list'
+      path: '/users/company_list'
+      fullPath: '/users/company_list'
+      preLoaderRoute: typeof AuthUsersCompanylistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/contact_list': {
+      id: '/_auth/users/contact_list'
+      path: '/users/contact_list'
+      fullPath: '/users/contact_list'
+      preLoaderRoute: typeof AuthUsersContactlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/customer_list': {
+      id: '/_auth/users/customer_list'
+      path: '/users/customer_list'
+      fullPath: '/users/customer_list'
+      preLoaderRoute: typeof AuthUsersCustomerlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/user_list': {
+      id: '/_auth/users/user_list'
+      path: '/users/user_list'
+      fullPath: '/users/user_list'
+      preLoaderRoute: typeof AuthUsersUserlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/customers/': {
+      id: '/_auth/customers/'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AuthCustomersIndexImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/dashboard/': {
       id: '/_auth/dashboard/'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthDashboardIndexImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/pump/': {
-      id: '/_auth/pump/'
-      path: '/pump'
-      fullPath: '/pump'
-      preLoaderRoute: typeof AuthPumpIndexImport
       parentRoute: typeof AuthImport
     }
   }
@@ -220,19 +298,25 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   AuthRoute: AuthRoute.addChildren({
-    AuthCustomersRoute,
     AuthSettingsRoute,
     AuthIndexRoute,
     AuthAnalyticModelRoute,
+    AuthCustomersDashboardRoute,
     AuthPumpDetailRoute,
     AuthPumpEngineeringRoute,
     AuthPumpListeditRoute,
     AuthPumpLoveditRoute,
     AuthPumpLovlistRoute,
+    AuthPumpTotalpumpRoute,
     AuthPumpUniteditRoute,
     AuthPumpUnitlistRoute,
+    AuthUsersCompanyeditRoute,
+    AuthUsersCompanylistRoute,
+    AuthUsersContactlistRoute,
+    AuthUsersCustomerlistRoute,
+    AuthUsersUserlistRoute,
+    AuthCustomersIndexRoute,
     AuthDashboardIndexRoute,
-    AuthPumpIndexRoute,
   }),
   LoginRoute,
 })
@@ -252,27 +336,29 @@ export const routeTree = rootRoute.addChildren({
     "/_auth": {
       "filePath": "_auth.tsx",
       "children": [
-        "/_auth/customers",
         "/_auth/settings",
         "/_auth/",
         "/_auth/analytic/$model",
+        "/_auth/customers/dashboard",
         "/_auth/pump/detail",
         "/_auth/pump/engineering",
         "/_auth/pump/list_edit",
         "/_auth/pump/lov_edit",
         "/_auth/pump/lov_list",
+        "/_auth/pump/total_pump",
         "/_auth/pump/unit_edit",
         "/_auth/pump/unit_list",
-        "/_auth/dashboard/",
-        "/_auth/pump/"
+        "/_auth/users/company_edit",
+        "/_auth/users/company_list",
+        "/_auth/users/contact_list",
+        "/_auth/users/customer_list",
+        "/_auth/users/user_list",
+        "/_auth/customers/",
+        "/_auth/dashboard/"
       ]
     },
     "/login": {
       "filePath": "login.tsx"
-    },
-    "/_auth/customers": {
-      "filePath": "_auth/customers.tsx",
-      "parent": "/_auth"
     },
     "/_auth/settings": {
       "filePath": "_auth/settings.tsx",
@@ -284,6 +370,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_auth/analytic/$model": {
       "filePath": "_auth/analytic.$model.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/customers/dashboard": {
+      "filePath": "_auth/customers/dashboard.tsx",
       "parent": "/_auth"
     },
     "/_auth/pump/detail": {
@@ -306,6 +396,10 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth/pump/lov_list.tsx",
       "parent": "/_auth"
     },
+    "/_auth/pump/total_pump": {
+      "filePath": "_auth/pump/total_pump.tsx",
+      "parent": "/_auth"
+    },
     "/_auth/pump/unit_edit": {
       "filePath": "_auth/pump/unit_edit.tsx",
       "parent": "/_auth"
@@ -314,12 +408,32 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth/pump/unit_list.tsx",
       "parent": "/_auth"
     },
-    "/_auth/dashboard/": {
-      "filePath": "_auth/dashboard/index.tsx",
+    "/_auth/users/company_edit": {
+      "filePath": "_auth/users/company_edit.tsx",
       "parent": "/_auth"
     },
-    "/_auth/pump/": {
-      "filePath": "_auth/pump/index.tsx",
+    "/_auth/users/company_list": {
+      "filePath": "_auth/users/company_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/contact_list": {
+      "filePath": "_auth/users/contact_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/customer_list": {
+      "filePath": "_auth/users/customer_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/user_list": {
+      "filePath": "_auth/users/user_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/customers/": {
+      "filePath": "_auth/customers/index.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/dashboard/": {
+      "filePath": "_auth/dashboard/index.tsx",
       "parent": "/_auth"
     }
   }

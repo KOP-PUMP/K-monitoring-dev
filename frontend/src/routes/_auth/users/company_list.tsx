@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/table/DataTable";
+import { useSearch } from "@tanstack/react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +12,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { LOVData } from "@/types/table";
-import { useGetAllUnitLOVData, useDeleteLOVById } from "@/hook/pump/pump";
+import {
+  CompaniesResponse,
+  ContactPersonResponse,
+} from "@/types/users/company";
+import { useGetAllCompaniesData, useDeleteCompany } from "@/hook/users/company";
 import { Card } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 
@@ -23,74 +27,102 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
   label?: string; // Add the label property
 };
 
-const UnitTable = () => {
-  const { data: units, isLoading, isError } = useGetAllUnitLOVData();
+const CompanyTable = () => {
+  const { data: units, isLoading, isError } = useGetAllCompaniesData();
 
-  const deleteMutation = useDeleteLOVById();
-  const handleDeleteData = (id: string, isUnit: boolean) => {
-    deleteMutation.mutate({ id, isUnit });
+  const deleteMutation = useDeleteCompany();
+  const handleDeleteData = (code: string) => {
+    deleteMutation.mutate({ code });
   };
 
   /* Set cloumn */
-  const columns: ExtendedColumnDef<LOVData>[] = [
+  const columns: ExtendedColumnDef<CompaniesResponse>[] = [
     {
-      accessorKey: "product_name",
+      accessorKey: "customer_code",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Unit Group
+            Customer Code
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
-      label: "Unit Group",
+      label: "Customer Code",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("product_name")}</div>;
+        return <div className="pl-4">{row.getValue("customer_code")}</div>;
       },
     },
     {
-      accessorKey: "data_value",
-      label: "Unit name",
+      accessorKey: "company_name_en",
+      label: "Company Name (Eng)",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Unit name
+            {"Company Name (Eng)"}
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
       cell: ({ row }) => (
-        <div className="pl-4">{row.getValue("data_value")}</div>
+        <div className="pl-4">{row.getValue("company_name_en")}</div>
       ),
     },
     {
-      accessorKey: "data_value2",
-      header: "Add. 1",
-      label: "Add. 1",
+      accessorKey: "address_en",
+      label: "Address (Eng)",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Address (Eng)"}
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
       cell: ({ row }) => (
-        <div className="min-w-[50px]">{row.getValue("data_value2")}</div>
+        <div className="pl-4">{row.getValue("address_en")}</div>
       ),
     },
     {
-      accessorKey: "data_value3",
-      header: "Add. 2",
-      label: "Add. 2",
-      cell: ({ row }) => (
-        <div className="min-w-[50px]">{row.getValue("data_value3")}</div>
-      ),
+      accessorKey: "province",
+      label: "Province",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Province"}
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div className="pl-4">{row.getValue("province")}</div>,
     },
     {
-      accessorKey: "data_value4",
-      header: "Add. 3",
-      label: "Add. 3",
+      accessorKey: "sales_area",
+      label: "Sales Area",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Sales Area"}
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
       cell: ({ row }) => (
-        <div className="min-w-[70px]">{row.getValue("data_value4")}</div>
+        <div className="pl-4">{row.getValue("sales_area")}</div>
       ),
     },
     {
@@ -182,7 +214,7 @@ const UnitTable = () => {
       enableHiding: false,
       label: "Action",
       cell: ({ row }) => {
-        const payment = row.original;
+        const company = row.original;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -193,11 +225,12 @@ const UnitTable = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <Link to={`/pump/unit_edit?id=${payment.id}`}>
-                <DropdownMenuItem>Edit</DropdownMenuItem>
+
+              <Link to={`/users/company_edit?code=${company.customer_code}`}>
+                <DropdownMenuItem>View</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() => handleDeleteData(payment.id, true)}
+                onClick={() => handleDeleteData(company.customer_code)}
               >
                 Delete
               </DropdownMenuItem>
@@ -210,16 +243,16 @@ const UnitTable = () => {
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 ">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Unit Data</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Company Data</h2>
         <div className="flex items-center space-x-2">
-          <Link to="/pump/unit_edit" search={{ id: null }}>
-            <Button>Add Unit</Button>
+          <Link to="/users/company_edit" search={{ code: null }}>
+            <Button>Add Company</Button>
           </Link>
         </div>
       </div>
       <Card className="px-6 w-full max-w-full overflow-x-hidden">
         {units ? (
-          <DataTable data={units} columns={columns} search={"product_name"} />
+          <DataTable data={units} columns={columns} search={"customer_code"} />
         ) : (
           <div>Error</div>
         )}
@@ -228,6 +261,6 @@ const UnitTable = () => {
   );
 };
 
-export const Route = createFileRoute("/_auth/pump/unit_list")({
-  component: UnitTable,
+export const Route = createFileRoute("/_auth/users/company_list")({
+  component: CompanyTable,
 });

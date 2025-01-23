@@ -3,6 +3,9 @@ import AuthService from "@/lib/auth";
 
 // Get the base URL for the API from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_PEC_URL = import.meta.env.VITE_API_PEC_URL as string;
+const API_PUBLIC_PROVINCE_URL = import.meta.env
+  .VITE_PUBLIC_API_PROVINCE_URL as string;
 
 // Create a custom Axios instance with default settings
 export const axiosInstance = axios.create({
@@ -13,6 +16,16 @@ export const axiosInstance = axios.create({
     "Content-Type": "application/json", // Content-Type for JSON payloads
     accept: "application/json", // Accept header for JSON responses
   },
+});
+
+export const axiosInstancePEC = axios.create({
+  baseURL: API_PEC_URL, // Base URL for all API requests
+  timeout: 5000, // Set timeout to 5 seconds for API calls
+});
+
+export const axiosInstanceProvince = axios.create({
+  baseURL: API_PUBLIC_PROVINCE_URL,
+  timeout: 5000,
 });
 
 // Add a request interceptor to modify the request before sending it
@@ -56,10 +69,12 @@ axiosInstance.interceptors.response.use(
           localStorage.setItem("access_token", newTokens.access);
 
           // Update the default Authorization header for all future requests
-          axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${newTokens.access}`;
+          axiosInstance.defaults.headers.common["Authorization"] =
+            `Bearer ${newTokens.access}`;
 
           // Update the Authorization header for the retried request
-          originalRequest.headers["Authorization"] = `Bearer ${newTokens.access}`;
+          originalRequest.headers["Authorization"] =
+            `Bearer ${newTokens.access}`;
 
           // Retry the original request with the new token
           return axiosInstance(originalRequest);

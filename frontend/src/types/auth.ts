@@ -20,5 +20,6 @@ export interface VerifyRequest {
 export interface CollapsibleState {
   pumps: boolean;
   pump_data: boolean;
+  user_manage : boolean;
 };
 

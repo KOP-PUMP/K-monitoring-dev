@@ -2,7 +2,7 @@ from ninja_jwt.controller import NinjaJWTDefaultController
 from ninja_extra import NinjaExtraAPI
 
 from pumps.api import PumpDetailController, EngineeringDetailController, DropDownDataController, UnitDataController, ChartDataController
-from users.api import UserProfileController, CustomerController
+from users.api import UserProfileController, CustomerController, CompaniesController
 from pump_data.api import ListOfValuesController
 
 api = NinjaExtraAPI(title="K-Monitoring API", version="1.0.0")
@@ -16,6 +16,7 @@ api.register_controllers(
     UserProfileController,
     ChartDataController,
     CustomerController,
-    ListOfValuesController
+    ListOfValuesController,
+    CompaniesController
 )
 api.register_controllers(NinjaJWTDefaultController)

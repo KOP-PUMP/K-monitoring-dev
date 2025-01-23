@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -93,3 +94,43 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+class CompaniesDetail(models.Model):
+    customer_id= models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4) 
+    customer_code = models.CharField(max_length=100 , blank=False, null=False)
+    customer_industry_id = models.CharField(max_length=100 , blank=True, null=True)
+    customer_industry_group = models.CharField(max_length=100 , blank=True, null=True)
+    company_name_en = models.CharField(max_length=100 , blank=False, null=False)
+    address_en = models.CharField(max_length=1000 , blank=False, null=False)
+    company_name_th = models.CharField(max_length=100 , blank=False, null=False)
+    address_th = models.CharField(max_length=1000,blank=False, null=False)
+    map = models.CharField(max_length=100 , blank=True, null=True)  
+    province = models.CharField(max_length=100 , blank=False, null=False)
+    sales_area = models.CharField(max_length=100 , blank=False, null=False)
+    created_by = models.CharField(max_length=100 , blank=False, null=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_by = models.CharField(max_length=100 , blank=False, null=False)
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'tbl_company_detail'
+    def __str__(self):
+        return self.customer_code
+    
+class ContactPersonDetail(models.Model):
+    contact_person_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    customer_code = models.CharField(max_length=100 , blank=False, null=False)
+    name_surname_en = models.CharField(max_length=100 , blank=False, null=False)
+    name_surname_th = models.CharField(max_length=100 , blank=False, null=False)
+    position_en = models.CharField(max_length=100 , blank=False, null=False)
+    position_th = models.CharField(max_length=100 , blank=False, null=False)
+    tel = models.CharField(max_length=100 , blank=False, null=False)
+    mobile = models.CharField(max_length=100 , blank=False, null=False)
+    email = models.CharField(max_length=100 , blank=False, null=False)
+    time_stamp = models.DateTimeField(auto_now_add=True)
+    time_update = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'tbl_contact_person_detail'
+    def __str__(self):
+        return self.name_surname_en
