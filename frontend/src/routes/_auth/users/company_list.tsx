@@ -16,10 +16,7 @@ import {
   CompaniesResponse,
   ContactPersonResponse,
 } from "@/types/users/company";
-import {
-  useGetAllCompaniesData,
-  useDeleteCompany,
-} from "@/hook/users/company";
+import { useGetAllCompaniesData, useDeleteCompany } from "@/hook/users/company";
 import { Card } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 
@@ -31,14 +28,13 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
 };
 
 const CompanyTable = () => {
-
   const { data: units, isLoading, isError } = useGetAllCompaniesData();
 
   const deleteMutation = useDeleteCompany();
   const handleDeleteData = (code: string) => {
     deleteMutation.mutate({ code });
   };
-  
+
   /* Set cloumn */
   const columns: ExtendedColumnDef<CompaniesResponse>[] = [
     {
@@ -109,9 +105,7 @@ const CompanyTable = () => {
           </Button>
         );
       },
-      cell: ({ row }) => (
-        <div className="pl-4">{row.getValue("province")}</div>
-      ),
+      cell: ({ row }) => <div className="pl-4">{row.getValue("province")}</div>,
     },
     {
       accessorKey: "sales_area",
@@ -231,11 +225,10 @@ const CompanyTable = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <Link to={`/pump/company_edit?code=${company.customer_code}`}>
-                  Edit
-                </Link>
-              </DropdownMenuItem>
+
+              <Link to={`/users/company_edit?code=${company.customer_code}`}>
+                <DropdownMenuItem>View</DropdownMenuItem>
+              </Link>
               <DropdownMenuItem
                 onClick={() => handleDeleteData(company.customer_code)}
               >

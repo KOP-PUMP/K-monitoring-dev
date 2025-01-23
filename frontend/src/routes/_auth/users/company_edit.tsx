@@ -46,6 +46,7 @@ import {
   useGetPECContactDetail,
   useCreateCompany,
   useUpdateCompany,
+  useGetCompanyDetailByCode,
 } from "@/hook/users/company";
 import { useGetAllProvince } from "@/hook/dropdown";
 import { useState } from "react";
@@ -63,10 +64,13 @@ function CompanyEdit() {
   const [companyCode, setCompanyCode] = useState<string | null>(null);
   const [isCLearClick, setClearClick] = useState<boolean>(false);
   const [provinceData, setProvinceData] = useState<ComboboxItemProps[]>([]);
-  const { data: provinceNames } = useGetAllProvince();
-  const { data: contactData } = useGetPECContactDetail(companyCode || "");
-  const { data: companyData } = useGetPECCompanyDetail(companyCode || "");
   const { code } = useSearch({ from: "/_auth/users/company_edit" });
+  const { data: provinceNames } = useGetAllProvince();
+  const { data: contactData } = useGetPECContactDetail(
+    companyCode || code || ""
+  );
+  const { data: companyData } = useGetPECCompanyDetail(companyCode || "");
+  const { data: companyDetail } = useGetCompanyDetailByCode(code || "");
   const { showDescriptions } = useSettings();
   const localstorage = window.localStorage.getItem("user");
   const userData = localstorage ? JSON.parse(localstorage) : null;
@@ -122,6 +126,20 @@ function CompanyEdit() {
   }, [pecCompanyData, CompanyForm, isCLearClick]);
 
   useEffect(() => {
+    if (code) {
+      CompanyForm.reset({
+        customer_code: companyDetail?.customer_code,
+        company_name_en: companyDetail?.company_name_en,
+        company_name_th: companyDetail?.company_name_th,
+        address_en: companyDetail?.address_en,
+        address_th: companyDetail?.address_th,
+        province: companyDetail?.province,
+        sales_area: companyDetail?.sales_area,
+      });
+    }
+  }, [code, companyDetail]);
+
+  useEffect(() => {
     if (provinceNames) {
       const provinceList: ComboboxItemProps[] = provinceNames.map((arr) => ({
         value: `${arr.name_th} - ${arr.name_en}`,
@@ -137,7 +155,7 @@ function CompanyEdit() {
   const updateMutation = useUpdateCompany();
 
   const handleSubmit = (values: z.infer<typeof CompanyOutSchema>) => {
-    const date = new Date().toISOString()
+    const date = new Date().toISOString();
     const formData = {
       ...values,
       customer_industry_id: "",
@@ -147,19 +165,19 @@ function CompanyEdit() {
       created_at: pecCompanyData?.created_at || date,
       updated_by: userData.email,
       updated_at: date,
-    }
+    };
 
     if (!code) {
-      createMutation.mutate(formData)
+      createMutation.mutate(formData);
     } else {
-      updateMutation.mutate({ code: code, data: formData })
+      updateMutation.mutate({ code: code, data: formData });
     }
-  }
+  };
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">
-          {code ? "Updating Company" : "Adding Company"}
+          {code ? "Company Detail" : "Adding Company"}
         </h2>
         <Link to="/users/company_list">Back</Link>
       </div>
@@ -191,122 +209,131 @@ function CompanyEdit() {
                                   readOnly
                                 />
                               </FormControl>
-                              <Sheet>
-                                <SheetTrigger asChild>
-                                  <Button type="button" className="w-32 gap-1">
-                                    <Search className="h-3.5 w-3.5" />
-                                    Company
-                                  </Button>
-                                </SheetTrigger>
-                                <SheetContent>
-                                  <SheetHeader>
-                                    <SheetTitle>Find Company</SheetTitle>
-                                    <SheetDescription>
-                                      Please enter the company code
-                                    </SheetDescription>
-                                  </SheetHeader>
-                                  <div className="gap-4 pt-8">
-                                    <div className="flex flex-col items-start gap-4">
-                                      <Label
-                                        htmlFor="name"
-                                        className="text-right"
-                                      >
-                                        Name
-                                      </Label>
-                                      <Input
-                                        id="input_code"
-                                        className="col-span-3"
-                                      />
-                                    </div>
-                                    {companyData?.customer_code && (
-                                      <div className="gap-4 pt-8">
-                                        <SheetHeader>
-                                          <SheetDescription className="text-center">
-                                            ** Please check the information
-                                            below **
-                                          </SheetDescription>
-                                        </SheetHeader>
-                                        <div className="flex flex-col gap-4 pt-4 items-start">
-                                          <Label
-                                            htmlFor="name"
-                                            className="text-right"
-                                          >
-                                            Name
-                                          </Label>
-                                          <Input
-                                            id="address"
-                                            value={companyData.company_name_en}
-                                            className="col-span-3 text-wrap h-4rem"
-                                            readOnly
-                                          />
-                                          <Input
-                                            id="address"
-                                            value={companyData.company_name_th}
-                                            className="col-span-3"
-                                            readOnly
-                                          />
-                                          <Label
-                                            htmlFor="address"
-                                            className="text-right pt-2"
-                                          >
-                                            Address
-                                          </Label>
-                                          <Input
-                                            id="name"
-                                            value={companyData.address_en}
-                                            className="col-span-3"
-                                            readOnly
-                                          />
-                                          <Input
-                                            id="name"
-                                            value={companyData.address_th}
-                                            className="col-span-3"
-                                            readOnly
-                                          />
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <SheetFooter className="pt-8">
-                                    {companyData &&
-                                      companyData.customer_code && (
-                                        <SheetClose asChild>
-                                          <Button
-                                            className="bg-green-500 hover:bg-green-600 w-full"
-                                            type="button"
-                                            onClick={() => {
-                                              setPecCompanyData(companyData);
-                                              setPecContactData(contactData);
-                                              setClearClick(false);
-                                            }}
-                                          >
-                                            <PlusCircle className="mr-2 h-3.5 w-3.5" />
-                                            Add
-                                          </Button>
-                                        </SheetClose>
-                                      )}
+                              {!code && (
+                                <Sheet>
+                                  <SheetTrigger asChild>
                                     <Button
                                       type="button"
-                                      onClick={() => {
-                                        const input = document.getElementById(
-                                          "input_code"
-                                        ) as HTMLInputElement;
-                                        setCompanyCode(input?.value);
-                                      }}
+                                      className="w-32 gap-1"
                                     >
-                                      Find
+                                      <Search className="h-3.5 w-3.5" />
+                                      Company
                                     </Button>
-                                    <SheetClose asChild>
+                                  </SheetTrigger>
+                                  <SheetContent>
+                                    <SheetHeader>
+                                      <SheetTitle>Find Company</SheetTitle>
+                                      <SheetDescription>
+                                        Please enter the company code
+                                      </SheetDescription>
+                                    </SheetHeader>
+                                    <div className="gap-4 pt-8">
+                                      <div className="flex flex-col items-start gap-4">
+                                        <Label
+                                          htmlFor="name"
+                                          className="text-right"
+                                        >
+                                          Name
+                                        </Label>
+                                        <Input
+                                          id="input_code"
+                                          className="col-span-3"
+                                        />
+                                      </div>
+                                      {companyData?.customer_code && (
+                                        <div className="gap-4 pt-8">
+                                          <SheetHeader>
+                                            <SheetDescription className="text-center">
+                                              ** Please check the information
+                                              below **
+                                            </SheetDescription>
+                                          </SheetHeader>
+                                          <div className="flex flex-col gap-4 pt-4 items-start">
+                                            <Label
+                                              htmlFor="name"
+                                              className="text-right"
+                                            >
+                                              Name
+                                            </Label>
+                                            <Input
+                                              id="address"
+                                              value={
+                                                companyData.company_name_en
+                                              }
+                                              className="col-span-3 text-wrap h-4rem"
+                                              readOnly
+                                            />
+                                            <Input
+                                              id="address"
+                                              value={
+                                                companyData.company_name_th
+                                              }
+                                              className="col-span-3"
+                                              readOnly
+                                            />
+                                            <Label
+                                              htmlFor="address"
+                                              className="text-right pt-2"
+                                            >
+                                              Address
+                                            </Label>
+                                            <Input
+                                              id="name"
+                                              value={companyData.address_en}
+                                              className="col-span-3"
+                                              readOnly
+                                            />
+                                            <Input
+                                              id="name"
+                                              value={companyData.address_th}
+                                              className="col-span-3"
+                                              readOnly
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <SheetFooter className="pt-8">
+                                      {companyData &&
+                                        companyData.customer_code && (
+                                          <SheetClose asChild>
+                                            <Button
+                                              className="bg-green-500 hover:bg-green-600 w-full"
+                                              type="button"
+                                              onClick={() => {
+                                                setPecCompanyData(companyData);
+                                                setPecContactData(contactData);
+                                                setClearClick(false);
+                                              }}
+                                            >
+                                              <PlusCircle className="mr-2 h-3.5 w-3.5" />
+                                              Add
+                                            </Button>
+                                          </SheetClose>
+                                        )}
                                       <Button
                                         type="button"
-                                        variant={"destructive"}
+                                        onClick={() => {
+                                          const input = document.getElementById(
+                                            "input_code"
+                                          ) as HTMLInputElement;
+                                          setCompanyCode(input?.value);
+                                        }}
                                       >
-                                        Close
+                                        Find
                                       </Button>
-                                    </SheetClose>
-                                  </SheetFooter>
-                                </SheetContent>
-                              </Sheet>
+                                      <SheetClose asChild>
+                                        <Button
+                                          type="button"
+                                          variant={"destructive"}
+                                        >
+                                          Close
+                                        </Button>
+                                      </SheetClose>
+                                    </SheetFooter>
+                                  </SheetContent>
+                                </Sheet>
+                              )}
                             </div>
                           </div>
                           {showDescriptions && (
@@ -436,36 +463,46 @@ function CompanyEdit() {
                               {"Province"}
                             </FormLabel>
                             <FormControl>
-                              <Combobox
-                                {...field}
-                                className="w-full"
-                                items={provinceData}
-                                label={"Select"}
-                                onChange={(value) => {
-                                  CompanyForm.setValue(
-                                    "province",
-                                    String(value)
-                                  );
-                                  field.onChange(value);
-                                  const selectedProvince = provinceNames?.find(
-                                    (item) =>
-                                      item.name_th ===
-                                      (value as string).split("-")[0].trim()
-                                  );
-                                  if (selectedProvince) {
-                                    const geo_id = `${selectedProvince.geography_id}`;
+                              {code ? (
+                                <Input
+                                  placeholder="Company Address (TH)"
+                                  {...field}
+                                  className="h-7"
+                                  readOnly
+                                />
+                              ) : (
+                                <Combobox
+                                  {...field}
+                                  className="w-full"
+                                  items={provinceData}
+                                  label={"Select"}
+                                  onChange={(value) => {
                                     CompanyForm.setValue(
-                                      "sales_area",
-                                      `${geographic[geo_id].th} - ${geographic[geo_id].en}`
+                                      "province",
+                                      String(value)
                                     );
-                                  } else {
-                                    CompanyForm.setValue(
-                                      "sales_area",
-                                      "not found"
-                                    );
-                                  }
-                                }}
-                              />
+                                    field.onChange(value);
+                                    const selectedProvince =
+                                      provinceNames?.find(
+                                        (item) =>
+                                          item.name_th ===
+                                          (value as string).split("-")[0].trim()
+                                      );
+                                    if (selectedProvince) {
+                                      const geo_id = `${selectedProvince.geography_id}`;
+                                      CompanyForm.setValue(
+                                        "sales_area",
+                                        `${geographic[geo_id].th} - ${geographic[geo_id].en}`
+                                      );
+                                    } else {
+                                      CompanyForm.setValue(
+                                        "sales_area",
+                                        "not found"
+                                      );
+                                    }
+                                  }}
+                                />
+                              )}
                             </FormControl>
                           </div>
                           {showDescriptions && (
@@ -505,24 +542,30 @@ function CompanyEdit() {
                       )}
                     />
                   </div>
-                  <CardFooter className="p-0 flex justify-between">
-                    <Button size="sm" className="sm:w-32 gap-1 " type="submit">
-                      <PlusCircle className="h-5 w-3.5" />
-                      <span className="sm:whitespace-nowrap">
-                        {code ? "Update Company" : "Add Company"}
-                      </span>
-                    </Button>
-                    <Button
-                      type="button"
-                      size={"sm"}
-                      variant={"destructive"}
-                      onClick={() => setClearClick(true)}
-                      className="flex gap-1 "
-                    >
-                      <CircleX className="h-5 w-3.5" />
-                      Clear
-                    </Button>
-                  </CardFooter>
+                  {!code && (
+                    <CardFooter className="p-0 flex justify-between">
+                      <Button
+                        size="sm"
+                        className="sm:w-32 gap-1 "
+                        type="submit"
+                      >
+                        <PlusCircle className="h-5 w-3.5" />
+                        <span className="sm:whitespace-nowrap">
+                          Add Company
+                        </span>
+                      </Button>
+                      <Button
+                        type="button"
+                        size={"sm"}
+                        variant={"destructive"}
+                        onClick={() => setClearClick(true)}
+                        className="flex gap-1 "
+                      >
+                        <CircleX className="h-5 w-3.5" />
+                        Clear
+                      </Button>
+                    </CardFooter>
+                  )}
                 </FormBox>
               </div>
             </form>
@@ -741,8 +784,10 @@ function CompanyEdit() {
                           </AccordionItem>
                         </Accordion>
                       ))
-                    ) : (
+                    ) : !code ? (
                       <p>Please Select Company</p>
+                    ) : (
+                      <p>Contact person not found</p>
                     )}
                   </div>
                 </FormBox>

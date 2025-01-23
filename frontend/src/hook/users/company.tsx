@@ -10,8 +10,10 @@ import {
   getPECContactDetail,
   createCompany,
   updateCompany,
+  getCompanyDetailByCode,
 } from "@/api/user/company";
 import toast from "react-hot-toast";
+import { AxiosError } from "axios";
 
 export const useGetAllCompaniesData = () => {
   return useQuery<CompaniesResponse[]>({
@@ -19,6 +21,13 @@ export const useGetAllCompaniesData = () => {
     queryFn: getAllCompaniesDetail,
   });
 };
+
+export const useGetCompanyDetailByCode = (code: string) => {
+  return useQuery<CompaniesResponse>({
+    queryKey: ["company", code],
+    queryFn: () => getCompanyDetailByCode(code),
+  });
+}
 
 export const useDeleteCompany = () => {
   const queryClient = useQueryClient();
@@ -43,8 +52,8 @@ export const useCreateCompany = () => {
         window.location.reload();
       }, 2000);
     },
-    onError: () => {
-      toast.error("Error creating company");
+    onError: (error) => {
+      toast.error(`${error}`);
     },
   });
 };

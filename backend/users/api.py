@@ -13,6 +13,7 @@ from pumps.models import PumpDetail
 from .schema import UserProfileData, CustomerData
 from users.schemas.companies import Companies_Schema, ContactsPerson_Schema
 from users.models import CompaniesDetail, ContactPersonDetail
+from django.forms.models import model_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,13 @@ class CompaniesController:
     def get_companies(self, request):
         return CompaniesDetail.objects.all()
     
-    @http_delete('{code}', auth=JWTAuth())
+    @http_get('/{code}')
+    def get_company(self, request, code: str):
+        data = get_object_or_404(CompaniesDetail, customer_code=code)
+        data = model_to_dict(data)
+        return data
+    
+    @http_delete('/{code}', auth=JWTAuth())
     def delete_companies(self, request, code: str):
         contact_data = CompaniesDetail.objects.get(customer_code=code)
         contact_data.delete()
