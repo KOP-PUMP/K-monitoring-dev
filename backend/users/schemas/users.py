@@ -12,8 +12,7 @@ class UserProfileData(Schema):
     user_customer: Optional[str] = Field(max_length=100, default=None)
     user_address: Optional[str] = Field(max_length=50, default=None)
     user_image: Optional[str] = Field(max_length=10, default=None)
-
-
+    
 class CustomerPumpData(Schema):
     owned_pumps: int
 
@@ -23,3 +22,9 @@ class CustomerData(Schema):
     email: EmailStr
     phone: str
     pump_data: CustomerPumpData
+
+class UserCreateWithProfileSchema(Schema):
+    email : EmailStr
+    username : str
+    password : str
+    profile: Optional[UserProfileData] = None

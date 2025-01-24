@@ -21,7 +21,6 @@ class Companies_Schema(Schema):
     updated_by : str
     updated_at : datetime
 
-
 class ContactsPerson_Schema(Schema):
     contact_person_id : UUID
     customer_code : str

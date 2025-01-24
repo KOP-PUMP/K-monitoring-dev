@@ -10,10 +10,11 @@ from ninja_jwt.authentication import JWTAuth
 
 from users.models import CustomUser
 from pumps.models import PumpDetail
-from .schema import UserProfileData, CustomerData
+from .schemas.users import UserProfileData, CustomerData, UserCreateWithProfileSchema
 from users.schemas.companies import Companies_Schema, ContactsPerson_Schema
-from users.models import CompaniesDetail, ContactPersonDetail
+from users.models import CompaniesDetail, ContactPersonDetail, UserProfile, CustomUser
 from django.forms.models import model_to_dict
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,35 @@ class UserProfileController:
             'user_image': user.profile.user_image
         }
         return data
+    @http_post('/profile')
+    def create_user_with_profile(self, request, payload: UserCreateWithProfileSchema):
+        try:
+            user = CustomUser.objects.create_user(
+                username=payload.username,
+                email=payload.email,
+                password=payload.password
+            )
 
+            profile, created = UserProfile.objects.get_or_create(user=user)
+
+            if payload.profile:
+                profile = user.profile
+                profile.role = payload.profile.role
+                profile.phone = payload.profile.phone
+                profile.surname = payload.profile.surname
+                profile.lastname = payload.profile.lastname
+                profile.user_customer = payload.profile.user_customer
+                profile.user_address = payload.profile.user_address
+                profile.user_image = payload.profile.user_image
+                profile.save()
+
+            return JsonResponse({"success": True, "message": "User created successfully"}, status=200)
+        except Exception as e:
+            logger.error(f'Error creating user: {e}')
+            raise ValidationError(
+                    {'error': f'Error creating user: {e}'}
+                )
+    
 
 @api_controller('/customers/', tags=['Customer'])
 class CustomerController:
