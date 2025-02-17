@@ -1,7 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-import { set, string, z } from "zod";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearch } from "@tanstack/react-router";
@@ -127,6 +124,7 @@ function CompanyEdit() {
 
   useEffect(() => {
     if (code) {
+      setPecContactData(contactData)
       CompanyForm.reset({
         customer_code: companyDetail?.customer_code,
         company_name_en: companyDetail?.company_name_en,

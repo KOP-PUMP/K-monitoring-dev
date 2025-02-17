@@ -11,8 +11,8 @@ from ninja_jwt.authentication import JWTAuth
 from users.models import CustomUser
 from pumps.models import PumpDetail
 from .schemas.users import UserProfileData, CustomerData, UserCreateWithProfileSchema
-from users.schemas.companies import Companies_Schema, ContactsPerson_Schema
-from users.models import CompaniesDetail, ContactPersonDetail, UserProfile, CustomUser
+from users.schemas.companies import Companies_Schema
+from users.models import CompaniesDetail, UserProfile, CustomUser
 from django.forms.models import model_to_dict
 from django.core.exceptions import ValidationError
 
@@ -22,39 +22,45 @@ logger = logging.getLogger(__name__)
 class UserProfileController:
     @http_get('/profile', response=UserProfileData)
     def get_user_profile(self, request):
-        user = CustomUser.objects.get(id=request.user.id)
+        user = CustomUser.objects.select_related('profile').get(id=request.user.id)
+        if not hasattr(user, 'profile'):
+            return {"error" : "User profile not found"}, 404
         data = {
-            'username': user.username,
-            'email': user.email,
-            'role': user.profile.role,
-            'phone': user.profile.phone,
-            'surname': user.profile.surname,
-            'lastname': user.profile.lastname,
-            'user_customer': user.profile.user_customer,
-            'user_address': user.profile.user_address,
-            'user_image': user.profile.user_image
+            'user_username': user.user_username,
+            'user_email': user.user_email,
+            'user_mobile': user.profile.user_mobile,
+            'user_tel': user.profile.user_tel,
+            'user_name': user.profile.user_name,
+            'user_pec_code': user.profile.user_pec_code,
+            'user_company_code': user.profile.user_company_code,
+            'user_role': user.profile.user_role,
+            'created_by': user.profile.created_by,
+            'created_at': user.profile.created_at,
+            'updated_by': user.profile.updated_by,
+            'updated_at': user.profile.updated_at,
         }
         return data
     @http_post('/profile')
     def create_user_with_profile(self, request, payload: UserCreateWithProfileSchema):
         try:
             user = CustomUser.objects.create_user(
-                username=payload.username,
-                email=payload.email,
-                password=payload.password
+                user_username=payload.user_username,
+                user_email=payload.user_email,
+                user_password=payload.user_password
             )
 
             profile, created = UserProfile.objects.get_or_create(user=user)
 
             if payload.profile:
-                profile = user.profile
-                profile.role = payload.profile.role
-                profile.phone = payload.profile.phone
-                profile.surname = payload.profile.surname
-                profile.lastname = payload.profile.lastname
-                profile.user_customer = payload.profile.user_customer
-                profile.user_address = payload.profile.user_address
-                profile.user_image = payload.profile.user_image
+                profile = user.profile     
+                profile.user_mobile = payload.profile.user_mobile
+                profile.user_tel = payload.profile.user_tel
+                profile.user_name = payload.profile.user_name
+                profile.user_pec_code = payload.profile.user_pec_code
+                profile.user_company_code = payload.profile.user_company_code
+                profile.user_role = payload.profile.user_role
+                profile.created_by = payload.profile.created_by
+                profile.updated_by = payload.profile.updated_by
                 profile.save()
 
             return JsonResponse({"success": True, "message": "User created successfully"}, status=200)
@@ -122,8 +128,4 @@ class CompaniesController:
         data.save()
         return data
 
-    @http_get('/contacts/{code}', response = list[ContactsPerson_Schema], auth=JWTAuth())
-    def get_contacts(self, request, code: str):
-        data = get_object_or_404(ContactPersonDetail, customer_code=code)
-        return [data]
       

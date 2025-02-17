@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AuthService from "@/lib/auth";
+import Logincover from "/portrait-engineers-during-work-hours-job-site_23-2151589548.jpg"
 
 const LoginSchema = z.object({
   email: z.string({ required_error: "This field has to be filled." }).email("This is not a valid email."),
@@ -88,7 +89,7 @@ function LoginForm() {
       </div>
       <div className="hidden bg-muted lg:block">
         <img
-          src="https://img.freepik.com/free-photo/portrait-engineers-during-work-hours-job-site_23-2151589548.jpg"
+          src={Logincover}
           alt="Image"
           width="626"
           height="351"

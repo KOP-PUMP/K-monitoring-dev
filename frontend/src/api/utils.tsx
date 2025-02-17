@@ -2,7 +2,7 @@ import axios from "axios";
 import AuthService from "@/lib/auth";
 
 // Get the base URL for the API from environment variables
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string 
 const API_PEC_URL = import.meta.env.VITE_API_PEC_URL as string;
 const API_PUBLIC_PROVINCE_URL = import.meta.env
   .VITE_PUBLIC_API_PROVINCE_URL as string;

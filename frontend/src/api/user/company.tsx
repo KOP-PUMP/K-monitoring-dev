@@ -19,8 +19,20 @@ export const getAllCompaniesDetail = async (): Promise<CompaniesResponse[]> => {
 };
 
 export const getCompanyDetailByCode = async (code: string) => {
-  const response = await axiosInstance.get(`/companies/${code}`);
-  return response.data;
+  try {
+    const response = await axiosInstance.get(`/companies/${code}`);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      // Axios-specific error handling
+      if (error.response?.status === 404) {
+        // If the company doesn't exist, proceed to create it
+        throw new Error(`Bad request. Cannot find company code ${code} `);
+      } else {
+        throw new Error("Bad request. Cannot get Data");
+      }
+    }
+  }
 };
 
 export const deleteCompany = async (code: string) => {

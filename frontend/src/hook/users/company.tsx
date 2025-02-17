@@ -13,9 +13,8 @@ import {
   getCompanyDetailByCode,
 } from "@/api/user/company";
 import toast from "react-hot-toast";
-import { AxiosError } from "axios";
 
-export const useGetAllCompaniesData = () => {
+export const useGetAllCompaniesDetail = () => {
   return useQuery<CompaniesResponse[]>({
     queryKey: ["users", "company_list"],
     queryFn: getAllCompaniesDetail,
@@ -23,18 +22,27 @@ export const useGetAllCompaniesData = () => {
 };
 
 export const useGetCompanyDetailByCode = (code: string) => {
-  return useQuery<CompaniesResponse>({
+  const query = useQuery<CompaniesResponse>({
     queryKey: ["company", code],
     queryFn: () => getCompanyDetailByCode(code),
+    enabled: !!code,
+    retry: false,
   });
-}
+
+  if (query.error) {
+    toast.error(query.error.message, {
+      style: { backgroundColor: "white", color: "black" },
+    });
+  }
+  return query;
+};
 
 export const useDeleteCompany = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ code }: { code: string }) => deleteCompany(code),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users","company_list"] });
+      queryClient.invalidateQueries({ queryKey: ["users", "company_list"] });
       toast.success("Company deleted successfully");
     },
     onError: () => {

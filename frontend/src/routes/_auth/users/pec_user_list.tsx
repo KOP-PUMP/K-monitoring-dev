@@ -1,6 +1,4 @@
-import {
-  ColumnDef,
-} from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table";
 import { createFileRoute } from "@tanstack/react-router";
 import { DataTable } from "@/components/table/DataTable";
 import {
@@ -10,12 +8,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 
-const data: Payment[] = [
+/* const data: Payment[] = [
   {
     id: "m5gr84i9",
     amount: 316,
@@ -115,7 +113,7 @@ export const columns: ColumnDef<Payment>[] = [
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"))
 
-      // Format the amount as a dollar amount
+      
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
@@ -157,17 +155,26 @@ export const columns: ColumnDef<Payment>[] = [
 
 const UserTable = () => {
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">
-          User Data
-        </h2>
+    <div className="flex-1 space-y-4 p-8 pt-6 ">
+    <div className="flex items-center justify-between">
+      <h2 className="text-3xl font-bold tracking-tight">Company Data</h2>
+      <div className="flex items-center space-x-2">
+        <Link to="/users/pec_user_edit" search={{ code: null }}>
+          <Button>Add PEC Member</Button>
+        </Link>
       </div>
-      <DataTable data={data} columns={columns} />
     </div>
+    <Card className="px-6 w-full max-w-full overflow-x-hidden">
+      {users ? (
+        <DataTable data={users} columns={columns} search={"customer_code"} />
+      ) : (
+        <div>Error</div>
+      )}
+    </Card>
+  </div>
   );
-};
+}; */
 
-export const Route = createFileRoute('/_auth/users/user_list')({
-  component: UserTable
-})
+export const Route = createFileRoute("/_auth/users/pec_user_list")({
+  component: /* UserTable */ () => <div>Test</div>,
+});
