@@ -11,12 +11,10 @@ class UserProfileData(Schema):
     user_name: Optional[str] = Field(max_length=50, default=None)
     user_pec_code: Optional[str] = Field(max_length=50, default=None)
     user_company_code: Optional[str] = Field(max_length=50, default=None)
-    user_role: str = Field(max_length=30)
     created_at: Optional[datetime] = Field(None)
     created_by: Optional[str] = Field(max_length=50, default=None)
     updated_at: Optional[datetime] = Field(None)
     updated_by: Optional[str] = Field(max_length=50, default=None)
-    
     
 class CustomerPumpData(Schema):
     owned_pumps: int
@@ -32,4 +30,5 @@ class UserCreateWithProfileSchema(Schema):
     user_email : EmailStr
     user_username : str
     user_password : str
+    user_role: str = Field(max_length=30)
     profile: Optional[UserProfileData] = None

@@ -19,3 +19,24 @@ export interface PECPersonResponse {
   email: string,
   update_time: string,
 }
+
+
+export interface CreateUserOut {
+  user_email : string,
+  user_username : string,
+  user_password : string,
+  user_role : "Engineer" | "Customer",
+  profile :  UserProfile 
+}
+
+export interface UserProfile {
+  user_username : string,
+  user_email : string,
+  user_mobile : string,
+  user_tel : string,
+  user_name : string,
+  user_pec_code : string,
+  user_company_code : string,
+  created_by : string,
+  updated_by : string
+}

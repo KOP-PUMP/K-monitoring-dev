@@ -9,8 +9,8 @@ const login = async (email: string, password: string): Promise<TokenResponse> =>
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      email,
-      password,
+      user_email: email,
+      password: password,
     } as LoginRequest),
   });
 

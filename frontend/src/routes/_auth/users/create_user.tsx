@@ -41,6 +41,7 @@ import { useGetPECPersonByCode } from "@/hook/users/users";
 import { useGetCompanyDetailByCode } from "@/hook/users/company";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { CreateUserOut } from "@/types/users/users";
 
 function CreateUser() {
   const [SelectedPECCode, setSelectedPECCode] = useState<string>("");
@@ -54,13 +55,7 @@ function CreateUser() {
   const { showDescriptions } = useSettings();
   const localstorage = window.localStorage.getItem("user");
   const userData = localstorage ? JSON.parse(localstorage) : null;
-  const date = new Date().toISOString();
-  console.log(typeof userData.email, userData.email)
   const roleData = [
-    {
-      value: "Developer",
-      label: "Developer",
-    },
     {
       value: "Engineer",
       label: "Engineer",
@@ -90,10 +85,8 @@ function CreateUser() {
     show_address_th: "",
     show_province: "",
     show_sales_area: "",
-    created_by: userData.email,
-    created_at: date,
-    updated_by: userData.email,
-    updated_at: date,
+    created_by: userData.user_email,
+    updated_by: userData.user_email,
   };
   const USERCreateForm = useForm<z.infer<typeof UserOutSchema>>({
     resolver: zodResolver(UserOutSchema),
@@ -120,7 +113,7 @@ function CreateUser() {
   }, [companyData, isAdd]);
 
   useEffect(() => {
-    if (selectedRole !== "Developer" && selectedRole !== "Engineer") {
+    if (selectedRole !== "Engineer") {
       USERCreateForm.reset(defaultValues);
       setCompanyCode("");
       setPECPersonCode("");
@@ -130,7 +123,26 @@ function CreateUser() {
   }, [selectedRole, USERCreateForm]);
 
   const handleSubmit = (values: z.infer<typeof UserOutSchema>) => {
-    console.log(values);
+    
+    const data: CreateUserOut = {
+      user_email: values.user_email,
+      user_username:values.user_username,
+      user_password: values.user_password,
+      user_role: values.user_role,
+      profile: {
+        user_username: values.user_username,
+        user_email: values.user_email,
+        user_mobile: values.user_mobile,
+        user_tel: values.user_tel,
+        user_name: values.user_name,
+        user_pec_code: values.user_pec_code,
+        user_company_code: values.user_company_code,
+        created_by: userData.user_email,
+        updated_by: userData.user_email,
+      },
+    };
+
+    console.log("Data Submitted:", data);
     /* const date = new Date().toISOString();
     const formData = {
       ...values,
@@ -152,7 +164,7 @@ function CreateUser() {
       updateMutation.mutate({ code: code, data: formData });
     } */
   };
-
+  console.log(typeof userData.user_email)
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -310,7 +322,7 @@ function CreateUser() {
                                                   Department
                                                 </Label>
                                                 <Input
-                                                  id="email"
+                                                  id="department"
                                                   value={
                                                     PECPersonDetail[0]
                                                       .department
@@ -348,27 +360,14 @@ function CreateUser() {
                                                     USERCreateForm.getValues();
                                                   USERCreateForm.reset({
                                                     ...currentValues,
-                                                    user_name:
-                                                      PECPersonDetail[0]
-                                                        .pec_code,
-                                                    user_email:
-                                                      PECPersonDetail[0].email,
-                                                    show_name_th:
-                                                      PECPersonDetail[0]
-                                                        .name_surname_th,
-                                                    show_name_en:
-                                                      PECPersonDetail[0]
-                                                        .name_surname_en,
-                                                    show_department:
-                                                      PECPersonDetail[0]
-                                                        .name_surname_en,
-                                                    show_position:
-                                                      PECPersonDetail[0]
-                                                        .position,
-                                                    show_mobile:
-                                                      PECPersonDetail[0].mobile,
-                                                    show_tel:
-                                                      PECPersonDetail[0].tel,
+                                                    user_name:PECPersonDetail[0].pec_code,
+                                                    user_email:PECPersonDetail[0].email,
+                                                    show_name_th:PECPersonDetail[0].name_surname_th,
+                                                    show_name_en:PECPersonDetail[0].name_surname_en,
+                                                    show_department:PECPersonDetail[0].department,
+                                                    show_position:PECPersonDetail[0].position,
+                                                    show_mobile:PECPersonDetail[0].mobile,
+                                                    show_tel:PECPersonDetail[0].tel,
                                                   });
                                                   setCompanyCode("PEC");
                                                   setIsAdd(true);
@@ -511,7 +510,6 @@ function CreateUser() {
                                   <Input
                                     placeholder="Mobile"
                                     {...field}
-                                    readOnly
                                   />
                                 </FormControl>
                               </div>
@@ -537,7 +535,6 @@ function CreateUser() {
                                   <Input
                                     placeholder="Telephone"
                                     {...field}
-                                    readOnly
                                   />
                                 </FormControl>
                               </div>

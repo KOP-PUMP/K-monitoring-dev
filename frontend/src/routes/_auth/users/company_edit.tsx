@@ -70,7 +70,7 @@ function CompanyEdit() {
   const { data: companyDetail } = useGetCompanyDetailByCode(code || "");
   const { showDescriptions } = useSettings();
   const localstorage = window.localStorage.getItem("user");
-  const userData = localstorage ? JSON.parse(localstorage) : null;
+  const userData = localstorage ? JSON.parse(localstorage).user : null;
   const geographic: { [key: string]: { th: string; en: string } } = {
     "1": { th: "ภาคเหนือ", en: "Northern" },
     "2": { th: "ภาคกลาง", en: "Central" },
@@ -124,7 +124,7 @@ function CompanyEdit() {
 
   useEffect(() => {
     if (code) {
-      setPecContactData(contactData)
+      setPecContactData(contactData);
       CompanyForm.reset({
         customer_code: companyDetail?.customer_code,
         company_name_en: companyDetail?.company_name_en,
@@ -159,12 +159,11 @@ function CompanyEdit() {
       customer_industry_id: "",
       customer_industry_group: "",
       map: "",
-      created_by: pecCompanyData?.created_by || userData.email,
+      created_by: pecCompanyData?.created_by || userData.user_email,
       created_at: pecCompanyData?.created_at || date,
-      updated_by: userData.email,
+      updated_by: userData.user_email,
       updated_at: date,
     };
-
     if (!code) {
       createMutation.mutate(formData);
     } else {

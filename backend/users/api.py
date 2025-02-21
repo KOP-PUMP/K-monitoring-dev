@@ -9,7 +9,6 @@ from ninja_extra import api_controller, http_get, http_post, http_put, http_dele
 from ninja_jwt.authentication import JWTAuth
 
 from users.models import CustomUser
-from pumps.models import PumpDetail
 from .schemas.users import UserProfileData, CustomerData, UserCreateWithProfileSchema
 from users.schemas.companies import Companies_Schema
 from users.models import CompaniesDetail, UserProfile, CustomUser
@@ -69,33 +68,6 @@ class UserProfileController:
             raise ValidationError(
                     {'error': f'Error creating user: {e}'}
                 )
-    
-
-@api_controller('/customers/', tags=['Customer'])
-class CustomerController:
-    @http_get('/', response=List[CustomerData])
-    def get_customers(self, request):
-        try:
-            customer_group = get_object_or_404(Group, name='customer')
-            customers = CustomUser.objects.filter(groups=customer_group)
-            data = []
-            for customer in customers:
-                profile = customer.profile
-                data.append({
-                    'id': customer.id,
-                    'username': customer.username,
-                    'email': customer.email,
-                    'phone': profile.phone,
-                    'pump_data': {
-                        'owned_pumps': PumpDetail.objects.filter(user=customer).count(),
-                    }
-                })
-            return data
-        except Group.DoesNotExist:
-            return {'error': 'Customer group does not exist'}, 404
-        except Exception as e:
-            logger.error(f'Error retrieving customers: {e}')
-            return {'error': str(e)}, 500
     
 @api_controller('/companies', tags=['Companies'], auth=JWTAuth())
 class CompaniesController:

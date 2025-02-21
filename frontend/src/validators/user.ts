@@ -50,8 +50,6 @@ export const UserOutSchema = z.object({
     show_province: z.string().optional(),
     show_sales_area: z.string().optional(),
     created_by: z.string(),
-    created_at: z.string(),
-    updated_at: z.string(),
     updated_by: z.string()
 }).refine((data)=> data.user_password === data.user_password_re , {
     message : "Passwords do not match", 

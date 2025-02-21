@@ -1,5 +1,5 @@
 from django.contrib import admin
-from pump_data.models import KMonitoringLOV, PumpDetailLOV, PumpStandardLOV, MotorDetailLOV, VibrationLOV
+from pump_data.models import KMonitoringLOV, PumpDetailLOV, MotorDetailLOV, ShaftSealLOV, PumpMaterialLOV, PumpDetail
 
 # Register your models here.
 
@@ -10,25 +10,31 @@ class KMonitoringLOV_admin(admin.ModelAdmin):
 admin.site.register(KMonitoringLOV, KMonitoringLOV_admin)
 
 class PumpDetailLOV_admin(admin.ModelAdmin):
-    list_display = ('id','pump_design', 'pump_type', 'updated_at', 'updated_by', 'created_at', 'created_by')
-    search_fields = ('id','pump_design', 'pump_type')
+    list_display = [field.name for field in PumpDetailLOV._meta.fields]
+    search_fields = ('pump_lov_id','pump_brand', 'pump_model', 'pump_design', 'pump_type')
 
 admin.site.register(PumpDetailLOV, PumpDetailLOV_admin)
 
-class PumpStandardLOV_admin(admin.ModelAdmin):
-    list_display = ('id','standard_name', 'updated_at', 'updated_by', 'created_at', 'created_by')
-    search_fields = ('id','standard_name')
-
-admin.site.register(PumpStandardLOV, PumpStandardLOV_admin)
-
 class MotorDetailLOV_admin(admin.ModelAdmin):
-    list_display = ('id','ie_class', 'standard', 'updated_at', 'updated_by', 'created_at', 'created_by')
-    search_fields = ('id','ie_class', 'standard')
+    list_display = [field.name for field in MotorDetailLOV._meta.fields]
+    search_fields = ('motor_id','motor_model', 'motor_serial_no', 'motor_brand', 'motor_standard')
 
 admin.site.register(MotorDetailLOV, MotorDetailLOV_admin)
 
-class VibrationLOV_admin(admin.ModelAdmin):
-    list_display = ('id','voltage', 'acceptable', 'unsatisfied', 'unacceptable', 'updated_at', 'updated_by', 'created_at', 'created_by')
-    search_fields = ('id','voltage', 'acceptable', 'unsatisfied', 'unacceptable')
+class ShaftSealLOV_admin(admin.ModelAdmin):
+    list_display = [field.name for field in ShaftSealLOV._meta.fields]
+    search_fields = ('shaft_seal_id','shaft_seal_design', 'shaft_seal_brand', 'shaft_seal_model')
 
-admin.site.register(VibrationLOV, VibrationLOV_admin)
+admin.site.register(ShaftSealLOV, ShaftSealLOV_admin)
+
+class PumpMaterialLOV_admin(admin.ModelAdmin):
+    list_display = [field.name for field in PumpMaterialLOV._meta.fields]
+    search_fields = ('material_id','pump_type_mat')
+
+admin.site.register(PumpMaterialLOV, PumpMaterialLOV_admin)
+
+class PumpDetail_admin(admin.ModelAdmin):
+    list_display = [field.name for field in PumpDetail._meta.fields]
+    search_fields = ('pump_id', 'company_code', 'pump_status')
+
+admin.site.register(PumpDetail, PumpDetail_admin)

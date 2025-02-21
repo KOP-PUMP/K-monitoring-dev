@@ -13,9 +13,8 @@ class UserProfileInline(admin.StackedInline):
 
 class UserAdmin(BaseUserAdmin):
     inlines = (UserProfileInline,)
-    
     fieldsets = (
-        (None, {'fields': ('user_username', 'user_email')}),
+        (None, {'fields': ('user_username', 'user_email', 'user_role')}),
         (_('Important dates'), {'fields': ('last_login',)}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
     )
@@ -23,12 +22,12 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('user_username', 'user_email', 'password1', 'password2', 'is_active', 'is_staff', 'is_superuser'),
+            'fields': ('user_username', 'user_email', 'password1', 'password2','user_role', 'is_active', 'is_staff', 'is_superuser'),
         }),
     )
     
-    list_display = ('user_username', 'user_email', 'is_staff', 'is_superuser', 'is_active')
-    search_fields = ('user_username', 'user_email')
+    list_display = ('user_username', 'user_email','user_role', 'is_staff', 'is_superuser', 'is_active')
+    search_fields = ('user_username', 'user_email', 'user_role')
     ordering = ('user_username',)
 
 admin.site.register(Permission)
@@ -36,8 +35,8 @@ admin.site.register(CustomUser, UserAdmin)
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user','user_name','user_pec_code','user_pec_code', 'user_role', 'user_mobile','created_by','created_at','updated_by','updated_at')
-    search_fields = ('user__user_username', 'user_role')
+    list_display = ('user','user_name','user_pec_code','user_company_code', 'user_mobile','created_by','created_at','updated_by','updated_at')
+    search_fields = ('user__user_username', 'user__user_email', 'user__user_role', 'user_pec_code', 'user_company_code')
     ordering = ('user__user_username',)
 
 class CompaniesDetail_Admin(admin.ModelAdmin):

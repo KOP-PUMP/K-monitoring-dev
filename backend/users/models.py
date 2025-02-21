@@ -12,14 +12,15 @@ import uuid
 logger = logging.getLogger(__name__)
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, user_email: str, user_username: str, user_password: str, **extra_fields) -> 'CustomUser':
+    def create_user(self, user_email: str, user_username: str, user_password: str, user_role: str, **extra_fields) -> 'CustomUser':
         if not user_email:
             raise ValueError('The Email field must be set')
 
         user_email = self.normalize_email(user_email)
-        user = self.model(user_email=user_email, user_username=user_username, **extra_fields)
+        user = self.model(user_email=user_email, user_username=user_username, user_role=user_role, **extra_fields)
 
         try:
+            extra_fields.setdefault('is_staff', True)
             user.set_password(user_password)
             user.save(using=self._db)
             logger.info(f'User {user_username} created successfully.')
@@ -28,7 +29,7 @@ class CustomUserManager(BaseUserManager):
             logger.error(f'Error creating user {user_username}: {e}')
             raise ValidationError(f'Error creating user: {e}')
 
-    def create_superuser(self, user_email: str, user_username: str, user_password: str, **extra_fields) -> 'CustomUser':
+    def create_superuser(self, user_email: str, user_username: str, user_password: str,user_role: str, **extra_fields) -> 'CustomUser':
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -37,13 +38,14 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
 
-        return self.create_user(user_email, user_username, user_password, **extra_fields)
+        return self.create_user(user_email, user_username, user_password,user_role, **extra_fields)
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
     user_username = models.CharField(max_length=50, unique=True)
     user_email = models.EmailField(_('email address'), unique=True)
+    user_role = models.CharField(choices=[('Admin', 'Admin'), ('Developer', 'Developer'), ('Engineer', 'Engineer'), ('Customer', 'Customer')], max_length=30)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     
@@ -82,7 +84,6 @@ class UserProfile(models.Model):
     user_name = models.CharField(max_length=50, blank=True, null=True)
     user_pec_code = models.CharField(max_length=50, blank=True, null=True)
     user_company_code = models.CharField(max_length=50, blank=True, null=True)
-    user_role = models.CharField(max_length=30, blank=True, null=True)
     created_by = models.CharField(max_length=100 , blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_by = models.CharField(max_length=100 , blank=True, null=True)
