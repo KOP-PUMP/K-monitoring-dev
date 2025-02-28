@@ -5,9 +5,11 @@ import {
   createLOV,
   updateLOV,
   deleteLOV,
-  getAllPumpLOV
+  getAllPumpLOV,
+  getPumpDetailLOV,
 } from "@/api/pump/pump";
 import { LOVData } from "@/types/table";
+import { PumpDetailLOVResponse } from "@/types/pump/pumps";
 import toast from "react-hot-toast";
 
 export const useGetAllUnitLOVData = () => {
@@ -18,11 +20,11 @@ export const useGetAllUnitLOVData = () => {
 };
 
 export const useGetAllPumpLOVData = () => {
-    return useQuery<LOVData[]>({
-      queryKey: ["pump", "lov_list"],
-      queryFn: getAllPumpLOV,
-    });
-  };
+  return useQuery<LOVData[]>({
+    queryKey: ["pump", "lov_list"],
+    queryFn: getAllPumpLOV,
+  });
+};
 
 export const useGetLOVById = (id: string | null) => {
   return useQuery<LOVData>({
@@ -55,25 +57,25 @@ export const useGetLOVById = (id: string | null) => {
 }; */
 
 export const useDeleteLOVById = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-      mutationFn: ({ id }: { id: string }) => deleteLOV(id),
-      onSuccess: (data, variables: { id: string; isUnit: boolean }) => {
-        const { isUnit } = variables;
-  
-        if (isUnit) {
-          queryClient.invalidateQueries({ queryKey: ["pump", "unit_lov"] });
-        } else {
-          queryClient.invalidateQueries({ queryKey: ["pump", "lov_list"] });
-        }
-  
-        toast.success("LOV deleted successfully");
-      },
-      onError: () => {
-        toast.error("Error deleting LOV");
-      },
-    });
-  };
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id }: { id: string }) => deleteLOV(id),
+    onSuccess: (data, variables: { id: string; isUnit: boolean }) => {
+      const { isUnit } = variables;
+
+      if (isUnit) {
+        queryClient.invalidateQueries({ queryKey: ["pump", "unit_lov"] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["pump", "lov_list"] });
+      }
+
+      toast.success("LOV deleted successfully");
+    },
+    onError: () => {
+      toast.error("Error deleting LOV");
+    },
+  });
+};
 
 export const useCreateLOV = () => {
   return useMutation({
@@ -111,6 +113,9 @@ export const useUpdateLOV = () => {
     },
   });
 };
-
-
-
+export const useGetPumpDetailLOV = (id: string | null) => {
+  return useQuery<PumpDetailLOVResponse[]>({
+    queryKey: ["pump", "pump_detail_lov", id],
+    queryFn: () => getPumpDetailLOV(id),
+  });
+};

@@ -43,18 +43,10 @@ export function DataTable({
   data,
   columns,
   search,
-  actions = {
-    view : "",
-    delete : () => {}
-  }
 }: {
   data: any;
   columns: any;
   search: any;
-  actions: {
-    view : string,
-    delete : () => void
-  }
 }) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(

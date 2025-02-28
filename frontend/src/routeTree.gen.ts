@@ -29,7 +29,11 @@ import { Route as AuthUsersCompanyeditImport } from './routes/_auth/users/compan
 import { Route as AuthPumpUnitlistImport } from './routes/_auth/pump/unit_list'
 import { Route as AuthPumpUniteditImport } from './routes/_auth/pump/unit_edit'
 import { Route as AuthPumpTotalpumpImport } from './routes/_auth/pump/total_pump'
+import { Route as AuthPumpSealshaftlovlistImport } from './routes/_auth/pump/seal_shaft_lov_list'
+import { Route as AuthPumpPumplovlistImport } from './routes/_auth/pump/pump_lov_list'
 import { Route as AuthPumpPumpdetailImport } from './routes/_auth/pump/pump_detail'
+import { Route as AuthPumpMotorlovlistImport } from './routes/_auth/pump/motor_lov_list'
+import { Route as AuthPumpMateriallovlistImport } from './routes/_auth/pump/material_lov_list'
 import { Route as AuthPumpLovlistImport } from './routes/_auth/pump/lov_list'
 import { Route as AuthPumpLoveditImport } from './routes/_auth/pump/lov_edit'
 import { Route as AuthPumpListeditImport } from './routes/_auth/pump/list_edit'
@@ -133,8 +137,28 @@ const AuthPumpTotalpumpRoute = AuthPumpTotalpumpImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AuthPumpSealshaftlovlistRoute = AuthPumpSealshaftlovlistImport.update({
+  path: '/pump/seal_shaft_lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpPumplovlistRoute = AuthPumpPumplovlistImport.update({
+  path: '/pump/pump_lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
 const AuthPumpPumpdetailRoute = AuthPumpPumpdetailImport.update({
   path: '/pump/pump_detail',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpMotorlovlistRoute = AuthPumpMotorlovlistImport.update({
+  path: '/pump/motor_lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpMateriallovlistRoute = AuthPumpMateriallovlistImport.update({
+  path: '/pump/material_lov_list',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -290,11 +314,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPumpLovlistImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/pump/material_lov_list': {
+      id: '/_auth/pump/material_lov_list'
+      path: '/pump/material_lov_list'
+      fullPath: '/pump/material_lov_list'
+      preLoaderRoute: typeof AuthPumpMateriallovlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/motor_lov_list': {
+      id: '/_auth/pump/motor_lov_list'
+      path: '/pump/motor_lov_list'
+      fullPath: '/pump/motor_lov_list'
+      preLoaderRoute: typeof AuthPumpMotorlovlistImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/pump/pump_detail': {
       id: '/_auth/pump/pump_detail'
       path: '/pump/pump_detail'
       fullPath: '/pump/pump_detail'
       preLoaderRoute: typeof AuthPumpPumpdetailImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/pump_lov_list': {
+      id: '/_auth/pump/pump_lov_list'
+      path: '/pump/pump_lov_list'
+      fullPath: '/pump/pump_lov_list'
+      preLoaderRoute: typeof AuthPumpPumplovlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/seal_shaft_lov_list': {
+      id: '/_auth/pump/seal_shaft_lov_list'
+      path: '/pump/seal_shaft_lov_list'
+      fullPath: '/pump/seal_shaft_lov_list'
+      preLoaderRoute: typeof AuthPumpSealshaftlovlistImport
       parentRoute: typeof AuthImport
     }
     '/_auth/pump/total_pump': {
@@ -414,7 +466,11 @@ export const routeTree = rootRoute.addChildren({
     AuthPumpListeditRoute,
     AuthPumpLoveditRoute,
     AuthPumpLovlistRoute,
+    AuthPumpMateriallovlistRoute,
+    AuthPumpMotorlovlistRoute,
     AuthPumpPumpdetailRoute,
+    AuthPumpPumplovlistRoute,
+    AuthPumpSealshaftlovlistRoute,
     AuthPumpTotalpumpRoute,
     AuthPumpUniteditRoute,
     AuthPumpUnitlistRoute,
@@ -460,7 +516,11 @@ export const routeTree = rootRoute.addChildren({
         "/_auth/pump/list_edit",
         "/_auth/pump/lov_edit",
         "/_auth/pump/lov_list",
+        "/_auth/pump/material_lov_list",
+        "/_auth/pump/motor_lov_list",
         "/_auth/pump/pump_detail",
+        "/_auth/pump/pump_lov_list",
+        "/_auth/pump/seal_shaft_lov_list",
         "/_auth/pump/total_pump",
         "/_auth/pump/unit_edit",
         "/_auth/pump/unit_list",
@@ -528,8 +588,24 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth/pump/lov_list.tsx",
       "parent": "/_auth"
     },
+    "/_auth/pump/material_lov_list": {
+      "filePath": "_auth/pump/material_lov_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/motor_lov_list": {
+      "filePath": "_auth/pump/motor_lov_list.tsx",
+      "parent": "/_auth"
+    },
     "/_auth/pump/pump_detail": {
       "filePath": "_auth/pump/pump_detail.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/pump_lov_list": {
+      "filePath": "_auth/pump/pump_lov_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/seal_shaft_lov_list": {
+      "filePath": "_auth/pump/seal_shaft_lov_list.tsx",
       "parent": "/_auth"
     },
     "/_auth/pump/total_pump": {

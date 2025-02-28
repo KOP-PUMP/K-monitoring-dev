@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { PlusCircle } from "lucide-react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PlusCircle, Search } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -18,17 +18,29 @@ import {
 } from "@/components/ui/form";
 
 import { FormBox } from "@/components/common/FormBox";
+import { Label } from "@/components/ui/label";
 import { Combobox, ComboboxItemProps } from "@/components/common/ComboBox";
 import {
-  PumpDetailSchema,
-  MaterialAndImpellerDetailSchema,
-  MotorAndCouplingDetailSchema,
-  MechanicalSealDetailSchema,
-  FlangeAndBearingDetailSchema,
-} from "@/validators/pump_detail";
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  PumpDetailFormSchema,
+  MotorAndCouplingDetailFormSchema,
+  MaterialAndImpellerDetailFormSchema,
+  MechanicalSealDetailFormSchema,
+  FlangeAndBearingDetailFormSchema,
+} from "@/validators/pump";
 import { useSettings } from "@/lib/settings";
 import { useState } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
+import { useGetCompanyDetailByCode } from "@/hook/users/company";
 
 const frameworks: ComboboxItemProps[] = [
   {
@@ -61,46 +73,53 @@ export default function PumpList() {
     4: false,
     5: false,
   });
-
+  const [SelectedCompanyCode, setSelectedCompanyCode] = useState<string>("");
+  const [CompanyCode, setCompanyCode] = useState<string>("");
   const [stepName, setStepName] = useState(1);
+  const [isAdd, setIsAdd] = useState(false);
   const { showDescriptions } = useSettings();
+  const { data: companyData } = useGetCompanyDetailByCode(CompanyCode);
   const getFormData = (key: string) =>
     JSON.parse(localStorage.getItem(key) || "{}");
 
   /* Tab 1 */
-  type PumpGeneralDetail = z.infer<typeof PumpDetailSchema>;
+  type PumpGeneralDetail = z.infer<typeof PumpDetailFormSchema>;
   const formPumpGeneralDetail = useForm<PumpGeneralDetail>({
-    resolver: zodResolver(PumpDetailSchema),
+    resolver: zodResolver(PumpDetailFormSchema),
     defaultValues: getFormData("formData1"),
   });
 
   /* Tab 2 */
   type MaterialAndImpellerDetail = z.infer<
-    typeof MaterialAndImpellerDetailSchema
+    typeof MaterialAndImpellerDetailFormSchema
   >;
   const formMaterialAndImpellerDetail = useForm<MaterialAndImpellerDetail>({
-    resolver: zodResolver(MaterialAndImpellerDetailSchema),
+    resolver: zodResolver(MaterialAndImpellerDetailFormSchema),
     defaultValues: getFormData("formData2"),
   });
 
   /* Tab 3 */
-  type MotorAndCouplingDetail = z.infer<typeof MotorAndCouplingDetailSchema>;
+  type MotorAndCouplingDetail = z.infer<
+    typeof MotorAndCouplingDetailFormSchema
+  >;
   const formMotorAndCouplingDetail = useForm<MotorAndCouplingDetail>({
-    resolver: zodResolver(MotorAndCouplingDetailSchema),
+    resolver: zodResolver(MotorAndCouplingDetailFormSchema),
     defaultValues: getFormData("formData3"),
   });
 
   /* Tab 4 */
-  type MechanicalSealDetail = z.infer<typeof MechanicalSealDetailSchema>;
+  type MechanicalSealDetail = z.infer<typeof MechanicalSealDetailFormSchema>;
   const formMechanicalSealDetail = useForm<MechanicalSealDetail>({
-    resolver: zodResolver(MechanicalSealDetailSchema),
+    resolver: zodResolver(MechanicalSealDetailFormSchema),
     defaultValues: getFormData("formData4"),
   });
 
   /* Tab 5 */
-  type FlangeAndBearingDetail = z.infer<typeof FlangeAndBearingDetailSchema>;
+  type FlangeAndBearingDetail = z.infer<
+    typeof FlangeAndBearingDetailFormSchema
+  >;
   const formFlangeAndBearingDetail = useForm<FlangeAndBearingDetail>({
-    resolver: zodResolver(FlangeAndBearingDetailSchema),
+    resolver: zodResolver(FlangeAndBearingDetailFormSchema),
     defaultValues: getFormData("formData5"),
   });
 
@@ -201,20 +220,173 @@ export default function PumpList() {
                         <div className="space-y-2">
                           <FormField
                             control={formPumpGeneralDetail.control}
-                            name="location"
+                            name="company_code"
                             render={({ field }) => (
                               <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Location
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Location" {...field} />
-                                  </FormControl>
+                                <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
+                                  <FormLabel className="w-2/12">Code</FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Company Code"
+                                        {...field}
+                                        readOnly
+                                      />
+                                    </FormControl>
+                                    <Sheet>
+                                      <SheetTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          className="w-32 gap-1"
+                                        >
+                                          <Search className="h-3.5 w-3.5" />
+                                          Find
+                                        </Button>
+                                      </SheetTrigger>
+                                      <SheetContent>
+                                        <SheetHeader>
+                                          <SheetTitle>User Company</SheetTitle>
+                                          <SheetDescription>
+                                            Please enter customer code here
+                                          </SheetDescription>
+                                        </SheetHeader>
+                                        <div className="gap-4 pt-8">
+                                          <div className="flex flex-col items-start gap-4">
+                                            <Label
+                                              htmlFor="name"
+                                              className="text-right"
+                                            >
+                                              Code
+                                            </Label>
+                                            <Input
+                                              id="input_code"
+                                              className="col-span-3"
+                                              onChange={(e) =>
+                                                setSelectedCompanyCode(
+                                                  e.target.value
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                          {companyData?.customer_code && (
+                                            <div className="gap-4 pt-8">
+                                              <SheetHeader>
+                                                <SheetDescription className="text-center">
+                                                  ** Please check the
+                                                  information below **
+                                                </SheetDescription>
+                                              </SheetHeader>
+                                              <div className="flex flex-col gap-4 pt-4 items-start">
+                                                <Label
+                                                  htmlFor="name"
+                                                  className="text-right"
+                                                >
+                                                  Name
+                                                </Label>
+                                                <Input
+                                                  id="address"
+                                                  value={
+                                                    companyData.company_name_en
+                                                  }
+                                                  className="col-span-3 text-wrap h-4rem"
+                                                  readOnly
+                                                />
+                                                <Input
+                                                  id="address"
+                                                  value={
+                                                    companyData.company_name_th
+                                                  }
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="address"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Address
+                                                </Label>
+                                                <Input
+                                                  id="address"
+                                                  value={companyData.address_en}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Input
+                                                  id="address"
+                                                  value={companyData.address_th}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="province"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Province
+                                                </Label>
+                                                <Input
+                                                  id="province"
+                                                  value={companyData.province}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="sales_area"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Sales Area
+                                                </Label>
+                                                <Input
+                                                  id="sales_area"
+                                                  value={companyData.sales_area}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <SheetFooter className="pt-8">
+                                          {companyData &&
+                                            companyData.customer_code && (
+                                              <SheetClose asChild>
+                                                <Button
+                                                  className="bg-green-500 hover:bg-green-600 w-full"
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setIsAdd(true);
+                                                  }}
+                                                >
+                                                  <PlusCircle className="mr-2 h-3.5 w-3.5" />
+                                                  Add
+                                                </Button>
+                                              </SheetClose>
+                                            )}
+                                          <Button
+                                            type="button"
+                                            onClick={() => {
+                                              setCompanyCode(
+                                                SelectedCompanyCode
+                                              );
+                                            }}
+                                          >
+                                            Find
+                                          </Button>
+                                          <SheetClose asChild>
+                                            <Button
+                                              type="button"
+                                              variant={"destructive"}
+                                            >
+                                              Close
+                                            </Button>
+                                          </SheetClose>
+                                        </SheetFooter>
+                                      </SheetContent>
+                                    </Sheet>
+                                  </div>
                                 </div>
                                 {showDescriptions && (
                                   <FormDescription>
-                                    This is the location of the pump.
+                                    This is the pump standard and its number.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -223,20 +395,20 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formPumpGeneralDetail.control}
-                            name="brand"
+                            name="doc_customer"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center ">
                                   <FormLabel className="w-32 lg:w-44 ">
-                                    Brand
+                                    Document
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Brand" {...field} />
+                                    <Input placeholder="Tag No." {...field} />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (
                                   <FormDescription>
-                                    This is the brand of the pump.
+                                    This is the tag number of the pump.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -245,20 +417,42 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formPumpGeneralDetail.control}
-                            name="model"
+                            name="doc_no"
                             render={({ field }) => (
                               <FormItem>
-                                <div className="flex items-center">
+                                <div className="flex items-center ">
                                   <FormLabel className="w-32 lg:w-44 ">
-                                    Model
+                                    Document No.
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Model" {...field} />
+                                    <Input placeholder="Tag No." {...field} />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (
                                   <FormDescription>
-                                    This is the model of the pump.
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="doc_date"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Document Date
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Tag No." {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -289,23 +483,219 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formPumpGeneralDetail.control}
-                            name="serial_no"
+                            name="location"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 ">
-                                    Serial&nbsp;No.
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Location
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
-                                    <Input
-                                      placeholder="Serial No."
-                                      {...field}
-                                    />
+                                    <Input placeholder="Location" {...field} />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (
                                   <FormDescription>
-                                    This is the serial number of the pump.
+                                    This is the location of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="tag_no"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Tag&nbsp;No.
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Tag No." {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="pump_lov_id"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
+                                  <FormLabel className="w-2/12">
+                                    Select Pump
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Company Code"
+                                        {...field}
+                                        readOnly
+                                      />
+                                    </FormControl>
+                                    <Sheet>
+                                      <SheetTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          className="w-32 gap-1"
+                                        >
+                                          <Search className="h-3.5 w-3.5" />
+                                          Find
+                                        </Button>
+                                      </SheetTrigger>
+                                      <SheetContent>
+                                        <SheetHeader>
+                                          <SheetTitle>User Company</SheetTitle>
+                                          <SheetDescription>
+                                            Please enter customer code here
+                                          </SheetDescription>
+                                        </SheetHeader>
+                                        <div className="gap-4 pt-8">
+                                          <div className="flex flex-col items-start gap-4">
+                                            <Label
+                                              htmlFor="name"
+                                              className="text-right"
+                                            >
+                                              Code
+                                            </Label>
+                                            <Input
+                                              id="input_code"
+                                              className="col-span-3"
+                                              onChange={(e) =>
+                                                setSelectedCompanyCode(
+                                                  e.target.value
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                          {companyData?.customer_code && (
+                                            <div className="gap-4 pt-8">
+                                              <SheetHeader>
+                                                <SheetDescription className="text-center">
+                                                  ** Please check the
+                                                  information below **
+                                                </SheetDescription>
+                                              </SheetHeader>
+                                              <div className="flex flex-col gap-4 pt-4 items-start">
+                                                <Label
+                                                  htmlFor="name"
+                                                  className="text-right"
+                                                >
+                                                  Name
+                                                </Label>
+                                                <Input
+                                                  id="address"
+                                                  value={
+                                                    companyData.company_name_en
+                                                  }
+                                                  className="col-span-3 text-wrap h-4rem"
+                                                  readOnly
+                                                />
+                                                <Input
+                                                  id="address"
+                                                  value={
+                                                    companyData.company_name_th
+                                                  }
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="address"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Address
+                                                </Label>
+                                                <Input
+                                                  id="address"
+                                                  value={companyData.address_en}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Input
+                                                  id="address"
+                                                  value={companyData.address_th}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="province"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Province
+                                                </Label>
+                                                <Input
+                                                  id="province"
+                                                  value={companyData.province}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="sales_area"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Sales Area
+                                                </Label>
+                                                <Input
+                                                  id="sales_area"
+                                                  value={companyData.sales_area}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <SheetFooter className="pt-8">
+                                          {companyData &&
+                                            companyData.customer_code && (
+                                              <SheetClose asChild>
+                                                <Button
+                                                  className="bg-green-500 hover:bg-green-600 w-full"
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setIsAdd(true);
+                                                  }}
+                                                >
+                                                  <PlusCircle className="mr-2 h-3.5 w-3.5" />
+                                                  Add
+                                                </Button>
+                                              </SheetClose>
+                                            )}
+                                          <Button
+                                            type="button"
+                                            onClick={() => {
+                                              setCompanyCode(
+                                                SelectedCompanyCode
+                                              );
+                                            }}
+                                          >
+                                            Find
+                                          </Button>
+                                          <SheetClose asChild>
+                                            <Button
+                                              type="button"
+                                              variant={"destructive"}
+                                            >
+                                              Close
+                                            </Button>
+                                          </SheetClose>
+                                        </SheetFooter>
+                                      </SheetContent>
+                                    </Sheet>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -366,20 +756,19 @@ export default function PumpList() {
 
                           <FormField
                             control={formPumpGeneralDetail.control}
-                            name="pump_type_name"
+                            name="pump_design"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center">
                                   <FormLabel className="w-32 lg:w-44 ">
-                                    Pump Type
+                                    Pump design
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
                                     <Combobox
                                       items={frameworks}
                                       label={
-                                        getFormData("formData1").pump_type_name
-                                          ? getFormData("formData1")
-                                              .pump_type_name
+                                        getFormData("formData1").pump_design
+                                          ? getFormData("formData1").pump_design
                                           : "Select"
                                       }
                                       onChange={field.onChange}
@@ -397,12 +786,34 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formPumpGeneralDetail.control}
-                            name="pump_design"
+                            name="base_plate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Base Plate
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Tag No." {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="pump_status"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center">
                                   <FormLabel className="w-32 lg:w-44 ">
-                                    Pump design
+                                    Pump Status
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
                                     <Combobox
@@ -432,6 +843,147 @@ export default function PumpList() {
                     <div className="text-foreground dark:text-foreground grow flex-1">
                       <FormBox field="Pump Technical Data">
                         <div className="space-y-2">
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="max_temp"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Max Temperature (°C)
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="max_flow_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Max Flow
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="max_flow"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="min_flow_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Min Flow
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="min_flow"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="pump_speed_unit"
@@ -550,6 +1102,64 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formPumpGeneralDetail.control}
+                            name="hyd_power_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Hydraulic Power
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="hyd_power"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
                             name="design_flow_unit"
                             render={({ field: flowField }) => (
                               <FormItem>
@@ -608,6 +1218,64 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formPumpGeneralDetail.control}
+                            name="shut_off_head_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Shut Off Head
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="shut_off_head"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
                             name="min_head_unit"
                             render={({ field: shutoffHeadField }) => (
                               <FormItem>
@@ -648,6 +1316,238 @@ export default function PumpList() {
                                         }
                                         onChange={(value) => {
                                           shutoffHeadField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="max_head_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Max Head
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="max_head"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="suction_velo_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Suction Velocity
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="suction_velo"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="discharge_velo_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge Velocity
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="discharge_velo"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="bep_flow_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    BEP Flow
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="bep_flow"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
@@ -775,6 +1675,238 @@ export default function PumpList() {
                               </FormItem>
                             )}
                           />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="power_required_cal_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Power Required (Cal.)
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="power_required_cal"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="power_min_flow_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Power Min Flow
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="power_min_flow"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="power_max_flow_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Power Max Flow
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="power_max_flow"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="power_bep_flow_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    BEP Flow
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="power_bep_flow"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </div>
                       </FormBox>
                     </div>
@@ -806,6 +1938,148 @@ export default function PumpList() {
                                 {showDescriptions && (
                                   <FormDescription>
                                     This is the material of Casing.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="oper_temp"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Operation Temperature (°C)
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="solid_type"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Solid Type
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Combobox
+                                      items={frameworks}
+                                      label={
+                                        getFormData("formData1").pump_design
+                                          ? getFormData("formData1").pump_design
+                                          : "Select"
+                                      }
+                                      onChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the serial number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="solid_diameter"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Solid Diameter
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Media"
+                                      {...field}
+                                      defaultValue={
+                                        getFormData("formData1").media
+                                          ? getFormData("formData1").media
+                                          : ""
+                                      }
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the material of Casing.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="density_unit"
+                            render={({ field: viscosityField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Density
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for viscosity */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="density"
+                                      render={({ field: viscosityField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Viscosity"
+                                            {...viscosityField}
+                                            defaultValue={
+                                              getFormData("formData1").viscosity
+                                                ? getFormData("formData1")
+                                                    .viscosity
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for viscosity_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .viscosity_unit
+                                            ? getFormData("formData1")
+                                                .viscosity_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          viscosityField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -869,60 +2143,6 @@ export default function PumpList() {
                               </FormItem>
                             )}
                           />
-                          {/* <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="location"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 ">
-                                    Pumping Temp
-                                    
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input
-                                      placeholder="Pumping Temp"
-                                      type="number"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          /> */}
-                          {/* <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="location"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 ">
-                                    Boiling Point
-                                    
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input
-                                      placeholder="Boiling Point"
-                                      type="number"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          /> */}
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="vapor_pressure_unit"
@@ -983,6 +2203,166 @@ export default function PumpList() {
                               </FormItem>
                             )}
                           />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="tank_position"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Tank Position
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Combobox
+                                      items={frameworks}
+                                      label={
+                                        getFormData("formData1").pump_design
+                                          ? getFormData("formData1").pump_design
+                                          : "Select"
+                                      }
+                                      onChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the serial number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="tank_design"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Tank Design
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Combobox
+                                      items={frameworks}
+                                      label={
+                                        getFormData("formData1").pump_design
+                                          ? getFormData("formData1").pump_design
+                                          : "Select"
+                                      }
+                                      onChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the serial number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="tank_pressure"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Tank Pressure (??)
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="suction_head"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Suction Head (??)
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="concentration"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Concentration (??)
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="solid_percentage"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Solid Percentage (%)
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </div>
                       </FormBox>
                     </div>
@@ -1014,29 +2394,205 @@ export default function PumpList() {
               <Form {...formMaterialAndImpellerDetail}>
                 <form>
                   <div className="flex flex-col">
-                    {/*Motor General Details*/}
                     <div className="text-foreground dark:text-foreground grow flex-1">
-                      <FormBox field="Motor General Details">
+                      <FormBox field="Materials details">
                         <div className="space-y-2">
+                          <FormField
+                            control={formMaterialAndImpellerDetail.control}
+                            name="material_lov_id"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
+                                  <FormLabel className="w-2/12">
+                                    Material Group
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Company Code"
+                                        {...field}
+                                        readOnly
+                                      />
+                                    </FormControl>
+                                    <Sheet>
+                                      <SheetTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          className="w-32 gap-1"
+                                        >
+                                          <Search className="h-3.5 w-3.5" />
+                                          Find
+                                        </Button>
+                                      </SheetTrigger>
+                                      <SheetContent>
+                                        <SheetHeader>
+                                          <SheetTitle>User Company</SheetTitle>
+                                          <SheetDescription>
+                                            Please enter customer code here
+                                          </SheetDescription>
+                                        </SheetHeader>
+                                        <div className="gap-4 pt-8">
+                                          <div className="flex flex-col items-start gap-4">
+                                            <Label
+                                              htmlFor="name"
+                                              className="text-right"
+                                            >
+                                              Code
+                                            </Label>
+                                            <Input
+                                              id="input_code"
+                                              className="col-span-3"
+                                              onChange={(e) =>
+                                                setSelectedCompanyCode(
+                                                  e.target.value
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                          {companyData?.customer_code && (
+                                            <div className="gap-4 pt-8">
+                                              <SheetHeader>
+                                                <SheetDescription className="text-center">
+                                                  ** Please check the
+                                                  information below **
+                                                </SheetDescription>
+                                              </SheetHeader>
+                                              <div className="flex flex-col gap-4 pt-4 items-start">
+                                                <Label
+                                                  htmlFor="name"
+                                                  className="text-right"
+                                                >
+                                                  Name
+                                                </Label>
+                                                <Input
+                                                  id="address"
+                                                  value={
+                                                    companyData.company_name_en
+                                                  }
+                                                  className="col-span-3 text-wrap h-4rem"
+                                                  readOnly
+                                                />
+                                                <Input
+                                                  id="address"
+                                                  value={
+                                                    companyData.company_name_th
+                                                  }
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="address"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Address
+                                                </Label>
+                                                <Input
+                                                  id="address"
+                                                  value={companyData.address_en}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Input
+                                                  id="address"
+                                                  value={companyData.address_th}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="province"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Province
+                                                </Label>
+                                                <Input
+                                                  id="province"
+                                                  value={companyData.province}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="sales_area"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Sales Area
+                                                </Label>
+                                                <Input
+                                                  id="sales_area"
+                                                  value={companyData.sales_area}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <SheetFooter className="pt-8">
+                                          {companyData &&
+                                            companyData.customer_code && (
+                                              <SheetClose asChild>
+                                                <Button
+                                                  className="bg-green-500 hover:bg-green-600 w-full"
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setIsAdd(true);
+                                                  }}
+                                                >
+                                                  <PlusCircle className="mr-2 h-3.5 w-3.5" />
+                                                  Add
+                                                </Button>
+                                              </SheetClose>
+                                            )}
+                                          <Button
+                                            type="button"
+                                            onClick={() => {
+                                              setCompanyCode(
+                                                SelectedCompanyCode
+                                              );
+                                            }}
+                                          >
+                                            Find
+                                          </Button>
+                                          <SheetClose asChild>
+                                            <Button
+                                              type="button"
+                                              variant={"destructive"}
+                                            >
+                                              Close
+                                            </Button>
+                                          </SheetClose>
+                                        </SheetFooter>
+                                      </SheetContent>
+                                    </Sheet>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                           <FormField
                             control={formMaterialAndImpellerDetail.control}
                             name="casing_mat"
                             render={({ field }) => (
                               <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Casing
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Casing Material
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
                                     <Input
-                                      placeholder="Casing material"
+                                      placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (
                                   <FormDescription>
-                                    This is the Shaft.
+                                    This is the tag number of the pump.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -1045,23 +2601,23 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formMaterialAndImpellerDetail.control}
-                            name="impeller_mat"
+                            name="casing_cover_mat"
                             render={({ field }) => (
                               <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Impeller
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Casing Cover Material
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
                                     <Input
-                                      placeholder="Impeller material"
+                                      placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (
                                   <FormDescription>
-                                    This is the Shaft.
+                                    This is the tag number of the pump.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -1070,23 +2626,123 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formMaterialAndImpellerDetail.control}
-                            name="shaft_mat"
+                            name="diffuser_mat"
                             render={({ field }) => (
                               <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Shaft
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Diffuser Material
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
                                     <Input
-                                      placeholder="Shaft material"
+                                      placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (
                                   <FormDescription>
-                                    This is the Shaft.
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMaterialAndImpellerDetail.control}
+                            name="pump_base_mat"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Base Material
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMaterialAndImpellerDetail.control}
+                            name="pump_head_mat"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Head Material
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMaterialAndImpellerDetail.control}
+                            name="pump_base_cover_mat"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Head Cover Material
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMaterialAndImpellerDetail.control}
+                            name="pump_lining_mat"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Pump Lining Material
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -1132,7 +2788,7 @@ export default function PumpList() {
                               <FormItem>
                                 <div className="flex items-center">
                                   <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Diameter
+                                    Design Impeller Diameter (mm.)
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
                                     <Input
@@ -1144,6 +2800,56 @@ export default function PumpList() {
                                 {showDescriptions && (
                                   <FormDescription>
                                     This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMaterialAndImpellerDetail.control}
+                            name="impeller_max"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Max Diameter (mm.)
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMaterialAndImpellerDetail.control}
+                            name="impeller_mat"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Material
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the tag number of the pump.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -1198,6 +2904,183 @@ export default function PumpList() {
                         <div className="space-y-2">
                           <FormField
                             control={formMotorAndCouplingDetail.control}
+                            name="motor_lov_id"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
+                                  <FormLabel className="w-2/12">
+                                    Select Motor
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Company Code"
+                                        {...field}
+                                        readOnly
+                                      />
+                                    </FormControl>
+                                    <Sheet>
+                                      <SheetTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          className="w-32 gap-1"
+                                        >
+                                          <Search className="h-3.5 w-3.5" />
+                                          Find
+                                        </Button>
+                                      </SheetTrigger>
+                                      <SheetContent>
+                                        <SheetHeader>
+                                          <SheetTitle>User Company</SheetTitle>
+                                          <SheetDescription>
+                                            Please enter customer code here
+                                          </SheetDescription>
+                                        </SheetHeader>
+                                        <div className="gap-4 pt-8">
+                                          <div className="flex flex-col items-start gap-4">
+                                            <Label
+                                              htmlFor="name"
+                                              className="text-right"
+                                            >
+                                              Code
+                                            </Label>
+                                            <Input
+                                              id="input_code"
+                                              className="col-span-3"
+                                              onChange={(e) =>
+                                                setSelectedCompanyCode(
+                                                  e.target.value
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                          {companyData?.customer_code && (
+                                            <div className="gap-4 pt-8">
+                                              <SheetHeader>
+                                                <SheetDescription className="text-center">
+                                                  ** Please check the
+                                                  information below **
+                                                </SheetDescription>
+                                              </SheetHeader>
+                                              <div className="flex flex-col gap-4 pt-4 items-start">
+                                                <Label
+                                                  htmlFor="name"
+                                                  className="text-right"
+                                                >
+                                                  Name
+                                                </Label>
+                                                <Input
+                                                  id="address"
+                                                  value={
+                                                    companyData.company_name_en
+                                                  }
+                                                  className="col-span-3 text-wrap h-4rem"
+                                                  readOnly
+                                                />
+                                                <Input
+                                                  id="address"
+                                                  value={
+                                                    companyData.company_name_th
+                                                  }
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="address"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Address
+                                                </Label>
+                                                <Input
+                                                  id="address"
+                                                  value={companyData.address_en}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Input
+                                                  id="address"
+                                                  value={companyData.address_th}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="province"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Province
+                                                </Label>
+                                                <Input
+                                                  id="province"
+                                                  value={companyData.province}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="sales_area"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Sales Area
+                                                </Label>
+                                                <Input
+                                                  id="sales_area"
+                                                  value={companyData.sales_area}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <SheetFooter className="pt-8">
+                                          {companyData &&
+                                            companyData.customer_code && (
+                                              <SheetClose asChild>
+                                                <Button
+                                                  className="bg-green-500 hover:bg-green-600 w-full"
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setIsAdd(true);
+                                                  }}
+                                                >
+                                                  <PlusCircle className="mr-2 h-3.5 w-3.5" />
+                                                  Add
+                                                </Button>
+                                              </SheetClose>
+                                            )}
+                                          <Button
+                                            type="button"
+                                            onClick={() => {
+                                              setCompanyCode(
+                                                SelectedCompanyCode
+                                              );
+                                            }}
+                                          >
+                                            Find
+                                          </Button>
+                                          <SheetClose asChild>
+                                            <Button
+                                              type="button"
+                                              variant={"destructive"}
+                                            >
+                                              Close
+                                            </Button>
+                                          </SheetClose>
+                                        </SheetFooter>
+                                      </SheetContent>
+                                    </Sheet>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMotorAndCouplingDetail.control}
                             name="motor_brand"
                             render={({ field }) => (
                               <FormItem>
@@ -1207,32 +3090,6 @@ export default function PumpList() {
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
                                     <Input placeholder="Brand" {...field} />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formMotorAndCouplingDetail.control}
-                            name="motor_model"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Power
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input
-                                      placeholder="Power (kW)"
-                                      type="number"
-                                      {...field}
-                                    />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (
@@ -1268,24 +3125,56 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formMotorAndCouplingDetail.control}
-                            name="motor_speed"
-                            render={({ field }) => (
+                            name="motor_speed_unit"
+                            render={({ field: speedField }) => (
                               <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Speed
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Motor Speed
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input
-                                      placeholder="Speed (RPM)"
-                                      type="number"
-                                      {...field}
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="motor_speed"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
                                     />
-                                  </FormControl>
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
                                 </div>
                                 {showDescriptions && (
                                   <FormDescription>
-                                    This is the Shaft.
+                                    This is the pump standard and its number.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -1319,12 +3208,12 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formMotorAndCouplingDetail.control}
-                            name="motor_rate_unit"
+                            name="motor_rated_unit"
                             render={({ field: motorRateField }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
-                                    Rated Current
+                                    Motor Rated
                                   </FormLabel>
                                   <div className="w-full md:max-w-[500px] flex gap-2">
                                     {/* Input for motor_rate */}
@@ -1332,7 +3221,7 @@ export default function PumpList() {
                                       control={
                                         formMotorAndCouplingDetail.control
                                       }
-                                      name="motor_rate"
+                                      name="motor_rated"
                                       render={({ field: motorRateField }) => (
                                         <FormControl className="w-full md:max-w-[500px]">
                                           <Input
@@ -1373,74 +3262,118 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formMotorAndCouplingDetail.control}
-                            name="motor_frame"
-                            render={({ field }) => (
+                            name="motor_efficiency_unit"
+                            render={({ field: speedField }) => (
                               <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Frame Size
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input
-                                      placeholder="Frame Size"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formMotorAndCouplingDetail.control}
-                            name="motor_efficiency"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Efficiency
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input
-                                      placeholder="Efficiency"
-                                      type="number"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formMotorAndCouplingDetail.control}
-                            name="motor_protection"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
+                                <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
-                                    Protection
+                                    Motor Efficiency
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input
-                                      placeholder="Protection"
-                                      {...field}
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={
+                                        formMotorAndCouplingDetail.control
+                                      }
+                                      name="motor_efficiency"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
                                     />
-                                  </FormControl>
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
                                 </div>
                                 {showDescriptions && (
                                   <FormDescription>
-                                    This is the Shaft.
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMotorAndCouplingDetail.control}
+                            name="motor_rated_current_unit"
+                            render={({ field: speedField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Motor Rated Current
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={
+                                        formMotorAndCouplingDetail.control
+                                      }
+                                      name="motor_rated_current"
+                                      render={({ field: speedField }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...speedField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          speedField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
                                   </FormDescription>
                                 )}
                                 <FormMessage />
@@ -1468,6 +3401,58 @@ export default function PumpList() {
                                       onChange={(value) => {
                                         field.onChange(value); // Update form state
                                       }}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMotorAndCouplingDetail.control}
+                            name="motor_standard"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44 text-primary">
+                                    Motor Standard
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="Power Factor"
+                                      type="number"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMotorAndCouplingDetail.control}
+                            name="motor_phase"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44 text-primary">
+                                    Motor Phase
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input
+                                      placeholder="motor_phase"
+                                      type="number"
+                                      {...field}
                                     />
                                   </FormControl>
                                 </div>
@@ -1527,32 +3512,6 @@ export default function PumpList() {
                                       onChange={(value) => {
                                         field.onChange(value); // Update form state
                                       }}
-                                    />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formMotorAndCouplingDetail.control}
-                            name="voltage"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Voltage
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input
-                                      placeholder="Voltage"
-                                      type="number"
-                                      {...field}
                                     />
                                   </FormControl>
                                 </div>
@@ -1775,27 +3734,192 @@ export default function PumpList() {
                         <div className="space-y-2">
                           <FormField
                             control={formMechanicalSealDetail.control}
-                            name="mech_quantity"
+                            name="shaft_seal_design_id"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
+                                  <FormLabel className="w-2/12">
+                                    Select Seal ID
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Company Code"
+                                        {...field}
+                                        readOnly
+                                      />
+                                    </FormControl>
+                                    <Sheet>
+                                      <SheetTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          className="w-32 gap-1"
+                                        >
+                                          <Search className="h-3.5 w-3.5" />
+                                          Find
+                                        </Button>
+                                      </SheetTrigger>
+                                      <SheetContent>
+                                        <SheetHeader>
+                                          <SheetTitle>User Company</SheetTitle>
+                                          <SheetDescription>
+                                            Please enter customer code here
+                                          </SheetDescription>
+                                        </SheetHeader>
+                                        <div className="gap-4 pt-8">
+                                          <div className="flex flex-col items-start gap-4">
+                                            <Label
+                                              htmlFor="name"
+                                              className="text-right"
+                                            >
+                                              Code
+                                            </Label>
+                                            <Input
+                                              id="input_code"
+                                              className="col-span-3"
+                                              onChange={(e) =>
+                                                setSelectedCompanyCode(
+                                                  e.target.value
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                          {companyData?.customer_code && (
+                                            <div className="gap-4 pt-8">
+                                              <SheetHeader>
+                                                <SheetDescription className="text-center">
+                                                  ** Please check the
+                                                  information below **
+                                                </SheetDescription>
+                                              </SheetHeader>
+                                              <div className="flex flex-col gap-4 pt-4 items-start">
+                                                <Label
+                                                  htmlFor="name"
+                                                  className="text-right"
+                                                >
+                                                  Name
+                                                </Label>
+                                                <Input
+                                                  id="address"
+                                                  value={
+                                                    companyData.company_name_en
+                                                  }
+                                                  className="col-span-3 text-wrap h-4rem"
+                                                  readOnly
+                                                />
+                                                <Input
+                                                  id="address"
+                                                  value={
+                                                    companyData.company_name_th
+                                                  }
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="address"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Address
+                                                </Label>
+                                                <Input
+                                                  id="address"
+                                                  value={companyData.address_en}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Input
+                                                  id="address"
+                                                  value={companyData.address_th}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="province"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Province
+                                                </Label>
+                                                <Input
+                                                  id="province"
+                                                  value={companyData.province}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                                <Label
+                                                  htmlFor="sales_area"
+                                                  className="text-right pt-2"
+                                                >
+                                                  Sales Area
+                                                </Label>
+                                                <Input
+                                                  id="sales_area"
+                                                  value={companyData.sales_area}
+                                                  className="col-span-3"
+                                                  readOnly
+                                                />
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <SheetFooter className="pt-8">
+                                          {companyData &&
+                                            companyData.customer_code && (
+                                              <SheetClose asChild>
+                                                <Button
+                                                  className="bg-green-500 hover:bg-green-600 w-full"
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setIsAdd(true);
+                                                  }}
+                                                >
+                                                  <PlusCircle className="mr-2 h-3.5 w-3.5" />
+                                                  Add
+                                                </Button>
+                                              </SheetClose>
+                                            )}
+                                          <Button
+                                            type="button"
+                                            onClick={() => {
+                                              setCompanyCode(
+                                                SelectedCompanyCode
+                                              );
+                                            }}
+                                          >
+                                            Find
+                                          </Button>
+                                          <SheetClose asChild>
+                                            <Button
+                                              type="button"
+                                              variant={"destructive"}
+                                            >
+                                              Close
+                                            </Button>
+                                          </SheetClose>
+                                        </SheetFooter>
+                                      </SheetContent>
+                                    </Sheet>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMechanicalSealDetail.control}
+                            name="mech_api_plan"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Quantity
+                                  <FormLabel className="w-32 lg:w-44">
+                                    API Plan
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
-                                    <Combobox
-                                      className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
-                                      label={
-                                        getFormData("formData4").mech_quantity
-                                          ? getFormData("formData4")
-                                              .mech_quantity
-                                          : "Select"
-                                      }
-                                      onChange={(value) => {
-                                        field.onChange(value); // Update form state
-                                      }}
-                                    />
+                                    <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (
@@ -1809,7 +3933,73 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formMechanicalSealDetail.control}
-                            name="mech_seal_cham"
+                            name="shaft_seal_mat"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Material
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMechanicalSealDetail.control}
+                            name="mech_main_temp"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Main Temperature (°C)
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMechanicalSealDetail.control}
+                            name="mech_main_pre"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Main Pressure (??)
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formMechanicalSealDetail.control}
+                            name="seal_cham"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center">
@@ -1841,15 +4031,9 @@ export default function PumpList() {
                               </FormItem>
                             )}
                           />
-                        </div>
-                      </FormBox>
-                    </div>
-                    <div className="text-foreground dark:text-foreground grow flex-1">
-                      <FormBox field="Mechanical Seal">
-                        <div className="space-y-2">
                           <FormField
                             control={formMechanicalSealDetail.control}
-                            name="mech_brand"
+                            name="shaft_seal_brand"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center">
@@ -1858,28 +4042,6 @@ export default function PumpList() {
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
                                     <Input placeholder="Brand" {...field} />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formMechanicalSealDetail.control}
-                            name="mech_model"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center ">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Modal
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Modal" {...field} />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (
@@ -1950,7 +4112,7 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formMechanicalSealDetail.control}
-                            name="mech_design"
+                            name="shaft_seal_design"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center">
@@ -1959,28 +4121,6 @@ export default function PumpList() {
                                   </FormLabel>
                                   <FormControl className="w-full md:max-w-[500px]">
                                     <Input placeholder="Design" {...field} />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formMechanicalSealDetail.control}
-                            name="mech_api_plan"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    API PLAN
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="API PLAN" {...field} />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (
@@ -2036,12 +4176,12 @@ export default function PumpList() {
                         <div className="space-y-2">
                           <FormField
                             control={formFlangeAndBearingDetail.control}
-                            name="pump_suction_size_unit"
+                            name="pump_suction_size_id_unit"
                             render={({ field: suctionSizeField }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
-                                    Suction size
+                                    Suction size (ID)
                                   </FormLabel>
                                   <div className="w-full md:max-w-[500px] flex gap-2">
                                     {/* Input for pump_suction_size */}
@@ -2049,7 +4189,7 @@ export default function PumpList() {
                                       control={
                                         formFlangeAndBearingDetail.control
                                       }
-                                      name="pump_suction_size"
+                                      name="pump_suction_size_id"
                                       render={({ field: Field }) => (
                                         <FormControl className="w-full md:max-w-[500px]">
                                           <Input
@@ -2144,44 +4284,9 @@ export default function PumpList() {
                                       items={frameworks} // Dropdown options
                                       label={
                                         getFormData("formData5")
-                                          .suction_pipe_size
+                                          .pump_suction_rating
                                           ? getFormData("formData5")
-                                              .suction_pipe_size
-                                          : "Select"
-                                      }
-                                      onChange={(value) => {
-                                        field.onChange(value); // Update form state
-                                      }}
-                                    />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formFlangeAndBearingDetail.control}
-                            name="suction_pipe_rating"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Suction Pipe Rating
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Combobox
-                                      className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
-                                      label={
-                                        getFormData("formData5")
-                                          .suction_pipe_rating
-                                          ? getFormData("formData5")
-                                              .suction_pipe_rating
+                                              .pump_suction_rating
                                           : "Select"
                                       }
                                       onChange={(value) => {
@@ -2236,50 +4341,308 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formFlangeAndBearingDetail.control}
-                            name="pump_discharge_size_unit"
-                            render={({ field: dischargeSizeField }) => (
+                            name="suction_pipe_length"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Pipe length
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="suction_pipe_id_unit"
+                            render={({ field: suctionSizeField }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
-                                    Discharge size
+                                    Suction Pipe ID
                                   </FormLabel>
                                   <div className="w-full md:max-w-[500px] flex gap-2">
-                                    {/* Input for pump_discharge_size */}
+                                    {/* Input for pump_suction_size */}
                                     <FormField
                                       control={
                                         formFlangeAndBearingDetail.control
                                       }
-                                      name="pump_discharge_size"
+                                      name="suction_pipe_id"
                                       render={({ field: Field }) => (
                                         <FormControl className="w-full md:max-w-[500px]">
                                           <Input
-                                            placeholder="Discharge size"
+                                            placeholder="Suction size"
                                             {...Field}
                                             defaultValue={
                                               getFormData("formData5")
-                                                .pump_discharge_size
+                                                .pump_suction_size
                                                 ? getFormData("formData5")
-                                                    .pump_discharge_size_unit
+                                                    .pump_suction_size_unit
                                                 : ""
                                             }
                                           />
                                         </FormControl>
                                       )}
                                     />
-                                    {/* Combobox for pump_discharge_size_unit */}
+                                    {/* Combobox for pump_suction_size_unit */}
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
                                         items={frameworks} // Dropdown options
                                         label={
                                           getFormData("formData5")
-                                            .pump_discharge_size_unit
+                                            .pump_suction_size_unit
                                             ? getFormData("formData5")
-                                                .pump_discharge_size_unit
+                                                .pump_suction_size_unit
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          dischargeSizeField.onChange(value); // Update form state
+                                          suctionSizeField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="suction_elbow"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Suction Elbow Pipe
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="suction_tee"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Suction Tee Pipe
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="suction_reducer"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Suction Reducer Pipe
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="suction_valve"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Suction Valve
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="suction_valve"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Suction Valve
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="suction_y_strainer"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Suction Y Strainer
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="suction_other"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Other Component
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="suction_equi_length"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Suction Equivalent length 
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="pump_discharge_size_id_unit"
+                            render={({ field: suctionSizeField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge size (ID)
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_suction_size */}
+                                    <FormField
+                                      control={
+                                        formFlangeAndBearingDetail.control
+                                      }
+                                      name="pump_discharge_size_id"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Suction size"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData5")
+                                                .pump_suction_size
+                                                ? getFormData("formData5")
+                                                    .pump_suction_size_unit
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_suction_size_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData5")
+                                            .pump_suction_size_unit
+                                            ? getFormData("formData5")
+                                                .pump_suction_size_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          suctionSizeField.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
@@ -2366,41 +4729,6 @@ export default function PumpList() {
                           />
                           <FormField
                             control={formFlangeAndBearingDetail.control}
-                            name="discharge_pipe_rating"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Discharge Pipe Rating
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Combobox
-                                      className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
-                                      label={
-                                        getFormData("formData5")
-                                          .discharge_pipe_rating
-                                          ? getFormData("formData5")
-                                              .discharge_pipe_rating
-                                          : "Select"
-                                      }
-                                      onChange={(value) => {
-                                        field.onChange(value); // Update form state
-                                      }}
-                                    />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formFlangeAndBearingDetail.control}
                             name="discharge_pipe_sch"
                             render={({ field }) => (
                               <FormItem>
@@ -2423,6 +4751,308 @@ export default function PumpList() {
                                         field.onChange(value); // Update form state
                                       }}
                                     />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_pipe_id_unit"
+                            render={({ field: suctionSizeField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge Pipe ID
+                                  </FormLabel>
+                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                    {/* Input for pump_suction_size */}
+                                    <FormField
+                                      control={
+                                        formFlangeAndBearingDetail.control
+                                      }
+                                      name="discharge_pipe_id"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full md:max-w-[500px]">
+                                          <Input
+                                            placeholder="Suction size"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData5")
+                                                .pump_suction_size
+                                                ? getFormData("formData5")
+                                                    .pump_suction_size_unit
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_suction_size_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={frameworks} // Dropdown options
+                                        label={
+                                          getFormData("formData5")
+                                            .pump_suction_size_unit
+                                            ? getFormData("formData5")
+                                                .pump_suction_size_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          suctionSizeField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the pump standard and its number.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_pipe_length_h"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Horizontal Discharge Pipe Length
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_pipe_length_v"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Vertical Discharge Pipe Length
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_pipe"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge Elbow Pipe
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_elbow"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge Elbow Pipe
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_tee"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge Tee Pipe
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_reducer"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge Reducer Pipe
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_valve"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge Valve
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_valve"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge Valve
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_y_strainer"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    SDischarge Y Strainer
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_other"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Other Component
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
+                                  </FormControl>
+                                </div>
+                                {showDescriptions && (
+                                  <FormDescription>
+                                    This is the Shaft.
+                                  </FormDescription>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formFlangeAndBearingDetail.control}
+                            name="discharge_equi_length"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge Equivalent length 
+                                  </FormLabel>
+                                  <FormControl className="w-full md:max-w-[500px]">
+                                    <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
                                 {showDescriptions && (

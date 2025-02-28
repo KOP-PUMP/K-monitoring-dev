@@ -136,11 +136,38 @@ function Dashboard() {
                     className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
                     activeProps={activeProps}
                   >
-                    Total Pum
+                    Total Pump
                   </Link>
                   <Collapsible>
                     <CollapsibleTrigger
                       className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                      onClick={() => toggleClick("pump_data")}
+                    >
+                      <div className="flex gap-3 items-center">Data Table</div>
+                      {isOpen.pump_data ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <Link
+                        to="/pump/unit_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Units
+                      </Link>
+                      {/* <Link
+                        to="/pump/lov_list"
+                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        List of Values
+                      </Link> */}
+                      <Collapsible>
+                    <CollapsibleTrigger
+                      className="flex w-full justify-between items-center rounded-lg pr-3 pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
                       onClick={() => toggleClick("pump_data")}
                     >
                       <div className="flex gap-3 items-center">Pump Data</div>
@@ -151,48 +178,43 @@ function Dashboard() {
                       )}
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      {/* <Link
-                        to="/pump/pump_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Pumps
-                      </Link>
-                      <Link
-                        to="/pump/mech_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Mechanical Seals
-                      </Link>
-                      <Link
-                        to="/pump/bearing_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Bearings
-                      </Link>
-                      <Link
-                        to="/pump/motor_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Motors
-                      </Link> */}
-                      <Link
-                        to="/pump/unit_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Units
-                      </Link>
                       <Link
                         to="/pump/lov_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                        className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
                         activeProps={activeProps}
                       >
                         List of Values
                       </Link>
+                      <Link
+                        to="/pump/pump_lov_list"
+                        className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Pump Data
+                      </Link>
+                      <Link
+                        to="/pump/motor_lov_list"
+                        className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Motor Data
+                      </Link>
+                      <Link
+                        to="/pump/material_lov_list"
+                        className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Material Data
+                      </Link>
+                      <Link
+                        to="/pump/seal_shaft_lov_list"
+                        className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                        activeProps={activeProps}
+                      >
+                        Seal / Shaft Data
+                      </Link>
+                    </CollapsibleContent>
+                  </Collapsible>
                     </CollapsibleContent>
                   </Collapsible>
                 </CollapsibleContent>
@@ -226,14 +248,14 @@ function Dashboard() {
                     className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
                     activeProps={activeProps}
                   >
-                    Dashboa
+                    Dashboard
                   </Link>
                   <Link
                     to="/analytic/report"
                     className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
                     activeProps={activeProps}
                   >
-                    Service Repo
+                    Service Report
                   </Link>
                 </CollapsibleContent>
               </Collapsible>
@@ -258,7 +280,7 @@ function Dashboard() {
                     className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
                     activeProps={activeProps}
                   >
-                    Compani
+                    Companies
                   </Link>
                   <Collapsible>
                     <CollapsibleTrigger

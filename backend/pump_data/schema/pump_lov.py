@@ -242,3 +242,7 @@ class PumpDetail_schema(Schema):
     bearing_de_two_id : Optional[str]=None
     bearing_de_two : Optional[str]=None
     bearing_last_chg_dt : Optional[str]=None
+    created_at : Optional[str]=None
+    created_by : Optional[str]=None
+    updated_at : Optional[str]=None
+    updated_by : Optional[str]=None

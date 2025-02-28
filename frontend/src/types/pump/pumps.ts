@@ -1,216 +1,234 @@
-export interface PumpOtherGeneralDetail {
-  pump_id: number;
-  design_temp: string;
-  max_temp: string;
-  density: number;
-  density_unit: string;
-  max_flow: number;
-  max_flow_unit: string;
-  min_flow: number;
-  min_flow_unit: string;
-  suction_velo: string;
-  suction_velo_unit: string;
-  discharge_velo: string;
-  discharge_velo_unit: string;
-  bep_head: number;
-  bep_head_unit: string;
-  bep_flow: string;
-  bep_flow_unit: string;
-  hyd_power: number;
-  hyd_power_unit: string;
-  voltage: string;
-  voltage_unit: string;
-  power_required_cal: string;
-  power_required_cal_unit: string;
-  power_min_flow: number;
-  power_min_flow_unit: string;
-  power_max_flow: number;
-  power_max_flow_unit: string;
-  power_bep_flow: number;
-  power_bep_flow_unit: string;
-  suggest_motor: number;
-  tank_position?: string;
-  tank_design?: string;
-  tank_pressure?: number;
-  suction_head?: number;
-  suction_pipe_length?: number;
-  discharge_pipe_length_h?: number;
-  discharge_pipe_length_v?: number;
-  suction_pipe_id: number;
-  discharge_pipe_id: string;
-  suction_elbow?: number;
-  suction_tee?: number;
-  suction_reducer?: number;
-  suction_valve?: number;
-  suction_y_strainer?: number;
-  suction_other?: number;
-  suction_equi_length?: number;
-  discharge_equi_length?: number;
-  discharge_elbow?: number;
-  discharge_tee?: number;
-  discharge_reducer?: number;
-  discharge_valve?: number;
-  discharge_y_strainer?: number;
-  discharge_other?: number;
-  diffuser_mat_id?: number;
-  diffuser_mat?: number;
-  materials_wear_ring_id?: number;
-  materials_wear_ring?: string;
-  sleeve_mat_id?: number;
-  sleeve_mat?: string;
-  bearing_housing_mat_id?: number;
-  bearing_housing_mat?: string;
-  gland_mat?: string;
-  casing_gas?: string;
-  oring_gas?: number;
-  impeller_gas?: string;
-  pump_lining_mat?: string;
-  base_plate?: string;
-  concentration?: number;
-  pump_status: string;
+export interface PumpDetailResponse {
+  /* Related tables */
+  pump_id ?: string ;
+  pump_model_id ?: string ;
+  pump_mat_id ?: string ;
+  motor_detail_id ?: string ;
+  shaft_seal_id ?: string ;
+  /* Pump General details */
+  company_code ?: string ;
+  doc_customer ?: string ;
+  doc_no ?: string ;
+  doc_date ?: string ;
+  tag_no ?: string ;
+  pump_standard ?: string ;
+  pump_standard_no ?: string ;
+  pump_design ?: string ;
+  location ?: string ;
+  base_plate_id ?: string ;
+  base_plate ?: string ;
+  pump_status ?: string ;
+  /* Pump Technical details */
+  max_temp ?: string ;
+  max_flow ?: string ;
+  max_flow_unit ?: string ;
+  min_flow ?: string ;
+  min_flow_unit ?: string ;
+  pump_speed ?: string ;
+  pump_speed_unit ?: string ;
+  design_flow ?: string ;
+  design_flow_unit ?: string ;
+  design_head ?: string ;
+  design_head_unit ?: string ;
+  shut_off_head ?: string ;
+  shut_off_head_unit ?: string ;
+  min_head ?: string ;
+  min_head_unit ?: string ;
+  max_head ?: string ;
+  max_head_unit ?: string ;
+  suction_velo ?: string ;
+  suction_velo_unit ?: string ;
+  discharge_velo ?: string ;
+  discharge_velo_unit ?: string ;
+  bep_head ?: string ;
+  bep_head_unit ?: string ;
+  bep_flow ?: string ;
+  bep_flow_unit ?: string ;
+  npshr ?: string ;
+  npshr_unit ?: string ;
+  pump_efficiency ?: string ;
+  pump_efficiency_unit ?: string ;
+  hyd_power ?: string ;
+  hyd_power_unit ?: string ;
+  power_required_cal ?: string ;
+  power_required_cal_unit ?: string ;
+  power_min_flow ?: string ;
+  power_min_flow_unit ?: string ;
+  power_max_flow ?: string ;
+  power_max_flow_unit ?: string ;
+  power_bep_flow ?: string ;
+  power_bep_flow_unit ?: string ;
+  /* Pump Application Data */
+  media ?: string ;
+  oper_temp ?: string ;
+  solid_type_id ?: string ;
+  solid_type ?: string ;
+  solid_diameter ?: string ;
+  density ?: string ;
+  density_unit ?: string ;
+  viscosity ?: string ;
+  viscosity_unit ?: string ;
+  vapor_pressure ?: string ;
+  vapor_pressure_unit ?: string ;
+  tank_position ?: string ;
+  tank_design ?: string ;
+  tank_pressure ?: string ;
+  suction_head ?: string ;
+  concentration ?: string ;
+  solid_percentage ?: string ;
+  /* Motor General Details */
+  voltage ?: string ;
+  voltage_unit ?: string ;
+  suggest_motor ?: string ;
+  /* Mechanical Seal Details */
+  mech_api_plan ?: string ;
+  mech_main_temp ?: string ;
+  mech_main_pre ?: string ;
+  mech_size ?: string ;
+  mech_size_unit ?: string ;
+  /* Material and Impeller Details */
+  design_impeller_dia ?: string ;
+  impeller_max ?: string ;
+  /* Flange Details */
+  flang_con_std ?: string ;
+  pump_suction_size_id ?: string ;
+  pump_suction_size ?: string ;
+  pump_suction_rating_id ?: string ;
+  pump_suction_rating ?: string ;
+  pump_discharge_size_id ?: string ;
+  pump_discharge_size ?: string ;
+  pump_discharge_rating_id ?: string ;
+  pump_discharge_rating ?: string ;
+  suction_pipe_data_id ?: string ;
+  suction_pipe_size ?: string ;
+  suction_pipe_sch ?: string ;
+  discharge_pipe_data_id ?: string ;
+  discharge_pipe_size ?: string ;
+  discharge_pipe_sch ?: string ;
+  suction_pipe_length ?: string ;
+  discharge_pipe_length_h ?: string ;
+  discharge_pipe_length_v ?: string ;
+  suction_pipe_id ?: string ;
+  suction_pipe_id_unit ?: string ;
+  discharge_pipe_id ?: string ;
+  discharge_pipe_id_unit ?: string ;
+  suction_elbow ?: string ;
+  suction_tee ?: string ;
+  suction_reducer ?: string ;
+  suction_valve ?: string ;
+  suction_y_strainer ?: string ;
+  suction_other ?: string ;
+  suction_equi_length ?: string ;
+  discharge_equi_length ?: string ;
+  discharge_elbow ?: string ;
+  discharge_tee ?: string ;
+  discharge_reducer ?: string ;
+  discharge_valve ?: string ;
+  discharge_y_strainer ?: string ;
+  discharge_other ?: string ;
+  /* Coupling Details */
+  coup_type ?: string ;
+  /* Bearing Detail */
+  bearing_nde_one_id ?: string ;
+  bearing_nde_one ?: string ;
+  bearing_nde_two_id ?: string ;
+  bearing_nde_two ?: string ;
+  bearing_lubric_type ?: string ;
+  bearing_lubric_brand ?: string ;
+  bearing_lubric_no ?: string ;
+  rotation_de ?: string ;
+  bearing_de_one_id ?: string ;
+  bearing_de_one ?: string ;
+  bearing_de_two_id ?: string ;
+  bearing_de_two ?: string ;
+  bearing_last_chg_dt ?: string ;
+  created_at ?: string ;
+  created_by ?: string ;
+  updated_at ?: string ;
+  updated_by ?: string ;
 }
 
-export interface PumpCustomerDetail {
-  doc_customer: string;
-  doc_no: string;
-  doc_date: string;
+export interface PumpDetailLOVResponse {
+  pump_lov_id ?: string ;
+  pump_brand ?: string ;
+  pump_model ?: string ;
+  model_size ?: string ;
+  pump_design ?: string ;
+  pump_standard ?: string ;
+  pump_standard_no ?: string ;
+  pump_impeller_type ?: string ;
+  pump_flange_con_std ?: string ;
+  pump_type ?: string ;
+  pump_stage ?: string ;
+  pump_seal_chamber ?: string ;
+  pump_oil_seal ?: string ;
+  pump_max_temp ?: string ;
+  pump_suction_size_id ?: string ;
+  pump_suction_size ?: string ;
+  pump_suction_rating_id ?: string ;
+  pump_suction_rating ?: string ;
+  pump_discharge_size_id ?: string ;
+  pump_discharge_size ?: string ;
+  pump_discharge_rating_id ?: string ;
+  pump_discharge_rating ?: string ;
+  created_at ?: string ;
+  created_by ?: string ;
+  updated_at ?: string ;
+  updated_by ?: string ;
 }
 
-export interface PumpGeneralDetail {
-  location?: string;
-  brand: string;
-  model: string;
-  tag_no: string;
-  serial_no: string;
-  pump_standard_id: string;
-  pump_standard: string;
-  pump_type_id: string;
-  pump_type_name: string;
-  stage?: number;
-  pump_design: string;
+export interface MotorDetailLOVResponse {
+  motor_id ?: string ;
+  motor_serial_no ?: string ;
+  motor_brand ?: string ;
+  motor_drive ?: string ;
+  motor_standard ?: string ;
+  motor_ie ?: string ;
+  motor_model ?: string ;
+  motor_speed ?: string ;
+  motor_speed_unit ?: string ;
+  motor_rated ?: string ;
+  motor_rated_unit ?: string ;
+  motor_factor ?: string ;
+  motor_connection ?: string ;
+  motor_phase ?: string ;
+  motor_efficiency ?: string ;
+  motor_efficiency_unit ?: string ;
+  motor_rated_current ?: string ;
+  motor_rated_current_unit ?: string ;
+  created_at ?: string ;
+  created_by ?: string ;
+  updated_at ?: string ;
+  updated_by ?: string ;
 }
 
-export interface PumpMaterialDetail {
-  casing_mat_id?: number;
-  casing_mat?: string;
-  impeller_mat_id?: number;
-  impeller_mat?: string;
-  shaft_mat_id?: number;
-  shaft_mat?: string;
+export interface ShaftSealLOVResponse {
+  shaft_seal_id ?: string ;
+  shaft_seal_design ?: string ;
+  shaft_seal_brand ?: string ;
+  shaft_seal_model ?: string ;
+  shaft_seal_material ?: string ;
+  mechanical_seal_api_plan ?: string ;
+  created_at ?: string ;
+  created_by ?: string ;
+  updated_at ?: string ;
+  updated_by ?: string ;
 }
 
-export interface PumpApplicationData {
-  media: string;
-  viscosity: number;
-  viscosity_unit: string;
-  vapor_pressure: number;
-  vapor_pressure_unit: string;
-  solid_type?: string;
-  solid_diameter?: string;
-}
-
-export interface PumpMotorGeneralDetail {
-  motor_brand?: string;
-  motor_model?: string;
-  motor_serial_no?: string;
-  motor_drive_id?: number;
-  motor_drive?: string;
-  motor_frame?: string;
-  motor_protection?: string;
-  motor_standard?: string;
-  motor_ie?: string;
-  motor_speed: number;
-  motor_speed_unit: string;
-  motor_rated: number;
-  motor_rated_unit: string;
-  motor_factor: number;
-  motor_connection?: string;
-  motor_phase: number;
-  motor_efficiency: string;
-  motor_efficiency_unit: string;
-}
-
-export interface PumpCouplingDetails {
-  coup_model?: string;
-  coup_brand?: string;
-  coup_type: string;
-  coup_size?: string;
-  coup_spacer?: number;
-}
-
-export interface PumpImpellerDetails {
-  impeller_type_id?: number;
-  impeller_type?: string;
-  design_impeller_dia: number;
-  impeller_max?: number;
-}
-
-export interface PumpTechnicalData {
-  pump_speed: number;
-  pump_speed_unit: string;
-  pump_efficiency: string;
-  pump_efficiency_unit: string;
-  min_head: string;
-  min_head_unit: string;
-  max_head: string;
-  max_head_unit: string;
-  npshr: string;
-  npshr_unit: string;
-  design_flow: string;
-  design_flow_unit: string;
-  design_head: string;
-  design_head_unit: string;
-}
-
-export interface PumpMechanicalSealGeneralDetails {
-  mech_seal_cham?: string;
-}
-
-export interface PumpMechanicalSealDetails {
-  mech_api_id: string;
-  mech_api_plan?: string;
-  mech_main_temp?: number;
-  mech_main_pre?: number;
-  mech_brand?: string;
-  mech_model?: string;
-  mech_size?: number;
-  mech_size_unit?: string;
-  mech_design_id?: number;
-  mech_design?: string;
-  mech_material?: string;
-}
-
-export interface PumpFlangeDetails {
-  pump_suction_size_id?: string;
-  pump_suction_size?: string;
-  pump_suction_rating_id?: string;
-  pump_suction_rating?: string;
-
-  pump_discharge_size_id?: string;
-  pump_discharge_size?: string;
-  pump_discharge_rating_id?: string;
-  pump_discharge_rating?: string;
-
-  suction_pipe_data_id: string;
-  suction_pipe_size: string;
-  suction_pipe_rating?: string;
-  suction_pipe_sch: string;
-
-  discharge_pipe_data_id: string;
-  discharge_pipe_size: string;
-  discharge_pipe_rating?: string;
-  discharge_pipe_sch: string;
-}
-
-export interface PumpBearingDetails {
-  rotation_de_id: number;
-  rotation_de: string;
-  bearing_nde?: string;
-  bearing_num?: string;
-  bearing_lubric_type?: string;
-  bearing_lubric_brand?: string;
-  bearing_lubric_no?: string;
-  bearing_de?: string;
-  bearing_de_no?: string;
-  bearing_last_chg_dt?: Date;
+export interface PumpMatLOVResponse {
+  material_id ?: string ;
+  pump_type_mat ?: string ;
+  pump_mat_code ?: string ;
+  casing_mat ?: string ;
+  casing_cover_mat ?: string ;
+  impeller_mat ?: string ;
+  liner_mat ?: string ;
+  base_mat ?: string ;
+  pump_head_mat ?: string ;
+  pump_head_cover_mat ?: string ;
+  stage_casing_diffuser_mat ?: string ;
+  created_at ?: string ;
+  created_by ?: string ;
+  updated_at ?: string ;
+  updated_by ?: string ;
 }

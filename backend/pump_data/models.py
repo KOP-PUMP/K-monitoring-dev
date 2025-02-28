@@ -88,7 +88,7 @@ class MotorDetailLOV(models.Model):
         db_table = 'tbl_motor_detail_lov'
 
     def __str__(self):
-        return f"{self.model} {self.brand}"
+        return f"{self.motor_model} {self.motor_brand}"
 
 class ShaftSealLOV(models.Model):
     shaft_seal_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
@@ -136,9 +136,19 @@ class PumpDetail(models.Model):
     #Related tables
     pump_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
     pump_model_id = models.ForeignKey(PumpDetailLOV, on_delete=models.SET_NULL, blank=True, null=True)
+    """ tbl_pump_detail_lov.brand
+    tbl_pump_detail_lov.model
+    tbl_pump_detail_lov.model_size """
     pump_mat_id = models.ForeignKey(PumpMaterialLOV, on_delete=models.SET_NULL, blank=True, null=True)
+    """ tbl_pump_material_lov.pump_type_mat
+    tbl_pump_material_lov.pump_mat_code """
     motor_detail_id = models.ForeignKey(MotorDetailLOV, on_delete=models.SET_NULL, blank=True, null=True)
+    """ tbl_motor_detail_lov.motor_model
+    tbl_motor_detail_lov.motor_brand """
     shaft_seal_id = models.ForeignKey(ShaftSealLOV, on_delete=models.SET_NULL, blank=True, null=True)
+    """ tbl_shaft_seal_lov.shaft_seal_design
+    tbl_shaft_seal_lov.shaft_seal_brand
+    tbl_shaft_seal_lov.shaft_seal_model """
     #Pump General details
     company_code = models.TextField(max_length=100,blank=True, null=True)
     doc_customer = models.TextField(max_length=100,blank=True, null=True)
@@ -276,6 +286,10 @@ class PumpDetail(models.Model):
     bearing_de_two_id = models.TextField(max_length=100,blank=True,null=True)
     bearing_de_two = models.TextField(max_length=100,blank=True,null=True)
     bearing_last_chg_dt = models.DateTimeField(blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.CharField(max_length=100,blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_by = models.CharField(max_length=100,blank=True, null=True)
 
     class Meta:
         db_table = 'tbl_pump_detail'
