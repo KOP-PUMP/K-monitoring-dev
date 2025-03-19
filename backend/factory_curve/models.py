@@ -32,3 +32,17 @@ class FactoryCurve(models.Model):
   
   class Meta:
     db_table = 'tbl_factory_curve'
+
+class FactoryCurveNumber(models.Model):
+  id = models.AutoField(primary_key=True, editable=False)
+  fac_number = models.CharField(max_length=100,blank=True, null=True)
+  created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+  created_by = models.CharField(max_length=100,blank=True, null=True)
+  updated_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+  updated_by = models.CharField(max_length=100,blank=True, null=True)
+  
+  def __str__(self):
+    return self.fac_number
+  
+  class Meta:
+    db_table = 'tbl_factory_curve_number'

@@ -1,9 +1,14 @@
 import { TokenResponse, LoginRequest, RefreshRequest, VerifyRequest } from "@/types/auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_PUBLIC_BASE_URL = import.meta.env.VITE_API_PUBLIC_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+
+const API_URL = window.location.origin === ("http://pecsystem.ddns.net:5173")
+  ? API_PUBLIC_BASE_URL
+  : API_BASE_URL;
 
 const login = async (email: string, password: string): Promise<TokenResponse> => {
-  const response = await fetch(API_BASE_URL + "/token/pair", {
+  const response = await fetch(API_URL + "/token/pair", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -28,7 +33,7 @@ const login = async (email: string, password: string): Promise<TokenResponse> =>
 };
 
 const refresh = async (refreshToken: string): Promise<TokenResponse> => {
-  const response = await fetch(API_BASE_URL + "/token/refresh", {
+  const response = await fetch(API_URL + "/token/refresh", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -54,7 +59,7 @@ const refresh = async (refreshToken: string): Promise<TokenResponse> => {
 };
 
 const verify = async (token: string): Promise<unknown> => {
-  const response = await fetch(API_BASE_URL + "/token/verify", {
+  const response = await fetch(API_URL + "/token/verify", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -7,9 +7,12 @@ import {
   deleteLOV,
   getAllPumpLOV,
   getPumpDetailLOV,
+  getShaftSealDetailLOV,
+  getMatDetailLOV,
+  getMotorDetailLOV,
 } from "@/api/pump/pump";
 import { LOVData } from "@/types/table";
-import { PumpDetailLOVResponse } from "@/types/pump/pumps";
+import { PumpDetailLOVResponse, MotorDetailLOVResponse, PumpMatLOVResponse, ShaftSealLOVResponse } from "@/types/pump/pumps";
 import toast from "react-hot-toast";
 
 export const useGetAllUnitLOVData = () => {
@@ -115,7 +118,29 @@ export const useUpdateLOV = () => {
 };
 export const useGetPumpDetailLOV = (id: string | null) => {
   return useQuery<PumpDetailLOVResponse[]>({
-    queryKey: ["pump", "pump_detail_lov", id],
+    queryKey: ["pump", "pump_lov", id],
     queryFn: () => getPumpDetailLOV(id),
   });
 };
+
+export const useGetMotorDetailLOV = (id: string | null) => {
+  return useQuery<MotorDetailLOVResponse[]>({
+    queryKey: ["motor", "motor_lov", id],
+    queryFn: () => getMotorDetailLOV(id),
+  });
+};
+
+export const useGetMatDetailLOV = (id: string | null) => {
+  return useQuery<PumpMatLOVResponse[]>({
+    queryKey: ["material", "material_lov", id],
+    queryFn: () => getMatDetailLOV(id),
+  });
+};
+
+export const useGetShaftSealDetailLOV = (id: string | null) => {
+  return useQuery<ShaftSealLOVResponse[]>({
+    queryKey: ["shaft_seal", "shaft_seal_lov", id],
+    queryFn: () => getShaftSealDetailLOV(id),
+  });
+};
+

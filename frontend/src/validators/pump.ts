@@ -1,14 +1,12 @@
 import { z } from "zod";
 export const PumpDetailFormSchema = z.object({
-
   company_code : z.string().optional() ,
   doc_customer : z.string().optional(),
   doc_no : z.string().optional(),
   doc_date : z.string().optional(),
   tag_no : z.string().optional(),
   pump_lov_id : z.string().optional(),
-  pump_standard : z.string().optional(),
-  pump_standard_no : z.string().optional(),
+  pump_code_name : z.string().optional(),
   pump_design : z.string().optional(),
   location : z.string().optional(),
   base_plate : z.string().optional(),
@@ -73,10 +71,8 @@ solid_percentage : z.string().optional(),
 })
 
 export const MotorAndCouplingDetailFormSchema = z.object({
-  /* Coupling Details */
-coup_type : z.string().optional(),
-  /* Motor General Details */
-  motor_lov_id : z.string().optional(),
+  motor_id : z.string().optional(),
+  motor_code_name : z.string().optional(),
   motor_model : z.string().optional(),
   motor_serial_no : z.string().optional(),
   motor_brand : z.string().optional(),
@@ -94,11 +90,16 @@ coup_type : z.string().optional(),
   motor_efficiency_unit : z.string().optional(),
   motor_rated_current : z.string().optional(),
   motor_rated_current_unit : z.string().optional(),
+  created_at : z.string().optional(),
+  created_by : z.string().optional(),
+  updated_at : z.string().optional(),
+  updated_by : z.string().optional(),
 })
 
 export const MaterialAndImpellerDetailFormSchema = z.object({
   /* Material and Impeller Details */
   pump_mat_id : z.string().optional(),
+  mat_code_name : z.string().optional(),
   casing_mat : z.string().optional(),
   casing_cover_mat : z.string().optional(),
   diffuser_mat : z.string().optional(),
@@ -114,16 +115,17 @@ export const MaterialAndImpellerDetailFormSchema = z.object({
 
 export const MechanicalSealDetailFormSchema = z.object({
   /* Mechanical Seal Details */
-  mech_api_plan : z.string().optional(),
-  mech_main_temp : z.string().optional(),
-  mech_main_pre : z.string().optional(),
-  mech_size : z.string().optional(),
-  mech_size_unit : z.string().optional(),
-  seal_cham : z.string().optional(),
+  shaft_seal_id : z.string().optional(),
+  shaft_seal_code_name : z.string().optional(), 
+  shaft_seal_design : z.string().optional(),
   shaft_seal_brand : z.string().optional(),
-  shaft_seal_design_id : z.string().optional(),
-shaft_seal_design : z.string().optional(),
-  shaft_seal_mat : z.string().optional(),
+  shaft_seal_model : z.string().optional(),
+  shaft_seal_material : z.string().optional(),
+  mechanical_seal_api_plan : z.string().optional(),
+  created_at : z.string().optional(),
+  created_by : z.string().optional(),
+  updated_at : z.string().optional(),
+  updated_by : z.string().optional(),
 })
 export const FlangeAndBearingDetailFormSchema = z.object({
   /* Bearing Detail */
@@ -352,6 +354,7 @@ export const PumpDetailLOVSchema = z.object({
 });
 
 export const MotorDetailLOVSchema = z.object({
+  motor_code_name : z.string().optional(),
   motor_model : z.string().optional(),
   motor_serial_no : z.string().optional(),
   motor_brand : z.string().optional(),

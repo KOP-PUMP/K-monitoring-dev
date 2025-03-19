@@ -1,6 +1,6 @@
 export interface PumpDetailResponse {
   /* Related tables */
-  pump_id ?: string ;
+  pump_id ?: string ; 
   pump_model_id ?: string ;
   pump_mat_id ?: string ;
   motor_detail_id ?: string ;
@@ -150,6 +150,7 @@ export interface PumpDetailResponse {
 
 export interface PumpDetailLOVResponse {
   pump_lov_id ?: string ;
+  pump_code_name ?: string ;
   pump_brand ?: string ;
   pump_model ?: string ;
   model_size ?: string ;
@@ -179,6 +180,7 @@ export interface PumpDetailLOVResponse {
 
 export interface MotorDetailLOVResponse {
   motor_id ?: string ;
+  motor_code_name ?: string ;
   motor_serial_no ?: string ;
   motor_brand ?: string ;
   motor_drive ?: string ;
@@ -202,8 +204,9 @@ export interface MotorDetailLOVResponse {
   updated_by ?: string ;
 }
 
-export interface ShaftSealLOVResponse {
+export interface PumpShaftSealLOVResponse {
   shaft_seal_id ?: string ;
+  shaft_seal_code_name ?: string ; 
   shaft_seal_design ?: string ;
   shaft_seal_brand ?: string ;
   shaft_seal_model ?: string ;
@@ -217,6 +220,7 @@ export interface ShaftSealLOVResponse {
 
 export interface PumpMatLOVResponse {
   material_id ?: string ;
+  mat_code_name ?: string ;
   pump_type_mat ?: string ;
   pump_mat_code ?: string ;
   casing_mat ?: string ;

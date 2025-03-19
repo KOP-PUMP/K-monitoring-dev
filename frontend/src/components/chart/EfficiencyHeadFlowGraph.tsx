@@ -1,13 +1,14 @@
 import { Line, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer, ComposedChart } from "recharts";
-import { useEfficiencyHeadFlowData } from "@/api/chart";
+import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
 
 export interface EfficiencyHeadFlowGraphProps {
-  model: string;
+  chartData: FactoryCurveDataResponse[];
   scatter?: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-export const EfficiencyHeadFlowGraph = ({ model, scatter = false }: EfficiencyHeadFlowGraphProps) => {
-  const { data: chartData, isLoading, isError } = useEfficiencyHeadFlowData(model);
+export const EfficiencyHeadFlowGraph = ({ chartData, scatter = false }: EfficiencyHeadFlowGraphProps) => {
 
   const XAxisDefaultProps = {
     dataKey: "flow",
@@ -41,7 +42,6 @@ export const EfficiencyHeadFlowGraph = ({ model, scatter = false }: EfficiencyHe
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis {...XAxisDefaultProps} />
           <YAxis {...YAxisDefaultProps} />
-          <Legend verticalAlign="top" height={36} />
           {uniqueEfficiencies.map((eff, index) => {
             const colors = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
             return (

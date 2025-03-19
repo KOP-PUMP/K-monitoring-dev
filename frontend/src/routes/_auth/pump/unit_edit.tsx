@@ -48,7 +48,7 @@ function UnitEdit() {
   const localstorage = window.localStorage.getItem("user");
   const userData = localstorage !== null ? JSON.parse(localstorage) : null;
   const addData = {
-    type_name: "unit",
+    type_name: "pump_unit",
     product_name: "",
     data_value: "",
     data_value2: "",

@@ -244,11 +244,11 @@ function Dashboard() {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <Link
-                    to="/analytic/dashboard"
+                    to="/analytic/factory_curve"
                     className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
                     activeProps={activeProps}
                   >
-                    Dashboard
+                    Factory Curve
                   </Link>
                   <Link
                     to="/analytic/report"

@@ -54,11 +54,9 @@ import {
 } from "@/types/users/company";
 
 function CompanyEdit() {
-  const [pecCompanyData, setPecCompanyData] =
-    useState<CompaniesResponse | null>(null);
-  const [pecContactData, setPecContactData] =
-    useState<ContactPersonResponse | null>(null);
-  const [companyCode, setCompanyCode] = useState<string | null>(null);
+  const [pecCompanyData, setPecCompanyData] = useState<CompaniesResponse>();
+  const [pecContactData, setPecContactData] = useState<ContactPersonResponse>();
+  const [companyCode, setCompanyCode] = useState<string>("");
   const [isCLearClick, setClearClick] = useState<boolean>(false);
   const [provinceData, setProvinceData] = useState<ComboboxItemProps[]>([]);
   const { code } = useSearch({ from: "/_auth/users/company_edit" });
@@ -66,7 +64,7 @@ function CompanyEdit() {
   const { data: contactData } = useGetPECContactDetail(
     companyCode || code || ""
   );
-  const { data: companyData } = useGetPECCompanyDetail(companyCode || "");
+  const { data: companyData } = useGetPECCompanyDetail(companyCode);
   const { data: companyDetail } = useGetCompanyDetailByCode(code || "");
   const { showDescriptions } = useSettings();
   const localstorage = window.localStorage.getItem("user");
@@ -116,9 +114,9 @@ function CompanyEdit() {
         province: "",
         sales_area: "",
       });
-      setCompanyCode(null);
-      setPecCompanyData(null);
-      setPecContactData(null);
+      setCompanyCode("");
+      setPecCompanyData("");
+      setPecContactData("");
     }
   }, [pecCompanyData, CompanyForm, isCLearClick]);
 

@@ -18,7 +18,7 @@ const Analytic = () => {
     { id: "scatter", label: "Show Scatter Plot" },
   ];
 
-  const onGrapgTypeChange = (id: string) => {
+  const onGraphTypeChange = (id: string) => {
     setDisplayMode(id);
   };
 
@@ -31,7 +31,7 @@ const Analytic = () => {
             name="graph type"
             items={graphTypes}
             searchable={false}
-            onChange={onGrapgTypeChange}
+            onChange={onGraphTypeChange}
             default_id="line"
           />
         </div>

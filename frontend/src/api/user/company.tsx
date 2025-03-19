@@ -18,19 +18,18 @@ export const getAllCompaniesDetail = async (): Promise<CompaniesResponse[]> => {
   }
 };
 
-export const getCompanyDetailByCode = async (code: string) => {
+export const getCompanyDetailByCode = async (code?: string) => {
   try {
+    if (!code || code === "") {
+      return;
+    }
     const response = await axiosInstance.get(`/companies/${code}`);
     return response.data;
   } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      // Axios-specific error handling
-      if (error.response?.status === 404) {
-        // If the company doesn't exist, proceed to create it
-        throw new Error(`Bad request. Cannot find company code ${code} `);
-      } else {
-        throw new Error("Bad request. Cannot get Data");
-      }
+    if (error.response?.status === 404) {
+      throw new Error(`Cannot find company code ${code}`);
+    } else {
+      throw new Error("Error fetching companies detail data");
     }
   }
 };
@@ -86,24 +85,29 @@ export const updateCompany = async ({
   }
 };
 
-export const getPECCompanyDetail = async (code: string) => {
+export const getPECCompanyDetail = async (code?: string) => {
   try {
+    if (!code || code === "") {
+      return;
+    }
     const response = await axiosInstancePEC.get(
       `/customer_api.php?code=${code}`
     );
-    if (response.data.length === 0) {
-      toast.error("Cannot find company detail");
-      return;
-    }
     return response.data;
-  } catch (error) {
-    console.error("Error fetching companies detail data:", error);
-    toast.error("Error fetching companies detail data");
-    throw new Error("Failed to fetch companies detail data");
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      // Axios-specific error handling
+      console.error("Error fetching companies detail data:", error);
+      toast.error("Error fetching companies detail data");
+      throw new Error("Failed to fetch companies detail data");
+    }
   }
 };
 
-export const getPECContactDetail = async (code: string) => {
+export const getPECContactDetail = async (code: string | null) => {
+  if (!code) {
+    return;
+  }
   const response = await axiosInstancePEC.get(`/contact_api.php?code=${code}`);
   return response.data;
 };

@@ -41,8 +41,8 @@ import { Route as AuthPumpEngineeringImport } from './routes/_auth/pump/engineer
 import { Route as AuthPumpDetailImport } from './routes/_auth/pump/detail'
 import { Route as AuthCustomersDashboardImport } from './routes/_auth/customers/dashboard'
 import { Route as AuthAnalyticReportImport } from './routes/_auth/analytic/report'
+import { Route as AuthAnalyticFactorycurveImport } from './routes/_auth/analytic/factory_curve'
 import { Route as AuthAnalyticEngineeringImport } from './routes/_auth/analytic/engineering'
-import { Route as AuthAnalyticDashboardImport } from './routes/_auth/analytic/dashboard'
 import { Route as AuthAnalyticModelImport } from './routes/_auth/analytic/$model'
 
 // Create/Update Routes
@@ -197,13 +197,13 @@ const AuthAnalyticReportRoute = AuthAnalyticReportImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
-const AuthAnalyticEngineeringRoute = AuthAnalyticEngineeringImport.update({
-  path: '/analytic/engineering',
+const AuthAnalyticFactorycurveRoute = AuthAnalyticFactorycurveImport.update({
+  path: '/analytic/factory_curve',
   getParentRoute: () => AuthRoute,
 } as any)
 
-const AuthAnalyticDashboardRoute = AuthAnalyticDashboardImport.update({
-  path: '/analytic/dashboard',
+const AuthAnalyticEngineeringRoute = AuthAnalyticEngineeringImport.update({
+  path: '/analytic/engineering',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -251,18 +251,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAnalyticModelImport
       parentRoute: typeof AuthImport
     }
-    '/_auth/analytic/dashboard': {
-      id: '/_auth/analytic/dashboard'
-      path: '/analytic/dashboard'
-      fullPath: '/analytic/dashboard'
-      preLoaderRoute: typeof AuthAnalyticDashboardImport
-      parentRoute: typeof AuthImport
-    }
     '/_auth/analytic/engineering': {
       id: '/_auth/analytic/engineering'
       path: '/analytic/engineering'
       fullPath: '/analytic/engineering'
       preLoaderRoute: typeof AuthAnalyticEngineeringImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/analytic/factory_curve': {
+      id: '/_auth/analytic/factory_curve'
+      path: '/analytic/factory_curve'
+      fullPath: '/analytic/factory_curve'
+      preLoaderRoute: typeof AuthAnalyticFactorycurveImport
       parentRoute: typeof AuthImport
     }
     '/_auth/analytic/report': {
@@ -457,8 +457,8 @@ export const routeTree = rootRoute.addChildren({
     AuthSettingsRoute,
     AuthIndexRoute,
     AuthAnalyticModelRoute,
-    AuthAnalyticDashboardRoute,
     AuthAnalyticEngineeringRoute,
+    AuthAnalyticFactorycurveRoute,
     AuthAnalyticReportRoute,
     AuthCustomersDashboardRoute,
     AuthPumpDetailRoute,
@@ -507,8 +507,8 @@ export const routeTree = rootRoute.addChildren({
         "/_auth/settings",
         "/_auth/",
         "/_auth/analytic/$model",
-        "/_auth/analytic/dashboard",
         "/_auth/analytic/engineering",
+        "/_auth/analytic/factory_curve",
         "/_auth/analytic/report",
         "/_auth/customers/dashboard",
         "/_auth/pump/detail",
@@ -552,12 +552,12 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth/analytic/$model.tsx",
       "parent": "/_auth"
     },
-    "/_auth/analytic/dashboard": {
-      "filePath": "_auth/analytic/dashboard.tsx",
-      "parent": "/_auth"
-    },
     "/_auth/analytic/engineering": {
       "filePath": "_auth/analytic/engineering.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/analytic/factory_curve": {
+      "filePath": "_auth/analytic/factory_curve.tsx",
       "parent": "/_auth"
     },
     "/_auth/analytic/report": {

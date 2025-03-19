@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, Search } from "lucide-react";
+import { PlusCircle, Search, ChevronsUpDown } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -38,34 +38,33 @@ import {
   FlangeAndBearingDetailFormSchema,
 } from "@/validators/pump";
 import { useSettings } from "@/lib/settings";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { useGetCompanyDetailByCode } from "@/hook/users/company";
-
-const frameworks: ComboboxItemProps[] = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
+import {
+  useGetAllUnitLOVData,
+  useGetAllPumpLOVData,
+  useGetPumpDetailLOV,
+  useGetMatDetailLOV,
+  useGetShaftSealDetailLOV,
+  useGetMotorDetailLOV,
+} from "@/hook/pump/pump";
+import { PumpDetailLOVSchema } from "@/validators/pump";
+import {
+  PumpDetailLOVResponse,
+  PumpMatLOVResponse,
+  PumpShaftSealLOVResponse,
+  MotorDetailLOVResponse,
+} from "@/types/pump/pumps";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export default function PumpList() {
+  /* Setup state and variable */
+  /* page state */
   const [step, setStep] = useState({
     1: false,
     2: false,
@@ -73,12 +72,59 @@ export default function PumpList() {
     4: false,
     5: false,
   });
-  const [SelectedCompanyCode, setSelectedCompanyCode] = useState<string>("");
-  const [CompanyCode, setCompanyCode] = useState<string>("");
   const [stepName, setStepName] = useState(1);
-  const [isAdd, setIsAdd] = useState(false);
-  const { showDescriptions } = useSettings();
+  /* data filter state */
+  const [CompanyCode, setCompanyCode] = useState<string>("");
+  const [searchKey, setSearchKey] = useState({
+    pump_lov_search: "",
+    pump_mat_lov_search: "",
+    pump_shaft_seal_lov_search: "",
+    pump_motor_search: "",
+  });
+  /* fetched data state */
+  const [pumpLOVData, setPumpLOVData] = useState<ComboboxItemProps[]>([]);
+  const [pumpMatLOVData, setPumpMatLOVData] = useState<PumpMatLOVResponse[]>();
+  const [pumpShaftSealData, setPumpShaftSealLOVData] =
+    useState<PumpShaftSealLOVResponse[]>();
+  const [pumpMotorLOVData, setPumpMotorLOVData] =
+    useState<MotorAndCouplingDetail[]>();
+  const [pumpUnitLOVData, setPumpUnitLOVData] = useState<ComboboxItemProps[]>();
+  const [pumpDetailLOVData, setPumpDetailLOVData] =
+    useState<PumpDetailLOVResponse[]>();
+  /* Dropdown option from pump data */
   const { data: companyData } = useGetCompanyDetailByCode(CompanyCode);
+  const { data: pumpDetailLOVResponse } = useGetPumpDetailLOV("");
+  const { data: pumpMatLOVResponse } = useGetMatDetailLOV("");
+  const { data: pumpShaftSealLOVResponse } = useGetShaftSealDetailLOV("");
+  const { data: pumpMotorLOVResponse } = useGetMotorDetailLOV("");
+  /* Dropdown option from LOV */
+  const { data: pumpLOVResponse } = useGetAllPumpLOVData();
+  const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();
+
+  /* Mapping Data for drop down option */
+  useEffect(() => {
+    if (pumpLOVResponse && pumpUnitLOVResponse && pumpMatLOVResponse) {
+      const newPumpLOVData = pumpLOVResponse.map((data) => {
+        return {
+          type_name: data.type_name,
+          product_name: data.product_name,
+          value: data.data_value,
+          label: data.data_value,
+        };
+      });
+      const newPumpUnitLOVData = pumpUnitLOVResponse.map((data) => {
+        return {
+          type_name: data.type_name,
+          product_name: data.product_name,
+          value: data.data_value,
+          label: data.data_value,
+        };
+      });
+      setPumpLOVData(newPumpLOVData);
+      setPumpUnitLOVData(newPumpUnitLOVData);
+    }
+  }, [pumpLOVResponse]);
+
   const getFormData = (key: string) =>
     JSON.parse(localStorage.getItem(key) || "{}");
 
@@ -89,6 +135,8 @@ export default function PumpList() {
     defaultValues: getFormData("formData1"),
   });
 
+  const generalDetailCurrentValue = formPumpGeneralDetail.getValues();
+
   /* Tab 2 */
   type MaterialAndImpellerDetail = z.infer<
     typeof MaterialAndImpellerDetailFormSchema
@@ -97,6 +145,9 @@ export default function PumpList() {
     resolver: zodResolver(MaterialAndImpellerDetailFormSchema),
     defaultValues: getFormData("formData2"),
   });
+
+  const materialAnnImpellerDetailCurrentValue =
+    formMaterialAndImpellerDetail.getValues();
 
   /* Tab 3 */
   type MotorAndCouplingDetail = z.infer<
@@ -107,12 +158,17 @@ export default function PumpList() {
     defaultValues: getFormData("formData3"),
   });
 
+  const motorAndCouplingDetailCurrentValue =
+    formMotorAndCouplingDetail.getValues();
+
   /* Tab 4 */
   type MechanicalSealDetail = z.infer<typeof MechanicalSealDetailFormSchema>;
   const formMechanicalSealDetail = useForm<MechanicalSealDetail>({
     resolver: zodResolver(MechanicalSealDetailFormSchema),
     defaultValues: getFormData("formData4"),
   });
+
+  const mechanicalSealDetailCurrentValue = formMechanicalSealDetail.getValues();
 
   /* Tab 5 */
   type FlangeAndBearingDetail = z.infer<
@@ -122,6 +178,8 @@ export default function PumpList() {
     resolver: zodResolver(FlangeAndBearingDetailFormSchema),
     defaultValues: getFormData("formData5"),
   });
+
+  const flangeAndBearingCurrentValue = formFlangeAndBearingDetail.getValues();
 
   const handleNextStep = (
     currentStep: number,
@@ -152,6 +210,20 @@ export default function PumpList() {
     setStepName(stepName);
   };
 
+  const handleLOVDataFilter = (name: string, type: string) => {
+    if (type === "pump_data") {
+      const filterData = pumpLOVData?.filter((data) => {
+        return data.product_name === name;
+      });
+      return filterData;
+    }
+    if (type === "pump_unit") {
+      const filterData = pumpUnitLOVData?.filter((data) => {
+        return data.product_name == name;
+      });
+      return filterData;
+    }
+  };
   return (
     <div className="container mx-auto p-4 items-center">
       <Tabs value={stepName}>
@@ -224,7 +296,9 @@ export default function PumpList() {
                             render={({ field }) => (
                               <FormItem>
                                 <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
-                                  <FormLabel className="w-2/12">Code</FormLabel>
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Company Code
+                                  </FormLabel>
                                   <div className="w-full flex gap-2">
                                     <FormControl>
                                       <Input
@@ -259,13 +333,8 @@ export default function PumpList() {
                                               Code
                                             </Label>
                                             <Input
-                                              id="input_code"
-                                              className="col-span-3"
-                                              onChange={(e) =>
-                                                setSelectedCompanyCode(
-                                                  e.target.value
-                                                )
-                                              }
+                                              id="input_company_code"
+                                              className="w-full"
                                             />
                                           </div>
                                           {companyData?.customer_code && (
@@ -353,7 +422,13 @@ export default function PumpList() {
                                                   className="bg-green-500 hover:bg-green-600 w-full"
                                                   type="button"
                                                   onClick={() => {
-                                                    setIsAdd(true);
+                                                    formPumpGeneralDetail.reset(
+                                                      {
+                                                        ...generalDetailCurrentValue,
+                                                        company_code:
+                                                          companyData.customer_code,
+                                                      }
+                                                    );
                                                   }}
                                                 >
                                                   <PlusCircle className="mr-2 h-3.5 w-3.5" />
@@ -364,9 +439,11 @@ export default function PumpList() {
                                           <Button
                                             type="button"
                                             onClick={() => {
-                                              setCompanyCode(
-                                                SelectedCompanyCode
-                                              );
+                                              const input =
+                                                document.getElementById(
+                                                  "input_company_code"
+                                                ) as HTMLInputElement;
+                                              setCompanyCode(input?.value);
                                             }}
                                           >
                                             Find
@@ -384,11 +461,7 @@ export default function PumpList() {
                                     </Sheet>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -398,19 +471,15 @@ export default function PumpList() {
                             name="doc_customer"
                             render={({ field }) => (
                               <FormItem>
-                                <div className="flex items-center ">
-                                  <FormLabel className="w-32 lg:w-44 ">
+                                <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
+                                  <FormLabel className="w-32 lg:w-44">
                                     Document
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Tag No." {...field} />
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Document" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -421,18 +490,17 @@ export default function PumpList() {
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center ">
-                                  <FormLabel className="w-32 lg:w-44 ">
+                                  <FormLabel className="w-32 lg:w-44">
                                     Document No.
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Tag No." {...field} />
+                                  <FormControl className="w-full">
+                                    <Input
+                                      placeholder="Document No."
+                                      {...field}
+                                    />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -446,15 +514,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Document Date
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Tag No." {...field} />
+                                  <FormControl className="w-full">
+                                    <Input
+                                      placeholder="Document Date"
+                                      {...field}
+                                    />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -466,78 +533,48 @@ export default function PumpList() {
                               <FormItem>
                                 <div className="flex items-center ">
                                   <FormLabel className="w-32 lg:w-44 ">
-                                    Tag&nbsp;No.
+                                    Tag No.
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Tag No." {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                           <FormField
                             control={formPumpGeneralDetail.control}
-                            name="location"
+                            name="serial_no"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
-                                    Location
+                                    Serial number
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Location" {...field} />
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Serial number" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the location of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                           <FormField
                             control={formPumpGeneralDetail.control}
-                            name="tag_no"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center ">
-                                  <FormLabel className="w-32 lg:w-44 ">
-                                    Tag&nbsp;No.
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Tag No." {...field} />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="pump_lov_id"
+                            name="pump_code_name"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
-                                  <FormLabel className="w-2/12">
-                                    Select Pump
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Pump Model
                                   </FormLabel>
                                   <div className="w-full flex gap-2">
                                     <FormControl>
                                       <Input
-                                        placeholder="Company Code"
+                                        placeholder="Pump Model"
                                         {...field}
                                         readOnly
                                       />
@@ -552,152 +589,215 @@ export default function PumpList() {
                                           Find
                                         </Button>
                                       </SheetTrigger>
-                                      <SheetContent>
+                                      <SheetContent
+                                        side="right"
+                                        className="w-[400px] sm:w-[540px]"
+                                        style={{ zIndex: 1000 }}
+                                      >
                                         <SheetHeader>
-                                          <SheetTitle>User Company</SheetTitle>
+                                          <SheetTitle>Select a User</SheetTitle>
                                           <SheetDescription>
-                                            Please enter customer code here
+                                            Choose a user from the list below
                                           </SheetDescription>
                                         </SheetHeader>
-                                        <div className="gap-4 pt-8">
-                                          <div className="flex flex-col items-start gap-4">
-                                            <Label
-                                              htmlFor="name"
-                                              className="text-right"
-                                            >
-                                              Code
-                                            </Label>
-                                            <Input
-                                              id="input_code"
-                                              className="col-span-3"
-                                              onChange={(e) =>
-                                                setSelectedCompanyCode(
-                                                  e.target.value
+                                        <div className="py-6">
+                                          <Input
+                                            placeholder="Search model..."
+                                            className="mb-6"
+                                            value={searchKey.pump_lov_search}
+                                            onChange={(e) => {
+                                              const searchValue =
+                                                e.target.value.toLowerCase(); // Ensure case insensitivity
+
+                                              const filterData =
+                                                pumpDetailLOVResponse?.filter(
+                                                  (data) =>
+                                                    data.pump_model
+                                                      ?.toLowerCase()
+                                                      .includes(searchValue)
+                                                );
+                                              setSearchKey({
+                                                ...searchKey,
+                                                pump_lov_search: e.target.value,
+                                              });
+
+                                              setPumpDetailLOVData(filterData);
+                                            }}
+                                          />
+                                          <div className="space-y-4 h-[400px] max-h-[400px] overflow-y-auto">
+                                            {searchKey.pump_lov_search ===
+                                            "" ? (
+                                              pumpDetailLOVResponse?.map(
+                                                (data) => (
+                                                  <SheetClose
+                                                    key={data.pump_brand}
+                                                    className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
+                                                    onClick={() => {
+                                                      formPumpGeneralDetail.reset(
+                                                        {
+                                                          ...generalDetailCurrentValue,
+                                                          pump_lov_id:
+                                                            data.pump_lov_id,
+                                                          pump_code_name:
+                                                            data.pump_model,
+                                                          pump_design:
+                                                            data.pump_design,
+                                                        }
+                                                      );
+                                                    }}
+                                                  >
+                                                    <div className="font-medium">
+                                                      {data.pump_model}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                      Design :{" "}
+                                                      {data.pump_design}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                      Type : {data.pump_type}
+                                                    </div>
+                                                  </SheetClose>
                                                 )
-                                              }
-                                            />
-                                          </div>
-                                          {companyData?.customer_code && (
-                                            <div className="gap-4 pt-8">
-                                              <SheetHeader>
-                                                <SheetDescription className="text-center">
-                                                  ** Please check the
-                                                  information below **
-                                                </SheetDescription>
-                                              </SheetHeader>
-                                              <div className="flex flex-col gap-4 pt-4 items-start">
-                                                <Label
-                                                  htmlFor="name"
-                                                  className="text-right"
-                                                >
-                                                  Name
-                                                </Label>
-                                                <Input
-                                                  id="address"
-                                                  value={
-                                                    companyData.company_name_en
-                                                  }
-                                                  className="col-span-3 text-wrap h-4rem"
-                                                  readOnly
-                                                />
-                                                <Input
-                                                  id="address"
-                                                  value={
-                                                    companyData.company_name_th
-                                                  }
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="address"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Address
-                                                </Label>
-                                                <Input
-                                                  id="address"
-                                                  value={companyData.address_en}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Input
-                                                  id="address"
-                                                  value={companyData.address_th}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="province"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Province
-                                                </Label>
-                                                <Input
-                                                  id="province"
-                                                  value={companyData.province}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="sales_area"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Sales Area
-                                                </Label>
-                                                <Input
-                                                  id="sales_area"
-                                                  value={companyData.sales_area}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                        <SheetFooter className="pt-8">
-                                          {companyData &&
-                                            companyData.customer_code && (
-                                              <SheetClose asChild>
-                                                <Button
-                                                  className="bg-green-500 hover:bg-green-600 w-full"
-                                                  type="button"
+                                              )
+                                            ) : pumpDetailLOVData &&
+                                              pumpDetailLOVData?.length > 0 ? (
+                                              pumpDetailLOVData.map((data) => (
+                                                <SheetClose
+                                                  key={data.pump_brand}
+                                                  className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
                                                   onClick={() => {
-                                                    setIsAdd(true);
+                                                    formPumpGeneralDetail.reset(
+                                                      {
+                                                        ...generalDetailCurrentValue,
+                                                        pump_lov_id:
+                                                          data.pump_lov_id,
+                                                        pump_code_name:
+                                                          data.pump_model,
+                                                        pump_design:
+                                                          data.pump_design,
+                                                      }
+                                                    );
                                                   }}
                                                 >
-                                                  <PlusCircle className="mr-2 h-3.5 w-3.5" />
-                                                  Add
-                                                </Button>
-                                              </SheetClose>
+                                                  <div className="font-medium">
+                                                    {data.pump_model}
+                                                  </div>
+                                                  <div className="text-sm text-muted-foreground">
+                                                    Design : {data.pump_design}
+                                                  </div>
+                                                  <div className="text-sm text-muted-foreground">
+                                                    Type : {data.pump_type}
+                                                  </div>
+                                                </SheetClose>
+                                              ))
+                                            ) : (
+                                              <div className="h-[400px] p-3 border rounded-md flex justify-center items-center">
+                                                <p className="text-sm">
+                                                  Pump not found.
+                                                </p>
+                                              </div>
                                             )}
-                                          <Button
-                                            type="button"
-                                            onClick={() => {
-                                              setCompanyCode(
-                                                SelectedCompanyCode
-                                              );
-                                            }}
-                                          >
-                                            Find
-                                          </Button>
+                                          </div>
+                                        </div>
+                                        <SheetFooter>
                                           <SheetClose asChild>
-                                            <Button
-                                              type="button"
-                                              variant={"destructive"}
-                                            >
-                                              Close
-                                            </Button>
+                                            <Button type="button">Done</Button>
                                           </SheetClose>
                                         </SheetFooter>
                                       </SheetContent>
                                     </Sheet>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="brand"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Brand
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Brand" {...field} readOnly/>
+                                  </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="model"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Model
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Model" {...field} readOnly/>
+                                  </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="pump_model_size"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Model Size
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Model" {...field} readOnly/>
+                                  </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="pump_design"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Design
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Design" {...field} readOnly/>
+                                  </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="pump_type_name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Type
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Type" {...field} readOnly/>
+                                  </FormControl>
+                                </div>
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -705,81 +805,89 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="pump_standard"
-                            render={({ field: standardField }) => (
+                            render={({ field }) => (
                               <FormItem>
-                                <div className="w-full flex items-center">
+                                <div className="flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Standard
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
-                                    {/* Input for pump_standard_no */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="pump_standard_no"
-                                      render={({ field: standardNoField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
-                                          <Input
-                                            placeholder="Pump Standard No."
-                                            {...standardNoField}
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-
-                                    {/* Combobox for pump_standard */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
-                                        label={
-                                          getFormData("formData1").pump_standard
-                                            ? getFormData("formData1")
-                                                .pump_standard
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          standardField.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Standard" {...field} readOnly/>
+                                  </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
-
                           <FormField
                             control={formPumpGeneralDetail.control}
-                            name="pump_design"
+                            name="pump_standard_no"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 ">
-                                    Pump design
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Standard No.
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Combobox
-                                      items={frameworks}
-                                      label={
-                                        getFormData("formData1").pump_design
-                                          ? getFormData("formData1").pump_design
-                                          : "Select"
-                                      }
-                                      onChange={field.onChange}
-                                    />
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Standard No." {...field} readOnly/>
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the serial number of the pump.
-                                  </FormDescription>
-                                )}
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="impeller_max"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Standard No.
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Standard No." {...field} readOnly/>
+                                  </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="stage"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Stage
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Stage" {...field} readOnly/>
+                                  </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="impeller_type"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Impeller type
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Impeller type" {...field} readOnly/>
+                                  </FormControl>
+                                </div>
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -789,19 +897,33 @@ export default function PumpList() {
                             name="base_plate"
                             render={({ field }) => (
                               <FormItem>
-                                <div className="flex items-center ">
-                                  <FormLabel className="w-32 lg:w-44 ">
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
                                     Base Plate
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Tag No." {...field} />
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Base Plate" {...field} readOnly/>
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="location"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Location
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input placeholder="Location" {...field} />
+                                  </FormControl>
+                                </div>
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -815,9 +937,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Pump Status
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
-                                      items={frameworks}
+                                      items={
+                                        handleLOVDataFilter(
+                                          "pump_status",
+                                          "pump_data"
+                                        ) || []
+                                      }
                                       label={
                                         getFormData("formData1").pump_design
                                           ? getFormData("formData1").pump_design
@@ -827,11 +954,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the serial number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -852,18 +975,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Max Temperature (°C)
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -871,57 +990,54 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="max_flow_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Max Flow
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
-                                    {/* Input for pump_speed */}
+                                  <div className="w-full flex gap-2">
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="max_flow"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
+                                              getFormData("formData1").max_flow
                                                 ? getFormData("formData1")
-                                                    .pump_speed
+                                                    .max_flow
                                                 : ""
                                             }
                                           />
                                         </FormControl>
                                       )}
                                     />
-                                    {/* Combobox for pump_speed_unit */}
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        }
                                         label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
+                                          getFormData("formData1").max_flow_unit
                                             ? getFormData("formData1")
-                                                .pump_speed_unit
+                                                .max_flow_unit
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -929,57 +1045,54 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="min_flow_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Min Flow
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
-                                    {/* Input for pump_speed */}
+                                  <div className="w-full flex gap-2">
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="min_flow"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
+                                              getFormData("formData1").min_flow
                                                 ? getFormData("formData1")
-                                                    .pump_speed
+                                                    .min_flow
                                                 : ""
                                             }
                                           />
                                         </FormControl>
                                       )}
                                     />
-                                    {/* Combobox for pump_speed_unit */}
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
+                                          getFormData("formData1").min_flow_unit
                                             ? getFormData("formData1")
-                                                .pump_speed_unit
+                                                .min_flow_unit
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -987,22 +1100,21 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="pump_speed_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Speed
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
-                                    {/* Input for pump_speed */}
+                                  <div className="w-full flex gap-2">
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="pump_speed"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1014,11 +1126,15 @@ export default function PumpList() {
                                         </FormControl>
                                       )}
                                     />
-                                    {/* Combobox for pump_speed_unit */}
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_speed",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1027,17 +1143,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1045,22 +1157,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="pump_efficiency_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Efficiency
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_efficiency */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="pump_efficiency"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Efficiency"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_efficiency
@@ -1076,7 +1188,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_efficiency",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_efficiency_unit
@@ -1085,17 +1202,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1103,22 +1216,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="hyd_power_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Hydraulic Power
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="hyd_power"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1134,7 +1247,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1143,17 +1261,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1167,13 +1281,13 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Flow
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for design_flow */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="design_flow"
                                       render={({ field: flowField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Flow"
                                             {...flowField}
@@ -1192,7 +1306,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .design_flow_unit
@@ -1207,11 +1326,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1219,22 +1334,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="shut_off_head_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Shut Off Head
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="shut_off_head"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1250,7 +1365,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_head",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1259,17 +1379,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1283,13 +1399,13 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Shutoff head
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for min_head */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="min_head"
                                       render={({ field: shutoffHeadField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Shutoff head"
                                             {...shutoffHeadField}
@@ -1307,7 +1423,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_head",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1").min_head_unit
                                             ? getFormData("formData1")
@@ -1321,11 +1442,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1333,22 +1450,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="max_head_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Max Head
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="max_head"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1364,7 +1481,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_head",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1373,17 +1495,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1391,22 +1509,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="suction_velo_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Suction Velocity
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="suction_velo"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1422,7 +1540,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_velocity",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1431,17 +1554,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1449,22 +1568,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="discharge_velo_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Discharge Velocity
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="discharge_velo"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1480,7 +1599,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_velocity",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1489,17 +1613,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1507,22 +1627,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="bep_flow_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     BEP Flow
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="bep_flow"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1538,7 +1658,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1547,17 +1672,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1571,13 +1692,13 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Head
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for design_head */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="design_head"
                                       render={({ field: headField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Head"
                                             {...headField}
@@ -1596,7 +1717,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_head",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .design_head_unit
@@ -1611,11 +1737,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1629,13 +1751,13 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     NPSHr
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for npshr */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="npshr"
                                       render={({ field: npshrField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="NPSHr"
                                             {...npshrField}
@@ -1652,7 +1774,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_npsh",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1").npshr_unit
                                             ? getFormData("formData1")
@@ -1666,11 +1793,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1678,22 +1801,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="power_required_cal_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Power Required (Cal.)
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="power_required_cal"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1709,7 +1832,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1718,17 +1846,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1736,22 +1860,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="power_min_flow_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Power Min Flow
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="power_min_flow"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1767,7 +1891,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1776,17 +1905,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1794,22 +1919,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="power_max_flow_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Power Max Flow
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="power_max_flow"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1825,7 +1950,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1834,17 +1964,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1852,22 +1978,22 @@ export default function PumpList() {
                           <FormField
                             control={formPumpGeneralDetail.control}
                             name="power_bep_flow_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     BEP Flow
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="power_bep_flow"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -1883,7 +2009,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -1892,17 +2023,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1923,7 +2050,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Media
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Media"
                                       {...field}
@@ -1935,11 +2062,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the material of Casing.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1953,18 +2076,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Operation Temperature (°C)
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1978,9 +2097,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Solid Type
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
-                                      items={frameworks}
+                                      items={
+                                        handleLOVDataFilter(
+                                          "solid_type",
+                                          "pump_data"
+                                        ) || []
+                                      }
                                       label={
                                         getFormData("formData1").pump_design
                                           ? getFormData("formData1").pump_design
@@ -1990,11 +2114,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the serial number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2008,7 +2128,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Solid Diameter
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Media"
                                       {...field}
@@ -2020,11 +2140,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the material of Casing.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2038,13 +2154,13 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Density
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for viscosity */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="density"
                                       render={({ field: viscosityField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Viscosity"
                                             {...viscosityField}
@@ -2062,7 +2178,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_density",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .viscosity_unit
@@ -2077,11 +2198,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2095,13 +2212,13 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Viscosity
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for viscosity */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
                                       name="viscosity"
                                       render={({ field: viscosityField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Viscosity"
                                             {...viscosityField}
@@ -2119,7 +2236,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_viscosity",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .viscosity_unit
@@ -2134,11 +2256,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2152,7 +2270,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Vapor Pressure
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for Vapor Pressure */}
                                     <FormField
                                       control={formPumpGeneralDetail.control}
@@ -2160,7 +2278,7 @@ export default function PumpList() {
                                       render={({
                                         field: vaporPressureField,
                                       }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Vapor Pressure"
                                             {...vaporPressureField}
@@ -2179,7 +2297,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_pres",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .vapor_pressure_unit
@@ -2194,11 +2317,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2212,9 +2331,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Tank Position
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
-                                      items={frameworks}
+                                      items={
+                                        handleLOVDataFilter(
+                                          "tank_position",
+                                          "pump_data"
+                                        ) || []
+                                      }
                                       label={
                                         getFormData("formData1").pump_design
                                           ? getFormData("formData1").pump_design
@@ -2224,11 +2348,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the serial number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2242,9 +2362,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Tank Design
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
-                                      items={frameworks}
+                                      items={
+                                        handleLOVDataFilter(
+                                          "tank_design",
+                                          "pump_data"
+                                        ) || []
+                                      }
                                       label={
                                         getFormData("formData1").pump_design
                                           ? getFormData("formData1").pump_design
@@ -2254,11 +2379,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the serial number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2272,18 +2393,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Tank Pressure (??)
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2297,18 +2414,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Suction Head (??)
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2322,18 +2435,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Concentration (??)
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2347,18 +2456,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Solid Percentage (%)
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2399,17 +2504,17 @@ export default function PumpList() {
                         <div className="space-y-2">
                           <FormField
                             control={formMaterialAndImpellerDetail.control}
-                            name="material_lov_id"
+                            name="mat_code_name"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
-                                  <FormLabel className="w-2/12">
-                                    Material Group
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Select Material Model
                                   </FormLabel>
                                   <div className="w-full flex gap-2">
                                     <FormControl>
                                       <Input
-                                        placeholder="Company Code"
+                                        placeholder="Material Model"
                                         {...field}
                                         readOnly
                                       />
@@ -2424,152 +2529,120 @@ export default function PumpList() {
                                           Find
                                         </Button>
                                       </SheetTrigger>
-                                      <SheetContent>
+                                      <SheetContent
+                                        side="right"
+                                        className="w-[400px] sm:w-[540px]"
+                                        style={{ zIndex: 1000 }}
+                                      >
                                         <SheetHeader>
-                                          <SheetTitle>User Company</SheetTitle>
+                                          <SheetTitle>Select a User</SheetTitle>
                                           <SheetDescription>
-                                            Please enter customer code here
+                                            Choose a user from the list below
                                           </SheetDescription>
                                         </SheetHeader>
-                                        <div className="gap-4 pt-8">
-                                          <div className="flex flex-col items-start gap-4">
-                                            <Label
-                                              htmlFor="name"
-                                              className="text-right"
-                                            >
-                                              Code
-                                            </Label>
-                                            <Input
-                                              id="input_code"
-                                              className="col-span-3"
-                                              onChange={(e) =>
-                                                setSelectedCompanyCode(
-                                                  e.target.value
+                                        <div className="py-6">
+                                          <Input
+                                            placeholder="Search model..."
+                                            className="mb-6"
+                                            onChange={(e) => {
+                                              const searchValue =
+                                                e.target.value.toLowerCase(); // Ensure case insensitivity
+
+                                              const filterData =
+                                                pumpMatLOVResponse?.filter(
+                                                  (data) =>
+                                                    data.casing_mat
+                                                      ?.toLowerCase()
+                                                      .includes(searchValue)
+                                                );
+                                              setSearchKey({
+                                                ...searchKey,
+                                                pump_mat_lov_search:
+                                                  e.target.value,
+                                              });
+
+                                              setPumpMatLOVData(filterData);
+                                            }}
+                                          />
+                                          <div className="space-y-4 h-[400px] max-h-[400px] overflow-y-auto">
+                                            {searchKey.pump_mat_lov_search ===
+                                            "" ? (
+                                              pumpMatLOVResponse?.map(
+                                                (data) => (
+                                                  <SheetClose
+                                                    key={data.material_id}
+                                                    className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
+                                                    onClick={() => {
+                                                      formMaterialAndImpellerDetail.reset(
+                                                        {
+                                                          ...generalDetailCurrentValue,
+                                                          pump_mat_id:
+                                                            data.material_id,
+                                                          mat_code_name: `${data.pump_type_mat} ${data.pump_mat_code}`,
+                                                        }
+                                                      );
+                                                    }}
+                                                  >
+                                                    <div className="font-medium">
+                                                      {`${data.pump_type_mat} ${data.pump_mat_code}`}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                      Casing : {data.casing_mat}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                      Casing cover :{" "}
+                                                      {data.casing_cover_mat}
+                                                    </div>
+                                                  </SheetClose>
                                                 )
-                                              }
-                                            />
-                                          </div>
-                                          {companyData?.customer_code && (
-                                            <div className="gap-4 pt-8">
-                                              <SheetHeader>
-                                                <SheetDescription className="text-center">
-                                                  ** Please check the
-                                                  information below **
-                                                </SheetDescription>
-                                              </SheetHeader>
-                                              <div className="flex flex-col gap-4 pt-4 items-start">
-                                                <Label
-                                                  htmlFor="name"
-                                                  className="text-right"
-                                                >
-                                                  Name
-                                                </Label>
-                                                <Input
-                                                  id="address"
-                                                  value={
-                                                    companyData.company_name_en
-                                                  }
-                                                  className="col-span-3 text-wrap h-4rem"
-                                                  readOnly
-                                                />
-                                                <Input
-                                                  id="address"
-                                                  value={
-                                                    companyData.company_name_th
-                                                  }
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="address"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Address
-                                                </Label>
-                                                <Input
-                                                  id="address"
-                                                  value={companyData.address_en}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Input
-                                                  id="address"
-                                                  value={companyData.address_th}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="province"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Province
-                                                </Label>
-                                                <Input
-                                                  id="province"
-                                                  value={companyData.province}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="sales_area"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Sales Area
-                                                </Label>
-                                                <Input
-                                                  id="sales_area"
-                                                  value={companyData.sales_area}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                        <SheetFooter className="pt-8">
-                                          {companyData &&
-                                            companyData.customer_code && (
-                                              <SheetClose asChild>
-                                                <Button
-                                                  className="bg-green-500 hover:bg-green-600 w-full"
-                                                  type="button"
+                                              )
+                                            ) : pumpMatLOVData &&
+                                              pumpMatLOVData?.length > 0 ? (
+                                              pumpMatLOVData.map((data) => (
+                                                <SheetClose
+                                                  key={data.material_id}
+                                                  className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
                                                   onClick={() => {
-                                                    setIsAdd(true);
+                                                    formMaterialAndImpellerDetail.reset(
+                                                      {
+                                                        ...generalDetailCurrentValue,
+                                                        pump_mat_id:
+                                                          data.material_id,
+                                                        mat_code_name: `${data.pump_type_mat} ${data.pump_mat_code}`,
+                                                      }
+                                                    );
                                                   }}
                                                 >
-                                                  <PlusCircle className="mr-2 h-3.5 w-3.5" />
-                                                  Add
-                                                </Button>
-                                              </SheetClose>
+                                                  <div className="font-medium">
+                                                    {`${data.pump_type_mat} ${data.pump_mat_code}`}
+                                                  </div>
+                                                  <div className="text-sm text-muted-foreground">
+                                                    Casing : {data.casing_mat}
+                                                  </div>
+                                                  <div className="text-sm text-muted-foreground">
+                                                    Casing cover :{" "}
+                                                    {data.casing_cover_mat}
+                                                  </div>
+                                                </SheetClose>
+                                              ))
+                                            ) : (
+                                              <div className="h-[400px] p-3 border rounded-md flex justify-center items-center">
+                                                <p className="text-sm">
+                                                  Pump not found.
+                                                </p>
+                                              </div>
                                             )}
-                                          <Button
-                                            type="button"
-                                            onClick={() => {
-                                              setCompanyCode(
-                                                SelectedCompanyCode
-                                              );
-                                            }}
-                                          >
-                                            Find
-                                          </Button>
+                                          </div>
+                                        </div>
+                                        <SheetFooter>
                                           <SheetClose asChild>
-                                            <Button
-                                              type="button"
-                                              variant={"destructive"}
-                                            >
-                                              Close
-                                            </Button>
+                                            <Button type="button">Done</Button>
                                           </SheetClose>
                                         </SheetFooter>
                                       </SheetContent>
                                     </Sheet>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2583,18 +2656,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Casing Material
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2608,18 +2677,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Casing Cover Material
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2633,18 +2698,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Diffuser Material
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2658,18 +2719,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Base Material
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2683,43 +2740,35 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Head Material
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                           <FormField
                             control={formMaterialAndImpellerDetail.control}
-                            name="pump_base_cover_mat"
+                            name="pump_head_cover_mat"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center ">
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Head Cover Material
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2733,18 +2782,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Pump Lining Material
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2765,18 +2810,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Type
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Impeller type"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2790,18 +2831,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Design Impeller Diameter (mm.)
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Impeller diameter"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2815,18 +2852,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Max Diameter (mm.)
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2840,18 +2873,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 ">
                                     Material
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Max Temperature (°C)"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the tag number of the pump.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -2904,17 +2933,17 @@ export default function PumpList() {
                         <div className="space-y-2">
                           <FormField
                             control={formMotorAndCouplingDetail.control}
-                            name="motor_lov_id"
+                            name="motor_code_name"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
-                                  <FormLabel className="w-2/12">
+                                  <FormLabel className="w-32 lg:w-44">
                                     Select Motor
                                   </FormLabel>
                                   <div className="w-full flex gap-2">
                                     <FormControl>
                                       <Input
-                                        placeholder="Company Code"
+                                        placeholder="Motor Model"
                                         {...field}
                                         readOnly
                                       />
@@ -2929,152 +2958,138 @@ export default function PumpList() {
                                           Find
                                         </Button>
                                       </SheetTrigger>
-                                      <SheetContent>
+                                      <SheetContent
+                                        side="right"
+                                        className="w-[400px] sm:w-[540px]"
+                                        style={{ zIndex: 1000 }}
+                                      >
                                         <SheetHeader>
-                                          <SheetTitle>User Company</SheetTitle>
+                                          <SheetTitle>Select Motor</SheetTitle>
                                           <SheetDescription>
-                                            Please enter customer code here
+                                            Choose a motor from the list below
                                           </SheetDescription>
                                         </SheetHeader>
-                                        <div className="gap-4 pt-8">
-                                          <div className="flex flex-col items-start gap-4">
-                                            <Label
-                                              htmlFor="name"
-                                              className="text-right"
-                                            >
-                                              Code
-                                            </Label>
-                                            <Input
-                                              id="input_code"
-                                              className="col-span-3"
-                                              onChange={(e) =>
-                                                setSelectedCompanyCode(
-                                                  e.target.value
+                                        <div className="py-6">
+                                          <Input
+                                            placeholder="Search model..."
+                                            className="mb-6"
+                                            onChange={(e) => {
+                                              const searchValue =
+                                                e.target.value.toLowerCase(); // Ensure case insensitivity
+
+                                              const filterData =
+                                                pumpMotorLOVResponse?.filter(
+                                                  (data) =>
+                                                    data.motor_model
+                                                      ?.toLowerCase()
+                                                      .includes(searchValue)
+                                                );
+                                              setSearchKey({
+                                                ...searchKey,
+                                                pump_motor_search:
+                                                  e.target.value,
+                                              });
+
+                                              setPumpMotorLOVData(filterData);
+                                            }}
+                                          />
+                                          <div className="space-y-4 h-[400px] max-h-[400px] overflow-y-auto">
+                                            {searchKey.pump_motor_search ===
+                                            "" ? (
+                                              pumpMotorLOVResponse?.map(
+                                                (data) => (
+                                                  <SheetClose
+                                                    key={data.motor_id}
+                                                    className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
+                                                    onClick={() => {
+                                                      formMotorAndCouplingDetail.reset(
+                                                        {
+                                                          ...generalDetailCurrentValue,
+                                                          motor_id:
+                                                            data.motor_id,
+                                                          motor_code_name: `${data.motor_brand} ${data.motor_model}`,
+                                                          motor_model:
+                                                            data.motor_model,
+                                                          motor_serial_no:
+                                                            data.motor_serial_no,
+                                                          motor_brand:
+                                                            data.motor_brand,
+                                                          motor_drive:
+                                                            data.motor_drive,
+                                                          motor_standard:
+                                                            data.motor_standard,
+                                                          motor_ie:
+                                                            data.motor_ie,
+                                                          motor_speed:
+                                                            data.motor_speed,
+                                                          motor_speed_unit:
+                                                            data.motor_speed_unit,
+                                                          motor,
+                                                        }
+                                                      );
+                                                    }}
+                                                  >
+                                                    <div className="font-medium">
+                                                      {`${data.motor_brand} ${data.motor_model}`}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                      Serial no. :{" "}
+                                                      {data.motor_serial_no}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                      Standard :{" "}
+                                                      {data.motor_standard}
+                                                    </div>
+                                                  </SheetClose>
                                                 )
-                                              }
-                                            />
-                                          </div>
-                                          {companyData?.customer_code && (
-                                            <div className="gap-4 pt-8">
-                                              <SheetHeader>
-                                                <SheetDescription className="text-center">
-                                                  ** Please check the
-                                                  information below **
-                                                </SheetDescription>
-                                              </SheetHeader>
-                                              <div className="flex flex-col gap-4 pt-4 items-start">
-                                                <Label
-                                                  htmlFor="name"
-                                                  className="text-right"
-                                                >
-                                                  Name
-                                                </Label>
-                                                <Input
-                                                  id="address"
-                                                  value={
-                                                    companyData.company_name_en
-                                                  }
-                                                  className="col-span-3 text-wrap h-4rem"
-                                                  readOnly
-                                                />
-                                                <Input
-                                                  id="address"
-                                                  value={
-                                                    companyData.company_name_th
-                                                  }
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="address"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Address
-                                                </Label>
-                                                <Input
-                                                  id="address"
-                                                  value={companyData.address_en}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Input
-                                                  id="address"
-                                                  value={companyData.address_th}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="province"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Province
-                                                </Label>
-                                                <Input
-                                                  id="province"
-                                                  value={companyData.province}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="sales_area"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Sales Area
-                                                </Label>
-                                                <Input
-                                                  id="sales_area"
-                                                  value={companyData.sales_area}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                        <SheetFooter className="pt-8">
-                                          {companyData &&
-                                            companyData.customer_code && (
-                                              <SheetClose asChild>
-                                                <Button
-                                                  className="bg-green-500 hover:bg-green-600 w-full"
-                                                  type="button"
+                                              )
+                                            ) : pumpMotorLOVData &&
+                                              pumpMotorLOVData?.length > 0 ? (
+                                              pumpMotorLOVData.map((data) => (
+                                                <SheetClose
+                                                  key={data.motor_id}
+                                                  className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
                                                   onClick={() => {
-                                                    setIsAdd(true);
+                                                    formMotorAndCouplingDetail.reset(
+                                                      {
+                                                        ...generalDetailCurrentValue,
+                                                        motor_id: data.motor_id,
+                                                        motor_code_name: `${data.motor_brand} ${data.motor_model}`,
+                                                      }
+                                                    );
                                                   }}
                                                 >
-                                                  <PlusCircle className="mr-2 h-3.5 w-3.5" />
-                                                  Add
-                                                </Button>
-                                              </SheetClose>
+                                                  <div className="font-medium">
+                                                    {`${data.motor_brand} ${data.motor_model}`}
+                                                  </div>
+                                                  <div className="text-sm text-muted-foreground">
+                                                    Serial no. :{" "}
+                                                    {data.motor_serial_no}
+                                                  </div>
+                                                  <div className="text-sm text-muted-foreground">
+                                                    Standard :{" "}
+                                                    {data.motor_standard}
+                                                  </div>
+                                                </SheetClose>
+                                              ))
+                                            ) : (
+                                              <div className="h-[400px] p-3 border rounded-md flex justify-center items-center">
+                                                <p className="text-sm">
+                                                  Motor not found.
+                                                </p>
+                                              </div>
                                             )}
-                                          <Button
-                                            type="button"
-                                            onClick={() => {
-                                              setCompanyCode(
-                                                SelectedCompanyCode
-                                              );
-                                            }}
-                                          >
-                                            Find
-                                          </Button>
+                                          </div>
+                                        </div>
+                                        <SheetFooter>
                                           <SheetClose asChild>
-                                            <Button
-                                              type="button"
-                                              variant={"destructive"}
-                                            >
-                                              Close
-                                            </Button>
+                                            <Button type="button">Done</Button>
                                           </SheetClose>
                                         </SheetFooter>
                                       </SheetContent>
                                     </Sheet>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3088,15 +3103,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Brand
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3110,15 +3121,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Model
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Model" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3126,22 +3133,24 @@ export default function PumpList() {
                           <FormField
                             control={formMotorAndCouplingDetail.control}
                             name="motor_speed_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Motor Speed
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
-                                      control={formPumpGeneralDetail.control}
+                                      control={
+                                        formMotorAndCouplingDetail.control
+                                      }
                                       name="motor_speed"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -3157,7 +3166,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_speed",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -3166,17 +3180,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3190,18 +3200,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Serial No.
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Serial No."
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3215,7 +3221,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Motor Rated
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for motor_rate */}
                                     <FormField
                                       control={
@@ -3223,7 +3229,7 @@ export default function PumpList() {
                                       }
                                       name="motor_rated"
                                       render={({ field: motorRateField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Rated Current"
                                             {...motorRateField}
@@ -3236,7 +3242,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData3")
                                             .motor_rate_unit
@@ -3251,11 +3262,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3263,24 +3270,24 @@ export default function PumpList() {
                           <FormField
                             control={formMotorAndCouplingDetail.control}
                             name="motor_efficiency_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Motor Efficiency
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={
                                         formMotorAndCouplingDetail.control
                                       }
                                       name="motor_efficiency"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -3296,7 +3303,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_efficiency",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -3305,17 +3317,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3323,24 +3331,24 @@ export default function PumpList() {
                           <FormField
                             control={formMotorAndCouplingDetail.control}
                             name="motor_rated_current_unit"
-                            render={({ field: speedField }) => (
+                            render={({ field: Field }) => (
                               <FormItem>
                                 <div className="w-full flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
                                     Motor Rated Current
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_speed */}
                                     <FormField
                                       control={
                                         formMotorAndCouplingDetail.control
                                       }
                                       name="motor_rated_current"
-                                      render={({ field: speedField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Pump"
-                                            {...speedField}
+                                            {...Field}
                                             defaultValue={
                                               getFormData("formData1")
                                                 .pump_speed
@@ -3356,7 +3364,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData1")
                                             .pump_speed_unit
@@ -3365,17 +3378,13 @@ export default function PumpList() {
                                             : "Select"
                                         }
                                         onChange={(value) => {
-                                          speedField.onChange(value); // Update form state
+                                          Field.onChange(value); // Update form state
                                         }}
                                       />
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3389,10 +3398,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Drive System
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "motor_drive",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData3").motor_drive
                                           ? getFormData("formData3").motor_drive
@@ -3404,11 +3418,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3422,7 +3432,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Motor Standard
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Power Factor"
                                       type="number"
@@ -3430,11 +3440,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3448,7 +3454,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Motor Phase
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="motor_phase"
                                       type="number"
@@ -3456,11 +3462,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3474,7 +3476,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Power Factor
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Power Factor"
                                       type="number"
@@ -3482,11 +3484,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3500,10 +3498,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     IE Class
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "motor_ie",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData3").motor_ie
                                           ? getFormData("formData3").motor_ie
@@ -3515,11 +3518,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3533,10 +3532,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Connection
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "motor_connection",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData3")
                                           .motor_connection
@@ -3550,62 +3554,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </FormBox>
-                    </div>
-                    {/* Flat Details */}
-                    <div className="text-foreground dark:text-foreground grow flex-1">
-                      <FormBox field="Coupling Details">
-                        <div className="space-y-2">
-                          <FormField
-                            control={formMotorAndCouplingDetail.control}
-                            name="coup_brand"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Brand
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Brand" {...field} />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formMotorAndCouplingDetail.control}
-                            name="coup_model"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Model
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Model" {...field} />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3617,12 +3566,17 @@ export default function PumpList() {
                               <FormItem>
                                 <div className="flex items-center">
                                   <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Type
+                                    Coupling Type
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "coup_type",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData3").coup_type
                                           ? getFormData("formData3").coup_type
@@ -3634,59 +3588,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formMotorAndCouplingDetail.control}
-                            name="coup_size"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44 text-primary">
-                                    Size
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input placeholder="Size" {...field} />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formMotorAndCouplingDetail.control}
-                            name="coup_spacer"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Spacer
-                                  </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
-                                    <Input
-                                      placeholder="Spacer"
-                                      type="number"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3734,17 +3636,17 @@ export default function PumpList() {
                         <div className="space-y-2">
                           <FormField
                             control={formMechanicalSealDetail.control}
-                            name="shaft_seal_design_id"
+                            name="shaft_seal_code_name"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
-                                  <FormLabel className="w-2/12">
-                                    Select Seal ID
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Select Shaft Seal Model
                                   </FormLabel>
                                   <div className="w-full flex gap-2">
                                     <FormControl>
                                       <Input
-                                        placeholder="Company Code"
+                                        placeholder="Shaft / Seal Model"
                                         {...field}
                                         readOnly
                                       />
@@ -3759,152 +3661,125 @@ export default function PumpList() {
                                           Find
                                         </Button>
                                       </SheetTrigger>
-                                      <SheetContent>
+                                      <SheetContent
+                                        side="right"
+                                        className="w-[400px] sm:w-[540px]"
+                                        style={{ zIndex: 1000 }}
+                                      >
                                         <SheetHeader>
-                                          <SheetTitle>User Company</SheetTitle>
+                                          <SheetTitle>
+                                            Select a Shaft / Seal
+                                          </SheetTitle>
                                           <SheetDescription>
-                                            Please enter customer code here
+                                            Choose from the list below
                                           </SheetDescription>
                                         </SheetHeader>
-                                        <div className="gap-4 pt-8">
-                                          <div className="flex flex-col items-start gap-4">
-                                            <Label
-                                              htmlFor="name"
-                                              className="text-right"
-                                            >
-                                              Code
-                                            </Label>
-                                            <Input
-                                              id="input_code"
-                                              className="col-span-3"
-                                              onChange={(e) =>
-                                                setSelectedCompanyCode(
-                                                  e.target.value
-                                                )
-                                              }
-                                            />
-                                          </div>
-                                          {companyData?.customer_code && (
-                                            <div className="gap-4 pt-8">
-                                              <SheetHeader>
-                                                <SheetDescription className="text-center">
-                                                  ** Please check the
-                                                  information below **
-                                                </SheetDescription>
-                                              </SheetHeader>
-                                              <div className="flex flex-col gap-4 pt-4 items-start">
-                                                <Label
-                                                  htmlFor="name"
-                                                  className="text-right"
-                                                >
-                                                  Name
-                                                </Label>
-                                                <Input
-                                                  id="address"
-                                                  value={
-                                                    companyData.company_name_en
-                                                  }
-                                                  className="col-span-3 text-wrap h-4rem"
-                                                  readOnly
-                                                />
-                                                <Input
-                                                  id="address"
-                                                  value={
-                                                    companyData.company_name_th
-                                                  }
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="address"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Address
-                                                </Label>
-                                                <Input
-                                                  id="address"
-                                                  value={companyData.address_en}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Input
-                                                  id="address"
-                                                  value={companyData.address_th}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="province"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Province
-                                                </Label>
-                                                <Input
-                                                  id="province"
-                                                  value={companyData.province}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                                <Label
-                                                  htmlFor="sales_area"
-                                                  className="text-right pt-2"
-                                                >
-                                                  Sales Area
-                                                </Label>
-                                                <Input
-                                                  id="sales_area"
-                                                  value={companyData.sales_area}
-                                                  className="col-span-3"
-                                                  readOnly
-                                                />
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                        <SheetFooter className="pt-8">
-                                          {companyData &&
-                                            companyData.customer_code && (
-                                              <SheetClose asChild>
-                                                <Button
-                                                  className="bg-green-500 hover:bg-green-600 w-full"
-                                                  type="button"
-                                                  onClick={() => {
-                                                    setIsAdd(true);
-                                                  }}
-                                                >
-                                                  <PlusCircle className="mr-2 h-3.5 w-3.5" />
-                                                  Add
-                                                </Button>
-                                              </SheetClose>
-                                            )}
-                                          <Button
-                                            type="button"
-                                            onClick={() => {
-                                              setCompanyCode(
-                                                SelectedCompanyCode
+                                        <div className="py-6">
+                                          <Input
+                                            placeholder="Search model..."
+                                            className="mb-6"
+                                            onChange={(e) => {
+                                              const searchValue =
+                                                e.target.value.toLowerCase(); // Ensure case insensitivity
+                                              const filterData =
+                                                pumpShaftSealLOVResponse?.filter(
+                                                  (data) =>
+                                                    data.shaft_code_name
+                                                      ?.toLowerCase()
+                                                      .includes(searchValue)
+                                                );
+                                              setSearchKey({
+                                                ...searchKey,
+                                                pump_shaft_seal_lov_search:
+                                                  e.target.value,
+                                              });
+
+                                              setPumpShaftSealLOVData(
+                                                filterData
                                               );
                                             }}
-                                          >
-                                            Find
-                                          </Button>
+                                          />
+                                          <div className="space-y-4 h-[400px] max-h-[400px] overflow-y-auto">
+                                            {searchKey.pump_shaft_seal_lov_search ===
+                                            "" ? (
+                                              pumpShaftSealLOVResponse?.map(
+                                                (data) => (
+                                                  <SheetClose
+                                                    key={data.shaft_seal_id}
+                                                    className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
+                                                    onClick={() => {
+                                                      formMechanicalSealDetail.reset(
+                                                        {
+                                                          ...generalDetailCurrentValue,
+                                                          shaft_seal_id:
+                                                            data.shaft_seal_id,
+                                                          shaft_seal_code_name: `${data.shaft_seal_design} ${data.shaft_seal_brand} ${data.shaft_seal_model}`,
+                                                        }
+                                                      );
+                                                    }}
+                                                  >
+                                                    <div className="font-medium">
+                                                      {`${data.shaft_seal_design} ${data.shaft_seal_brand} ${data.shaft_seal_model}`}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                      Material :{" "}
+                                                      {data.shaft_seal_material}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                      API Plan :{" "}
+                                                      {data.shaft_seal_api_plan}
+                                                    </div>
+                                                  </SheetClose>
+                                                )
+                                              )
+                                            ) : pumpShaftSealData?.length >
+                                              0 ? (
+                                              pumpShaftSealData.map((data) => (
+                                                <SheetClose
+                                                  key={data.shaft_seal_id}
+                                                  className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
+                                                  onClick={() => {
+                                                    formMechanicalSealDetail.reset(
+                                                      {
+                                                        ...generalDetailCurrentValue,
+                                                        shaft_seal_id:
+                                                          data.shaft_seal_id,
+                                                        shaft_seal_code_name: `${data.shaft_seal_design} ${data.shaft_seal_brand} ${data.shaft_seal_model}`,
+                                                      }
+                                                    );
+                                                  }}
+                                                >
+                                                  <div className="font-medium">
+                                                    {`${data.shaft_seal_design} ${data.shaft_seal_brand} ${data.shaft_seal_model}`}
+                                                  </div>
+                                                  <div className="text-sm text-muted-foreground">
+                                                    Material :{" "}
+                                                    {data.shaft_seal_material}
+                                                  </div>
+                                                  <div className="text-sm text-muted-foreground">
+                                                    API Plan :{" "}
+                                                    {data.shaft_seal_api_plan}
+                                                  </div>
+                                                </SheetClose>
+                                              ))
+                                            ) : (
+                                              <div className="h-[400px] p-3 border rounded-md flex justify-center items-center">
+                                                <p className="text-sm">
+                                                  Pump not found.
+                                                </p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <SheetFooter>
                                           <SheetClose asChild>
-                                            <Button
-                                              type="button"
-                                              variant={"destructive"}
-                                            >
-                                              Close
-                                            </Button>
+                                            <Button type="button">Done</Button>
                                           </SheetClose>
                                         </SheetFooter>
                                       </SheetContent>
                                     </Sheet>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3918,15 +3793,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     API Plan
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3940,15 +3811,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Material
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3962,15 +3829,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Main Temperature (°C)
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -3984,15 +3847,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Main Pressure (??)
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4006,10 +3865,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Seal Chamber Design
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "seal_cham",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData4").mech_seal_cham
                                           ? getFormData("formData4")
@@ -4022,11 +3886,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4040,15 +3900,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Brand
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4062,13 +3918,13 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Size
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for mech_size */}
                                     <FormField
                                       control={formMechanicalSealDetail.control}
                                       name="mech_size"
                                       render={({ field: mechSizeField }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Size"
                                             {...mechSizeField}
@@ -4086,7 +3942,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_size",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData4")
                                             .mech_size_unit
@@ -4101,11 +3962,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4119,15 +3976,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Design
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Design" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4183,7 +4036,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Suction size (ID)
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_suction_size */}
                                     <FormField
                                       control={
@@ -4191,7 +4044,7 @@ export default function PumpList() {
                                       }
                                       name="pump_suction_size_id"
                                       render={({ field: Field }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Suction size"
                                             {...Field}
@@ -4210,7 +4063,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_size",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData5")
                                             .pump_suction_size_unit
@@ -4225,11 +4083,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4243,10 +4097,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Suction rating
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "pump_rating",
+                                          "pump_unit"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData5")
                                           .pump_suction_rating
@@ -4260,11 +4119,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4278,10 +4133,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Suction Pipe Size
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "pipe_size",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData5")
                                           .pump_suction_rating
@@ -4295,11 +4155,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4313,10 +4169,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     SCH.
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "pipe_sch",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData5")
                                           .suction_pipe_sch
@@ -4330,11 +4191,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4348,15 +4205,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Pipe length
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4370,7 +4223,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Suction Pipe ID
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_suction_size */}
                                     <FormField
                                       control={
@@ -4378,7 +4231,7 @@ export default function PumpList() {
                                       }
                                       name="suction_pipe_id"
                                       render={({ field: Field }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Suction size"
                                             {...Field}
@@ -4397,7 +4250,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_size",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData5")
                                             .pump_suction_size_unit
@@ -4412,11 +4270,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4430,15 +4284,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Suction Elbow Pipe
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4452,15 +4302,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Suction Tee Pipe
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4474,15 +4320,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Suction Reducer Pipe
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4496,15 +4338,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Suction Valve
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4518,15 +4356,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Suction Valve
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4540,15 +4374,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Suction Y Strainer
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4562,15 +4392,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Other Component
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4582,17 +4408,13 @@ export default function PumpList() {
                               <FormItem>
                                 <div className="flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
-                                    Suction Equivalent length 
+                                    Suction Equivalent length
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4606,7 +4428,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Discharge size (ID)
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_suction_size */}
                                     <FormField
                                       control={
@@ -4614,7 +4436,7 @@ export default function PumpList() {
                                       }
                                       name="pump_discharge_size_id"
                                       render={({ field: Field }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Suction size"
                                             {...Field}
@@ -4633,7 +4455,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_size",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData5")
                                             .pump_suction_size_unit
@@ -4648,11 +4475,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4666,10 +4489,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Discharge rating
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "pump_rating",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData5")
                                           .pump_discharge_rating
@@ -4683,11 +4511,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4701,10 +4525,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Discharge Pipe Size
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "pipe_size",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData5")
                                           .discharge_pipe_size
@@ -4718,11 +4547,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4736,10 +4561,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     SCH.
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "pipe_sch",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData5")
                                           .discharge_pipe_sch
@@ -4753,11 +4583,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4771,7 +4597,7 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Discharge Pipe ID
                                   </FormLabel>
-                                  <div className="w-full md:max-w-[500px] flex gap-2">
+                                  <div className="w-full flex gap-2">
                                     {/* Input for pump_suction_size */}
                                     <FormField
                                       control={
@@ -4779,7 +4605,7 @@ export default function PumpList() {
                                       }
                                       name="discharge_pipe_id"
                                       render={({ field: Field }) => (
-                                        <FormControl className="w-full md:max-w-[500px]">
+                                        <FormControl className="w-full">
                                           <Input
                                             placeholder="Suction size"
                                             {...Field}
@@ -4798,7 +4624,12 @@ export default function PumpList() {
                                     <FormControl className="md:max-w-[500px]">
                                       <Combobox
                                         className="min-w-[86px]"
-                                        items={frameworks} // Dropdown options
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_size",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
                                         label={
                                           getFormData("formData5")
                                             .pump_suction_size_unit
@@ -4813,11 +4644,7 @@ export default function PumpList() {
                                     </FormControl>
                                   </div>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the pump standard and its number.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4831,15 +4658,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Horizontal Discharge Pipe Length
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4853,15 +4676,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Vertical Discharge Pipe Length
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4875,15 +4694,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Discharge Elbow Pipe
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4897,15 +4712,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Discharge Elbow Pipe
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4919,15 +4730,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Discharge Tee Pipe
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4941,15 +4748,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Discharge Reducer Pipe
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4963,15 +4766,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Discharge Valve
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -4985,15 +4784,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Discharge Valve
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -5007,15 +4802,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     SDischarge Y Strainer
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -5029,15 +4820,11 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Other Component
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -5049,23 +4836,20 @@ export default function PumpList() {
                               <FormItem>
                                 <div className="flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
-                                    Discharge Equivalent length 
+                                    Discharge Equivalent length
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                         </div>
                       </FormBox>
+                      ß
                     </div>
                     {/* Bearing Details */}
                     <div className="text-foreground dark:text-foreground grow flex-1">
@@ -5080,10 +4864,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Rotation
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "rotation_de",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData5").rotation_de
                                           ? getFormData("formData5").rotation_de
@@ -5095,11 +4884,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -5113,10 +4898,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Lubrication Type
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "lubric_type",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData5")
                                           .bearing_lubric_type
@@ -5130,11 +4920,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -5148,10 +4934,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Lubrication Brand
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "lubric_brand",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData5")
                                           .bearing_lubric_brand
@@ -5165,11 +4956,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -5183,10 +4970,15 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44 text-primary">
                                     Lubrication No.
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Combobox
                                       className="min-w-[86px]"
-                                      items={frameworks} // Dropdown options
+                                      items={
+                                        handleLOVDataFilter(
+                                          "lubric_no",
+                                          "pump_data"
+                                        ) || []
+                                      } // Dropdown options
                                       label={
                                         getFormData("formData5")
                                           .bearing_lubric_no
@@ -5200,11 +4992,7 @@ export default function PumpList() {
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -5218,18 +5006,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Bearing NDE
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Bearing NDE"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -5243,18 +5027,14 @@ export default function PumpList() {
                                   <FormLabel className="w-32 lg:w-44">
                                     Bearing DE
                                   </FormLabel>
-                                  <FormControl className="w-full md:max-w-[500px]">
+                                  <FormControl className="w-full">
                                     <Input
                                       placeholder="Bearing DE"
                                       {...field}
                                     />
                                   </FormControl>
                                 </div>
-                                {showDescriptions && (
-                                  <FormDescription>
-                                    This is the Shaft.
-                                  </FormDescription>
-                                )}
+
                                 <FormMessage />
                               </FormItem>
                             )}

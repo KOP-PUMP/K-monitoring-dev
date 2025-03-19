@@ -56,3 +56,33 @@ export const getPumpDetailLOV = async (id: string | null) => {
     return response.data;
   }
 };
+
+export const getMotorDetailLOV = async (id: string | null) => {
+  if (!id || id === "") {
+    const response = await axiosInstance.get("/pump-data/motor-lov")
+    return response.data.data;
+  } else {
+    const response = await axiosInstance.get(`/pump-data/motor-lov?id=${id}`);
+    return response.data;
+  }
+};
+
+export const getShaftSealDetailLOV = async (id: string | null) => {
+  if (!id || id === "") {
+    const response = await axiosInstance.get("/pump-data/shaft-seal-lov")
+    return response.data.data;
+  } else {
+    const response = await axiosInstance.get(`/pump-data/shaft-seal-lov?id=${id}`);
+    return response.data;
+  }
+};
+
+export const getMatDetailLOV = async (id: string | null) => {
+  if (!id || id === "") {
+    const response = await axiosInstance.get("/pump-data/material-lov")
+    return response.data.data;
+  } else {
+    const response = await axiosInstance.get(`/pump-data/material-lov?id=${id}`);
+    return response.data;
+  }
+};

@@ -7,15 +7,17 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export interface ComboboxItemProps {
-  value: string;
-  label: string;
+  type_name?: string | null;
+  product_name?: string | null;
+  value: string | null;
+  label: string | null;
 }
 
 interface ComboboxProps {
-  items: ComboboxItemProps[];
-  label: string;
+  items: ComboboxItemProps[] | null;
+  label?: string;
   className?: string;
-  onChange: (event: string | string[]) => void;
+  onChange: (event: string) => void;
 }
 
 export function Combobox({ items,label, className, onChange }: ComboboxProps) {
@@ -27,22 +29,22 @@ export function Combobox({ items,label, className, onChange }: ComboboxProps) {
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" role="combobox" size="sm" aria-expanded={open} className="w-full justify-between">
-            {value ? items.find((item) => item.value === value)?.label : label}
+            {value ? items?.find((item) => item.value === value)?.label :label ? label : "Select"}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
+        <PopoverContent className="w-auto min-w-[200px] p-0">
           <Command className="border-2">
             <CommandInput placeholder={`Search ${name}...`} />
             <CommandList>
               <CommandEmpty>No department found.</CommandEmpty>
               <CommandGroup>
-                {items.map((item) => (
+                {items?.map((item) => (
                   <CommandItem
                     key={item.value}
-                    value={item.value}
+                    value={item.value || ""}
                     onSelect={(currentValue) => {
-                      onChange(item.value);
+                      onChange(item.value || "");
                       setValue(currentValue === value ? "" : currentValue);
                       setOpen(false);
                     }}>

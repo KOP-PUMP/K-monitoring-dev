@@ -21,11 +21,11 @@ class ListOfValuesController:
     
     @http_get('/unit_lov', response=list[KMonitoringLOV_schema])
     def get_unit_lov(self, request):
-        return KMonitoringLOV.objects.filter(type_name='unit')
+        return KMonitoringLOV.objects.filter(type_name='pump_unit')
     
     @http_get('/pump_lov', response=list[KMonitoringLOV_schema])
     def get_data_lov(self, request):
-        return KMonitoringLOV.objects.exclude(type_name='unit')
+        return KMonitoringLOV.objects.exclude(type_name='pump_unit')
     
     @http_put('/lov/{id}', response=KMonitoringLOV_schema)
     def update_lov(self, request, id: str, payload: KMonitoringLOV_schema):
@@ -80,7 +80,7 @@ class ListOfValuesController:
         PumpMaterialLOV.objects.create(**payload.dict())
         return JsonResponse({"success": True, "message": "Pump Material LOV created successfully"}, status=200)
     
-    @http_get('/pump-detail')
+    @http_get('/pump-detail', response=list[PumpDetail_schema])
     def get_pump_detail(self, request, id : str):
         pump_id = request.GET.get('id')
         if pump_id:
@@ -121,7 +121,7 @@ class ListOfValuesController:
             motor_lovs = list(MotorDetailLOV.objects.all().values())
             return JsonResponse({"data": motor_lovs}, status=200)
     
-    @http_get('/shaft_seal_lov')
+    @http_get('/shaft-seal-lov')
     def get_shaft_seal_lov(self, request):
         shaft_seal_lov_id = request.GET.get('id')
         if shaft_seal_lov_id:
@@ -134,7 +134,7 @@ class ListOfValuesController:
             shaft_seal_lovs = list(ShaftSealLOV.objects.all().values())
             return JsonResponse({"data": shaft_seal_lovs}, status=200)
     
-    @http_get('/pump-material-lov')
+    @http_get('/material-lov')
     def get_pump_material_lov(self, request):
         pump_material_lov_id = request.GET.get('id')
         if pump_material_lov_id:
@@ -144,7 +144,7 @@ class ListOfValuesController:
             except PumpMaterialLOV.DoesNotExist:
                 return JsonResponse({"error": "Pump Material LOV not found"}, status=404)
         else:
-            pump_material_lovs = list(KMonitoringLOV.objects.all().values())
+            pump_material_lovs = list(PumpMaterialLOV.objects.all().values())
             return JsonResponse({"data": pump_material_lovs}, status=200)
     
     @http_delete('/pump-detail/{id}')
@@ -187,7 +187,7 @@ class ListOfValuesController:
         except ValueError:
             return JsonResponse({"error": "Invalid ID format"}, status=400)
     
-    @http_delete('/pump-material-lov/{id}')
+    @http_delete('/material-lov/{id}')
     def delete_pump_material_lov(self, request, id: str):
         try:
             uuid_id = UUID(id)

@@ -28,7 +28,6 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
 const PumpLOV = () => {
   const { data: pumpDetail } = useGetPumpDetailLOV("");
   const [tableData, setTableData] = useState<PumpLOVData[]>([]);
-
   const deleteMutation = useDeleteLOVById();
   const handleDeleteData = (id: string, isUnit: boolean) => {
     deleteMutation.mutate({ id, isUnit });

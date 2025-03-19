@@ -28,6 +28,7 @@ class KMonitoringLOV(models.Model):
 
 class PumpDetailLOV(models.Model):
     pump_lov_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    pump_code_name = models.TextField(max_length=100,blank=True, null=True)
     pump_brand = models.TextField(max_length=100,blank=True, null=True)
     pump_model = models.TextField(max_length=100,blank=True, null=True)
     model_size = models.TextField(max_length=100,blank=True, null=True)
@@ -62,6 +63,7 @@ class PumpDetailLOV(models.Model):
     
 class MotorDetailLOV(models.Model):
     motor_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    motor_code_name = models.TextField(max_length=100,blank=True, null=True)
     motor_model = models.TextField(max_length=100,blank=True, null=True)
     motor_serial_no = models.TextField(max_length=100,blank=True, null=True)
     motor_brand = models.TextField(max_length=100,blank=True, null=True)
@@ -92,6 +94,7 @@ class MotorDetailLOV(models.Model):
 
 class ShaftSealLOV(models.Model):
     shaft_seal_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    shaft_seal_code_name = models.TextField(max_length=100,blank=True, null=True)
     shaft_seal_design = models.TextField(max_length=100,blank=True, null=True)
     shaft_seal_brand = models.TextField(max_length=100,blank=True, null=True)
     shaft_seal_model = models.TextField(max_length=100,blank=True, null=True)
@@ -110,6 +113,7 @@ class ShaftSealLOV(models.Model):
 
 class PumpMaterialLOV(models.Model):
     material_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    mat_code_name = models.TextField(max_length=100,blank=True, null=True)
     pump_type_mat = models.TextField(max_length=100,blank=True, null=True)
     pump_mat_code = models.TextField(max_length=100,blank=True, null=True)
     casing_mat = models.TextField(max_length=100,blank=True, null=True)

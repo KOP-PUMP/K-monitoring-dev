@@ -21,14 +21,13 @@ export const useGetAllCompaniesDetail = () => {
   });
 };
 
-export const useGetCompanyDetailByCode = (code: string) => {
+export const useGetCompanyDetailByCode = (code?: string) => {
   const query = useQuery<CompaniesResponse>({
-    queryKey: ["company", code],
+    queryKey: code ? ["company", code] : ["company"],
     queryFn: () => getCompanyDetailByCode(code),
     enabled: !!code,
-    retry: false,
+    retry : false,
   });
-
   if (query.error) {
     toast.error(query.error.message, {
       style: { backgroundColor: "white", color: "black" },
@@ -89,14 +88,22 @@ export const useUpdateCompany = () => {
 
 export const useGetPECContactDetail = (code: string) => {
   return useQuery({
-    queryKey: ["contact", code],
+    queryKey: ["pec_contact", code],
     queryFn: () => getPECContactDetail(code),
   });
 };
 
-export const useGetPECCompanyDetail = (code: string) => {
-  return useQuery({
-    queryKey: ["company", code],
+export const useGetPECCompanyDetail = (code ?: string) => {
+  const query = useQuery({
+    queryKey: code ? ["pec_company", code] : ["pec_company"],
     queryFn: () => getPECCompanyDetail(code),
+    enabled: !!code
   });
+
+  if (query.error) {
+    toast.error(query.error.message, {
+      style: { backgroundColor: "white", color: "black" },
+    });
+  }
+  return query;
 };
