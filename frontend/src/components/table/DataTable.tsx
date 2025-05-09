@@ -86,7 +86,7 @@ export function DataTable({
   });
 
   return (
-    <div className="max-w-full">
+    <div className="w-full">
       <div className="flex items-center py-4 gap-4">
         {typeof search === "object" ? (
           search.map((search: any, index: number) => (

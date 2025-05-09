@@ -40,8 +40,7 @@ export const NpshrFlowGraph = ({
     label: {
       value: "NPSHR (m)",
       angle: -90,
-      position: "insideLeft",
-      inset: -2,
+      position: "insideLeft", inset: -2,
       style: { fontSize: 12 },
     },
     type: "number" as const,

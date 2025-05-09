@@ -11,6 +11,6 @@ admin.site.register(FactoryCurve, FactoryCurve_admin)
 
 class FactoryCurveNumber_admin(admin.ModelAdmin):
     list_display = [field.name for field in FactoryCurveNumber._meta.fields]
-    search_fields = ('id','fac_number','updated_at')
+    search_fields = ('id','fac_number','brand', 'model', 'rpm')
 
 admin.site.register(FactoryCurveNumber, FactoryCurveNumber_admin)

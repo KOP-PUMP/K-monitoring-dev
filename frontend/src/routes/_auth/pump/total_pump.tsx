@@ -27,6 +27,17 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
     label?: string; // Add the label property
   };
 
+/**
+ * TotalPump
+ *
+ * This component renders a dashboard showing the total pumps, customer count, pumps requiring maintenance, and pumps needing recheck.
+ *
+ * It also renders a table showing the list of pumps with their respective details like image, name, brand, company code, province, sales area, status, created at, and created by.
+ *
+ * The table is searchable and sortable.
+ *
+ * @returns A React component
+ */
 function TotalPump() {
   const columns: ExtendedColumnDef<PumpDataType>[] = [
     {
@@ -245,7 +256,7 @@ function TotalPump() {
     },
   ];
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
+    <div className="w-full space-y-4 p-0 md:p-8 md:pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Total Pumps</h2>
         <div className="flex items-center space-x-2">
@@ -303,10 +314,10 @@ function TotalPump() {
         </Card>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <Card className="flex flex-col gap-4 p-4 ">
+      <div className="flex flex-col gap-4 max-w-full w-full">
+        <Card className="w-full flex flex-col gap-4 p-4 overflow-x-hidden">
         {pumpData ? (
-          <DataTable data={pumpData} columns={columns} search={["name","status","brand","company_code", "province","sales_area"]} />
+              <DataTable data={pumpData} columns={columns} search={["name","status"]}/>
         ) : (
           <div>Error</div>
         )}

@@ -39,7 +39,7 @@ export function PumpStatusChart() {
         <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px]">
+        <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[60%]">
           <PieChart>
             <ChartTooltip content={<ChartTooltipContent nameKey="quantity" hideLabel />} />
             <Pie data={chartData} dataKey="quantity">

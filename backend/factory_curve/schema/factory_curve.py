@@ -1,5 +1,5 @@
 from ninja import Schema
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 class FactoryCurve_schema(Schema):
@@ -28,6 +28,22 @@ class FactoryCurve_schema(Schema):
     dry_sat : Optional[str] = None
     liquid : Optional[str] = None
 
+class FactoryCurveCal_schema(Schema):
+    min_flow : str
+    max_flow : str
+    BEP_flow : str
+    shut_off_head : str
+    min_head : str
+    max_head : str
+    BEP_head : str
+    npshr : str
+    eff : str
+    hyd_power : str
+    power_min_flow : str
+    power_required : str
+    power_max_flow : str
+    BEP_power_flow : str
+
 class FactoryCurveNumber_schema(Schema):
     id : Optional[str] = None
     fac_number : Optional[str] = None
@@ -35,3 +51,30 @@ class FactoryCurveNumber_schema(Schema):
     created_by : Optional[str] = None
     updated_at : Optional[datetime] = None
     updated_by : Optional[str] = None
+
+
+class CurveDataAtImp_schema(Schema):
+    flow: str
+    head: str
+    kw: Optional[str]
+    imp_dia: str
+
+class CalPumpDetail_schema(Schema):
+    BEP_head: str
+    BEP_flow: str
+    min_flow: str
+    max_flow: str
+    hyd_power: str
+    efficiency: str
+    power_required_cal: str
+    power_BEP_flow:str
+    npshr: str
+    min_head: str
+    max_head: str
+    shut_off_head: str
+    eff_min_flow: str
+    power_min_flow:str
+    eff_max_flow: str
+    power_max_flow:str
+    curve: List[CurveDataAtImp_schema]
+

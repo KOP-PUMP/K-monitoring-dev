@@ -39,7 +39,7 @@ import {
 } from "@/validators/pump";
 import { useSettings } from "@/lib/settings";
 import { useEffect, useState } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { useGetCompanyDetailByCode } from "@/hook/users/company";
 import {
   useGetAllUnitLOVData,
@@ -57,10 +57,26 @@ import {
   MotorDetailLOVResponse,
 } from "@/types/pump/pumps";
 import {
+  PumpDetailCalResponse,
+  PumpDetailDataOut,
+} from "@/types/factory_curve/factory_curve_data";
+
+import {
+  useGetFactoryCurveData,
+  useGetCalPumpData,
+} from "@/hook/factory_curve/factory_curve";
+
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+
+type PumpModelType = {
+  model: string | undefined;
+  speed: string | undefined;
+};
+import { HeadFlowGraph } from "@/components/chart/HeadFlowGraph";
 
 export default function PumpList() {
   /* Setup state and variable */
@@ -72,6 +88,18 @@ export default function PumpList() {
     4: false,
     5: false,
   });
+
+  const calData = {
+    operation_flow: "325",
+    operation_flow_unit: "1",
+    operation_head: "13",
+    operation_head_unit: "1",
+    impeller_dia: "208",
+    model: "KDIN",
+    speed: "1450",
+    size: "150-20",
+  };
+
   const [stepName, setStepName] = useState(1);
   /* data filter state */
   const [CompanyCode, setCompanyCode] = useState<string>("");
@@ -82,6 +110,10 @@ export default function PumpList() {
     pump_motor_search: "",
   });
   /* fetched data state */
+  const [pumpModel, setPumpModel] = useState<PumpModelType>();
+  const [pumpDetailCalData, setPumpDetailCalData] = useState<
+    PumpDetailDataOut | undefined
+  >();
   const [pumpLOVData, setPumpLOVData] = useState<ComboboxItemProps[]>([]);
   const [pumpMatLOVData, setPumpMatLOVData] = useState<PumpMatLOVResponse[]>();
   const [pumpShaftSealData, setPumpShaftSealLOVData] =
@@ -100,6 +132,16 @@ export default function PumpList() {
   /* Dropdown option from LOV */
   const { data: pumpLOVResponse } = useGetAllPumpLOVData();
   const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();
+  const { data: factoryCurveData } = useGetFactoryCurveData(
+    pumpModel?.model,
+    pumpModel?.speed,
+    null
+  );
+  const {
+    data: pumpCalResponse,
+    isLoading,
+    isError,
+  } = useGetCalPumpData(pumpDetailCalData);
 
   /* Mapping Data for drop down option */
   useEffect(() => {
@@ -224,6 +266,60 @@ export default function PumpList() {
       return filterData;
     }
   };
+
+  const handleResetPumpDetailLOV = (data: PumpDetailLOVResponse) => {
+    formPumpGeneralDetail.reset({
+      ...generalDetailCurrentValue,
+      brand: data.pump_brand,
+      pump_code_name: `${data.pump_brand} ${data.pump_model}`,
+      model_short: data.pump_model?.split(" ")[0],
+      model: data.pump_model,
+      pump_model_size: data.model_size,
+      pump_design: data.pump_design,
+      pump_type_name: data.pump_type,
+      stage: data.pump_stage,
+      impeller_type: data.pump_impeller_type,
+    });
+  };
+
+  const handleCalculateClick = () => {
+    /* const data = {
+      impeller_dia : formPumpGeneralDetail.getValues('design_impeller_dia'),
+      model : formPumpGeneralDetail.getValues('model_short'),
+      size : formPumpGeneralDetail.getValues('pump_model_size'),
+      speed : formPumpGeneralDetail.getValues('pump_speed'),
+      operation_flow : formPumpGeneralDetail.getValues('design_flow'),
+      operation_flow_unit : "1",
+      operation_head : formPumpGeneralDetail.getValues('design_head'),
+      operation_head_unit : "1"
+    } */
+    setPumpDetailCalData(calData);
+  };
+
+  useEffect(() => {
+    if (pumpCalResponse) {
+      formPumpGeneralDetail.reset({
+        ...generalDetailCurrentValue,
+        operating_flow: pumpCalResponse.operation_point.point_flow.toFixed(2),
+        operating_head: pumpCalResponse.operation_point.point_head.toFixed(2),
+        min_flow: pumpCalResponse.min_flow_point.point_flow.toFixed(2),
+        min_head: pumpCalResponse.min_flow_point.point_head.toFixed(2),
+        max_flow: pumpCalResponse.max_flow_point.point_flow.toFixed(2),
+        max_head: pumpCalResponse.max_flow_point.point_head.toFixed(2),
+        bep_flow: pumpCalResponse.bep_point.point_flow.toFixed(2),
+        bep_head: pumpCalResponse.bep_point.point_head.toFixed(2),
+        shut_off_head: pumpCalResponse.shut_off_head.toFixed(2),
+        npshr: pumpCalResponse.npshr.toFixed(2),
+        pump_efficiency: pumpCalResponse.operation_point.eff.toFixed(2),
+        hyd_power: pumpCalResponse.hydraulic_power.toFixed(2),
+        power_min_flow: pumpCalResponse.power_min_flow.toFixed(2),
+        power_max_flow: pumpCalResponse.power_max_flow.toFixed(2),
+        power_required_cal: pumpCalResponse.power_required_cal.toFixed(2),
+        power_bep_flow: pumpCalResponse.power_bep.toFixed(2),
+      });
+    }
+  }, [pumpCalResponse]);
+
   return (
     <div className="container mx-auto p-4 items-center">
       <Tabs value={stepName}>
@@ -554,7 +650,10 @@ export default function PumpList() {
                                     Serial number
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Serial number" {...field} />
+                                    <Input
+                                      placeholder="Serial number"
+                                      {...field}
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -632,29 +731,31 @@ export default function PumpList() {
                                                   <SheetClose
                                                     key={data.pump_brand}
                                                     className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
-                                                    onClick={() => {
-                                                      formPumpGeneralDetail.reset(
-                                                        {
-                                                          ...generalDetailCurrentValue,
-                                                          pump_lov_id:
-                                                            data.pump_lov_id,
-                                                          pump_code_name:
-                                                            data.pump_model,
-                                                          pump_design:
-                                                            data.pump_design,
-                                                        }
-                                                      );
-                                                    }}
+                                                    onClick={() =>
+                                                      handleResetPumpDetailLOV(
+                                                        data
+                                                      )
+                                                    }
                                                   >
                                                     <div className="font-medium">
-                                                      {data.pump_model}
+                                                      {`${data.pump_brand} ${data.pump_model}`}
                                                     </div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                      Design :{" "}
-                                                      {data.pump_design}
-                                                    </div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                      Type : {data.pump_type}
+                                                    <div className="text-sm text-muted-foreground flex flex-col items-start">
+                                                      <p>
+                                                        Brand :{" "}
+                                                        {data.pump_brand}
+                                                      </p>
+                                                      <p>
+                                                        Model :{" "}
+                                                        {data.pump_model}
+                                                      </p>
+                                                      <p>
+                                                        Design :{" "}
+                                                        {data.pump_design}
+                                                      </p>
+                                                      <p>
+                                                        Type : {data.pump_type}
+                                                      </p>
                                                     </div>
                                                   </SheetClose>
                                                 )
@@ -665,19 +766,11 @@ export default function PumpList() {
                                                 <SheetClose
                                                   key={data.pump_brand}
                                                   className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
-                                                  onClick={() => {
-                                                    formPumpGeneralDetail.reset(
-                                                      {
-                                                        ...generalDetailCurrentValue,
-                                                        pump_lov_id:
-                                                          data.pump_lov_id,
-                                                        pump_code_name:
-                                                          data.pump_model,
-                                                        pump_design:
-                                                          data.pump_design,
-                                                      }
-                                                    );
-                                                  }}
+                                                  onClick={() =>
+                                                    handleResetPumpDetailLOV(
+                                                      data
+                                                    )
+                                                  }
                                                 >
                                                   <div className="font-medium">
                                                     {data.pump_model}
@@ -722,7 +815,33 @@ export default function PumpList() {
                                     Brand
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Brand" {...field} readOnly/>
+                                    <Input
+                                      placeholder="Brand"
+                                      {...field}
+                                      readOnly
+                                    />
+                                  </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="model_short"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Model (Short)
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input
+                                      placeholder="Model (short)"
+                                      {...field}
+                                      readOnly
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -740,7 +859,11 @@ export default function PumpList() {
                                     Model
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Model" {...field} readOnly/>
+                                    <Input
+                                      placeholder="Model"
+                                      {...field}
+                                      readOnly
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -758,7 +881,11 @@ export default function PumpList() {
                                     Model Size
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Model" {...field} readOnly/>
+                                    <Input
+                                      placeholder="Model"
+                                      {...field}
+                                      readOnly
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -776,7 +903,11 @@ export default function PumpList() {
                                     Design
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Design" {...field} readOnly/>
+                                    <Input
+                                      placeholder="Design"
+                                      {...field}
+                                      readOnly
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -794,7 +925,11 @@ export default function PumpList() {
                                     Type
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Type" {...field} readOnly/>
+                                    <Input
+                                      placeholder="Type"
+                                      {...field}
+                                      readOnly
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -812,7 +947,21 @@ export default function PumpList() {
                                     Standard
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Standard" {...field} readOnly/>
+                                    <Combobox
+                                      items={
+                                        handleLOVDataFilter(
+                                          "pump_standard",
+                                          "pump_data"
+                                        ) || []
+                                      }
+                                      label={
+                                        getFormData("formData1").pump_standard
+                                          ? getFormData("formData1")
+                                              .pump_standard
+                                          : "Select"
+                                      }
+                                      onChange={field.onChange}
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -830,7 +979,10 @@ export default function PumpList() {
                                     Standard No.
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Standard No." {...field} readOnly/>
+                                    <Input
+                                      placeholder="Standard No."
+                                      {...field}
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -845,10 +997,14 @@ export default function PumpList() {
                               <FormItem>
                                 <div className="flex items-center">
                                   <FormLabel className="w-32 lg:w-44">
-                                    Standard No.
+                                    Impeller Max
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Standard No." {...field} readOnly/>
+                                    <Input
+                                      placeholder="Impeller Max"
+                                      {...field}
+                                      readOnly
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -866,7 +1022,11 @@ export default function PumpList() {
                                     Stage
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Stage" {...field} readOnly/>
+                                    <Input
+                                      placeholder="Stage"
+                                      {...field}
+                                      readOnly
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -884,7 +1044,11 @@ export default function PumpList() {
                                     Impeller type
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Impeller type" {...field} readOnly/>
+                                    <Input
+                                      placeholder="Impeller type"
+                                      {...field}
+                                      readOnly
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -902,7 +1066,11 @@ export default function PumpList() {
                                     Base Plate
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input placeholder="Base Plate" {...field} readOnly/>
+                                    <Input
+                                      placeholder="Base Plate"
+                                      {...field}
+                                      readOnly
+                                    />
                                   </FormControl>
                                 </div>
 
@@ -962,1081 +1130,6 @@ export default function PumpList() {
                         </div>
                       </FormBox>
                     </div>
-                    {/* Pump Technical Data */}
-                    <div className="text-foreground dark:text-foreground grow flex-1">
-                      <FormBox field="Pump Technical Data">
-                        <div className="space-y-2">
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="max_temp"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center ">
-                                  <FormLabel className="w-32 lg:w-44 ">
-                                    Max Temperature (°C)
-                                  </FormLabel>
-                                  <FormControl className="w-full">
-                                    <Input
-                                      placeholder="Max Temperature (°C)"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="max_flow_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Max Flow
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="max_flow"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1").max_flow
-                                                ? getFormData("formData1")
-                                                    .max_flow
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_flow",
-                                            "pump_unit"
-                                          ) || []
-                                        }
-                                        label={
-                                          getFormData("formData1").max_flow_unit
-                                            ? getFormData("formData1")
-                                                .max_flow_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="min_flow_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Min Flow
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="min_flow"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1").min_flow
-                                                ? getFormData("formData1")
-                                                    .min_flow
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_flow",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1").min_flow_unit
-                                            ? getFormData("formData1")
-                                                .min_flow_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="pump_speed_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Speed
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="pump_speed"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_speed",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="pump_efficiency_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Efficiency
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_efficiency */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="pump_efficiency"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Efficiency"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_efficiency
-                                                ? getFormData("formData1")
-                                                    .pump_efficiency
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_efficiency_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_efficiency",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_efficiency_unit
-                                            ? getFormData("formData1")
-                                                .pump_efficiency_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="hyd_power_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Hydraulic Power
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_speed */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="hyd_power"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_speed_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_power",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="design_flow_unit"
-                            render={({ field: flowField }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Flow
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for design_flow */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="design_flow"
-                                      render={({ field: flowField }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Flow"
-                                            {...flowField}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .design_flow
-                                                ? getFormData("formData1")
-                                                    .design_flow
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for design_flow_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_flow",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .design_flow_unit
-                                            ? getFormData("formData1")
-                                                .design_flow_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          flowField.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="shut_off_head_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Shut Off Head
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_speed */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="shut_off_head"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_speed_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_head",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="min_head_unit"
-                            render={({ field: shutoffHeadField }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Shutoff head
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for min_head */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="min_head"
-                                      render={({ field: shutoffHeadField }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Shutoff head"
-                                            {...shutoffHeadField}
-                                            defaultValue={
-                                              getFormData("formData1").min_head
-                                                ? getFormData("formData1")
-                                                    .min_head
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for design_flow_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_head",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1").min_head_unit
-                                            ? getFormData("formData1")
-                                                .min_head_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          shutoffHeadField.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="max_head_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Max Head
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_speed */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="max_head"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_speed_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_head",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="suction_velo_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Suction Velocity
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_speed */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="suction_velo"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_speed_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_velocity",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="discharge_velo_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Discharge Velocity
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_speed */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="discharge_velo"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_speed_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_velocity",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="bep_flow_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    BEP Flow
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_speed */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="bep_flow"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_speed_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_flow",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="design_head_unit"
-                            render={({ field: headField }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Head
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for design_head */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="design_head"
-                                      render={({ field: headField }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Head"
-                                            {...headField}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .design_head
-                                                ? getFormData("formData1")
-                                                    .design_head
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for design_head_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_head",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .design_head_unit
-                                            ? getFormData("formData1")
-                                                .design_head_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          headField.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="npshr_unit"
-                            render={({ field: npshrField }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    NPSHr
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for npshr */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="npshr"
-                                      render={({ field: npshrField }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="NPSHr"
-                                            {...npshrField}
-                                            defaultValue={
-                                              getFormData("formData1").npshr
-                                                ? getFormData("formData1").npshr
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for npshr_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_npsh",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1").npshr_unit
-                                            ? getFormData("formData1")
-                                                .npshr_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          npshrField.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="power_required_cal_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Power Required (Cal.)
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_speed */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="power_required_cal"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_speed_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_power",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="power_min_flow_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Power Min Flow
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_speed */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="power_min_flow"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_speed_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_power",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="power_max_flow_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    Power Max Flow
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_speed */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="power_max_flow"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_speed_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_power",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={formPumpGeneralDetail.control}
-                            name="power_bep_flow_unit"
-                            render={({ field: Field }) => (
-                              <FormItem>
-                                <div className="w-full flex items-center">
-                                  <FormLabel className="w-32 lg:w-44">
-                                    BEP Flow
-                                  </FormLabel>
-                                  <div className="w-full flex gap-2">
-                                    {/* Input for pump_speed */}
-                                    <FormField
-                                      control={formPumpGeneralDetail.control}
-                                      name="power_bep_flow"
-                                      render={({ field: Field }) => (
-                                        <FormControl className="w-full">
-                                          <Input
-                                            placeholder="Pump"
-                                            {...Field}
-                                            defaultValue={
-                                              getFormData("formData1")
-                                                .pump_speed
-                                                ? getFormData("formData1")
-                                                    .pump_speed
-                                                : ""
-                                            }
-                                          />
-                                        </FormControl>
-                                      )}
-                                    />
-                                    {/* Combobox for pump_speed_unit */}
-                                    <FormControl className="md:max-w-[500px]">
-                                      <Combobox
-                                        className="min-w-[86px]"
-                                        items={
-                                          handleLOVDataFilter(
-                                            "unit_power",
-                                            "pump_unit"
-                                          ) || []
-                                        } // Dropdown options
-                                        label={
-                                          getFormData("formData1")
-                                            .pump_speed_unit
-                                            ? getFormData("formData1")
-                                                .pump_speed_unit
-                                            : "Select"
-                                        }
-                                        onChange={(value) => {
-                                          Field.onChange(value); // Update form state
-                                        }}
-                                      />
-                                    </FormControl>
-                                  </div>
-                                </div>
-
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </FormBox>
-                    </div>
                     {/* Pump Applicational Data */}
                     <div className="text-foreground dark:text-foreground grow flex-1">
                       <FormBox field="Pump Applicational Data">
@@ -2051,14 +1144,19 @@ export default function PumpList() {
                                     Media
                                   </FormLabel>
                                   <FormControl className="w-full">
-                                    <Input
-                                      placeholder="Media"
-                                      {...field}
-                                      defaultValue={
+                                    <Combobox
+                                      items={
+                                        handleLOVDataFilter(
+                                          "media",
+                                          "pump_data"
+                                        ) || []
+                                      }
+                                      label={
                                         getFormData("formData1").media
                                           ? getFormData("formData1").media
-                                          : ""
+                                          : "Select"
                                       }
+                                      onChange={field.onChange}
                                     />
                                   </FormControl>
                                 </div>
@@ -2462,6 +1560,1176 @@ export default function PumpList() {
                                       {...field}
                                     />
                                   </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </FormBox>
+                    </div>
+                    {/* Pump Technical Data */}
+                    <div className="text-foreground dark:text-foreground grow flex-1">
+                      <FormBox field="Pump Technical Data">
+                        <div className="space-y-2">
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="design_impeller_dia"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Impeller Diameter (mm)
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input
+                                      placeholder="Impeller Diameter (mm)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="max_temp"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center ">
+                                  <FormLabel className="w-32 lg:w-44 ">
+                                    Max Temperature (°C)
+                                  </FormLabel>
+                                  <FormControl className="w-full">
+                                    <Input
+                                      placeholder="Max Temperature (°C)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="pump_speed_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Speed
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="pump_speed"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_speed",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="design_flow_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Flow
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="design_flow"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Flow"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .design_flow
+                                                ? getFormData("formData1")
+                                                    .design_flow
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .design_flow_unit
+                                            ? getFormData("formData1")
+                                                .design_flow_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="design_head_unit"
+                            render={({ field: headField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Head
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for design_head */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="design_head"
+                                      render={({ field: headField }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Head"
+                                            {...headField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .design_head
+                                                ? getFormData("formData1")
+                                                    .design_head
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for design_head_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_head",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .design_head_unit
+                                            ? getFormData("formData1")
+                                                .design_head_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          headField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <Button type="button" onClick={handleCalculateClick}>
+                            Calculate
+                          </Button>
+                          {pumpCalResponse && (
+                            <HeadFlowGraph
+                              chartData={
+                                pumpCalResponse.total_curve_data
+                                  ? [
+                                      ...pumpCalResponse.desire_curve_data,
+                                      ...pumpCalResponse.total_curve_data,
+                                      pumpCalResponse.min_flow_point,
+                                      pumpCalResponse.max_flow_point,
+                                      pumpCalResponse.operation_point,
+                                      pumpCalResponse.bep_point,
+                                    ]
+                                  : pumpCalResponse.total_curve_data
+                              }
+                              scatter={false}
+                              isLoading={isLoading}
+                              isError={isError}
+                            />
+                          )}
+                        </div>
+                      </FormBox>
+                      <FormBox field="Technical Details : Operating Point">
+                        <div className="space-y-2">
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="operating_flow_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Operating Flow
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="operating_flow"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Operating Flow"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .design_flow
+                                                ? getFormData("formData1")
+                                                    .design_flow
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .design_flow_unit
+                                            ? getFormData("formData1")
+                                                .design_flow_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="operating_head_unit"
+                            render={({ field: headField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Operating Head
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for design_head */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="operating_head"
+                                      render={({ field: headField }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Operating Head"
+                                            {...headField}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .design_head
+                                                ? getFormData("formData1")
+                                                    .design_head
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for design_head_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_head",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .design_head_unit
+                                            ? getFormData("formData1")
+                                                .design_head_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          headField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="pump_efficiency_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Efficiency
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for pump_efficiency */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="pump_efficiency"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Efficiency"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_efficiency
+                                                ? getFormData("formData1")
+                                                    .pump_efficiency
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_efficiency_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_efficiency",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_efficiency_unit
+                                            ? getFormData("formData1")
+                                                .pump_efficiency_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="shut_off_head_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Shut Off Head
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="shut_off_head"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Shut off head"
+                                            {...Field}
+                                            readOnly
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_head",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="npshr_unit"
+                            render={({ field: npshrField }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    NPSHr
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for npshr */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="npshr"
+                                      render={({ field: npshrField }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="NPSHr"
+                                            {...npshrField}
+                                            defaultValue={
+                                              getFormData("formData1").npshr
+                                                ? getFormData("formData1").npshr
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for npshr_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_npsh",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1").npshr_unit
+                                            ? getFormData("formData1")
+                                                .npshr_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          npshrField.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="hyd_power_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Hydraulic Power
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="hyd_power"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="power_required_cal_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Power Required (Cal.)
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="power_required_cal"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </FormBox>
+                      <FormBox field="Technical Details : Best Efficiency Point">
+                        <div className="space-y-2">
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="bep_flow_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    BEP. Flow
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="bep_flow"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="BEP. Flow"
+                                            {...Field}
+                                            readOnly
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="bep_head_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    BEP Head
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="bep_head"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                <FormField
+                                  control={formPumpGeneralDetail.control}
+                                  name="power_bep_flow_unit"
+                                  render={({ field: Field }) => (
+                                    <FormItem>
+                                      <div className="w-full flex items-center">
+                                        <FormLabel className="w-32 lg:w-44">
+                                          Power BEP Flow
+                                        </FormLabel>
+                                        <div className="w-full flex gap-2">
+                                          {/* Input for pump_speed */}
+                                          <FormField
+                                            control={
+                                              formPumpGeneralDetail.control
+                                            }
+                                            name="power_bep_flow"
+                                            render={({ field: Field }) => (
+                                              <FormControl className="w-full">
+                                                <Input
+                                                  placeholder="Power BEP Flow"
+                                                  {...Field}
+                                                  defaultValue={
+                                                    getFormData("formData1")
+                                                      .pump_speed
+                                                      ? getFormData("formData1")
+                                                          .pump_speed
+                                                      : ""
+                                                  }
+                                                />
+                                              </FormControl>
+                                            )}
+                                          />
+                                          {/* Combobox for pump_speed_unit */}
+                                          <FormControl className="md:max-w-[500px]">
+                                            <Combobox
+                                              className="min-w-[86px]"
+                                              items={
+                                                handleLOVDataFilter(
+                                                  "unit_power",
+                                                  "pump_unit"
+                                                ) || []
+                                              } // Dropdown options
+                                              label={
+                                                getFormData("formData1")
+                                                  .pump_speed_unit
+                                                  ? getFormData("formData1")
+                                                      .pump_speed_unit
+                                                  : "Select"
+                                              }
+                                              onChange={(value) => {
+                                                Field.onChange(value); // Update form state
+                                              }}
+                                            />
+                                          </FormControl>
+                                        </div>
+                                      </div>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </FormBox>
+                      <FormBox field="Technical Details : Min Flow Point">
+                        <div className="space-y-2">
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="min_flow_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Min Flow
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="min_flow"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Min Flow"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .min_flow_point
+                                                ? getFormData("formData1")
+                                                    .min_flow_point.point_flow
+                                                : ""
+                                            }
+                                            readOnly
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1").min_flow_unit
+                                            ? getFormData("formData1")
+                                                .min_flow_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="min_head_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Min Head
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="min_head"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Min Head"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .min_flow_point
+                                                ? getFormData("formData1")
+                                                    .min_flow_point.point_head
+                                                : ""
+                                            }
+                                            readOnly
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_head",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1").min_head_unit
+                                            ? getFormData("formData1")
+                                                .min_head_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="power_min_flow_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Power Min Flow
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="power_min_flow"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </FormBox>
+                      <FormBox field="Technical Details : Max Flow Point">
+                        <div className="space-y-2">
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="max_flow_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Max Flow
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="max_flow"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Max Flow"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1").max_flow
+                                                ? getFormData("formData1")
+                                                    .max_flow
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        }
+                                        label={
+                                          getFormData("formData1").max_flow_unit
+                                            ? getFormData("formData1")
+                                                .max_flow_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="max_head_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Max Head
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="max_head"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Max Head"
+                                            {...Field}
+                                            readOnly
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_flow",
+                                            "pump_unit"
+                                          ) || []
+                                        }
+                                        label={
+                                          getFormData("formData1").max_flow_unit
+                                            ? getFormData("formData1")
+                                                .max_flow_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="power_max_flow_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Power Max Flow
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="power_max_flow"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_power",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
                                 </div>
 
                                 <FormMessage />
@@ -4841,6 +5109,124 @@ export default function PumpList() {
                                   <FormControl className="w-full">
                                     <Input placeholder="Brand" {...field} />
                                   </FormControl>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="suction_velo_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Suction Velocity
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="suction_velo"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_velocity",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formPumpGeneralDetail.control}
+                            name="discharge_velo_unit"
+                            render={({ field: Field }) => (
+                              <FormItem>
+                                <div className="w-full flex items-center">
+                                  <FormLabel className="w-32 lg:w-44">
+                                    Discharge Velocity
+                                  </FormLabel>
+                                  <div className="w-full flex gap-2">
+                                    {/* Input for pump_speed */}
+                                    <FormField
+                                      control={formPumpGeneralDetail.control}
+                                      name="discharge_velo"
+                                      render={({ field: Field }) => (
+                                        <FormControl className="w-full">
+                                          <Input
+                                            placeholder="Pump"
+                                            {...Field}
+                                            defaultValue={
+                                              getFormData("formData1")
+                                                .pump_speed
+                                                ? getFormData("formData1")
+                                                    .pump_speed
+                                                : ""
+                                            }
+                                          />
+                                        </FormControl>
+                                      )}
+                                    />
+                                    {/* Combobox for pump_speed_unit */}
+                                    <FormControl className="md:max-w-[500px]">
+                                      <Combobox
+                                        className="min-w-[86px]"
+                                        items={
+                                          handleLOVDataFilter(
+                                            "unit_velocity",
+                                            "pump_unit"
+                                          ) || []
+                                        } // Dropdown options
+                                        label={
+                                          getFormData("formData1")
+                                            .pump_speed_unit
+                                            ? getFormData("formData1")
+                                                .pump_speed_unit
+                                            : "Select"
+                                        }
+                                        onChange={(value) => {
+                                          Field.onChange(value); // Update form state
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
                                 </div>
 
                                 <FormMessage />

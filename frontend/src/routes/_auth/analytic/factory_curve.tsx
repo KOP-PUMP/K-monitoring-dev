@@ -17,6 +17,7 @@ const FactoryCurve = () => {
     ComboboxItemProps[]
   >([]);
   const [displayMode, setDisplayMode] = useState("line");
+  /* const [model, setModel] = useState(""); */
 
   /* const {data : factoryCurveData} = useGetFactoryCurveData(factoryNumber); */
   const { data: factoryCurveNumber } = useGetFactoryCurveNumber();
@@ -24,8 +25,9 @@ const FactoryCurve = () => {
     data: factoryCurveData,
     isLoading,
     isError,
-  } = useGetFactoryCurveData(factoryNumber);
+  } = useGetFactoryCurveData(null, null, factoryNumber);
 
+  console.log(factoryCurveData)
   const graphTypes: ComboboxItemProps[] = [
     { value: "line", label: "Show Lines Plot" },
     { value: "scatter", label: "Show Scatter Plot" },
@@ -35,7 +37,7 @@ const FactoryCurve = () => {
     if (factoryCurveNumber) {
       const mappedData = factoryCurveNumber.map((item) => ({
         value: item.fac_number || "",
-        label: item.fac_number || "",
+        label: item.model || "",
       }));
       setFactoryNumberOptions(mappedData);
     }
@@ -54,7 +56,7 @@ const FactoryCurve = () => {
           items={graphTypes}
           label={displayMode}
           onChange={(selectedValue) => setDisplayMode(selectedValue)}
-          className="w-[180px] mt-1 block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          className="min-w-[180px] mt-1 block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         />
         <label className="block text-sm font-medium text-gray-700">
           Factory Number
@@ -63,8 +65,12 @@ const FactoryCurve = () => {
           items={factoryNumberOptions}
           onChange={(selectedValue) => {
             setFactoryNumber(selectedValue);
+            /* const selected_label = factoryNumberOptions.filter((item) => {
+              return item.value === selectedValue;
+            });
+            setModel(selected_label); */
           }}
-          className="w-[180px] mt-1 block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          className="min-w-[180px] mt-1 block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         />
       </div>
       <div className="font-semibold text-xl text-gray-700">
@@ -73,16 +79,16 @@ const FactoryCurve = () => {
           {factoryNumber}
         </label> */}
         {factoryNumber ? (
-          <h3>
-            {`Model : ${factoryNumber}`}
-          </h3>
-        ) : (<h3>Model : Please select</h3>)}
-        <h3>
-
-        </h3>
+          <h3>{`Model : ${factoryNumberOptions.find((item) => item.value === factoryNumber)?.label} / ${factoryNumber}`}</h3>
+        ) : (
+          <h3>Model : Please select</h3>
+        )}
+        <h3></h3>
       </div>
       <div className="w-full">
-        {factoryCurveData ? (
+        {!factoryCurveData && !isLoading && !isError ? (
+          <p>Please select a factory number</p>
+        ) : factoryCurveData ? (
           <div className="w-full flex flex-col">
             <HeadFlowGraph
               chartData={factoryCurveData}
@@ -103,8 +109,10 @@ const FactoryCurve = () => {
               isError={isError}
             />
           </div>
+        ) : isLoading ? (
+          <p>Loading...</p>
         ) : (
-          <div>No data</div>
+          isError && <p>Error fetching data</p>
         )}
       </div>
     </div>

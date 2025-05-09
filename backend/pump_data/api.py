@@ -8,7 +8,7 @@ from uuid import UUID
 from django.http import JsonResponse
 
 
-@api_controller('/pump-data/', tags=['pump-data'], auth=[JWTAuth()])
+@api_controller('/pump-data/', tags=['pump-data'])
 class ListOfValuesController:
     @http_get('/data_lov', response=list[KMonitoringLOV_schema])
     def get_select_option(self, request, name : str = None,type: str = None):
@@ -80,17 +80,16 @@ class ListOfValuesController:
         PumpMaterialLOV.objects.create(**payload.dict())
         return JsonResponse({"success": True, "message": "Pump Material LOV created successfully"}, status=200)
     
-    @http_get('/pump-detail', response=list[PumpDetail_schema])
-    def get_pump_detail(self, request, id : str):
-        pump_id = request.GET.get('id')
-        if pump_id:
+    @http_get('/pump-detail/{id}', response=list[PumpDetail_schema])
+    def get_pump_detail(self, request, id: str):
+        if id:
             try:
-                pump_detail = PumpDetail.objects.get(pump_id=pump_id)
-                return JsonResponse({"data": pump_detail}, status=200)
+                pump_detail = PumpDetail.objects.get(pump_id=id)
+                return JsonResponse({"data": model_to_dict(pump_detail)}, status=200)
             except PumpDetail.DoesNotExist:
                 return JsonResponse({"error": "Pump detail not found"}, status=404)
         else:
-            pump_details = list(PumpDetail.objects.all().values())
+            pump_details = list(PumpDetail.objects.all().values())  # Converts QuerySet to list of dictionaries
             return JsonResponse({"data": pump_details}, status=200)
     
     @http_get('/pump-lov')

@@ -7,10 +7,15 @@ const API_PUBLIC_BASE_URL = import.meta.env.VITE_API_PUBLIC_BASE_URL as string;
 const API_PEC_URL = import.meta.env.VITE_API_PEC_URL as string;
 const API_PUBLIC_PROVINCE_URL = import.meta.env
   .VITE_PUBLIC_API_PROVINCE_URL as string;
+const API_BASE_LOCAL_URL = import.meta.env.VITE_API_BASE_LOCAL_URL as string;
 
-  const baseURL = window.location.origin === ("http://pecsystem.ddns.net:5173")
-  ? API_PUBLIC_BASE_URL
-  : API_BASE_URL;
+  const baseURL =
+  window.location.origin === "http://pecsystem.ddns.net:5173"
+    ? API_PUBLIC_BASE_URL
+    : window.location.origin === "http://192.168.1.177:5173"
+      ? API_BASE_URL
+      : API_BASE_LOCAL_URL;
+      
 // Create a custom Axios instance with default settings
 export const axiosInstance = axios.create({
   baseURL, // Base URL for all API requests

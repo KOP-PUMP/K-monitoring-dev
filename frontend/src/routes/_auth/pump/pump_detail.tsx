@@ -19,10 +19,26 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { HeadFlowGraph } from "@/components/chart/HeadFlowGraph";
+import { FlowPowerGraph } from "@/components/chart/FlowPowerGraph";
+import { NpshrFlowGraph } from "@/components/chart/NpshrFlowGraph";
+import {
+  useGetFactoryCurveData,
+  useGetFactoryCurveNumber,
+} from "@/hook/factory_curve/factory_curve";
+
+
 const PumpDetail = () => {
   const { code, name, status } = useSearch({ from: "/_auth/pump/pump_detail" });
-  const { data: companyData } = useGetCompanyDetailByCode(code);
+  /* const { data: companyData } = useGetCompanyDetailByCode(code); */
   const data = pumpData.filter((item) => item.name == name)[0];
+
+  /* const { data: factoryCurveNumber } = useGetFactoryCurveNumber(); */
+  /* const {
+    data: factoryCurveData,
+    isLoading,
+    isError,
+  } = useGetFactoryCurveData(null, null, factoryNumber); */
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -33,13 +49,13 @@ const PumpDetail = () => {
           <Link to="/pump/total_pump">Back</Link>
         </div>
       </div>
-      <div className="flex gap-4 py-4">
+      <div className="flex gap-4 py-4 ">
         <img
           src={pumpImage} /* {data.image} */
           alt="pump image"
           className="w-[400px] rounded-xl object-contain"
         />
-        <Card className="w-full flex flex-col justify-between">
+        <Card className="w-full xs:max-w-[500px] flex flex-col justify-between">
           <CardHeader className="flex w-full justify-between">
             <div className="flex w-full justify-between items-center">
               <div className="flex flex-col">
@@ -59,6 +75,38 @@ const PumpDetail = () => {
           </CardFooter>
         </Card>
       </div>
+      {/* <Card className="w-full">
+        <Collapsible>
+          <CollapsibleTrigger className="flex w-full justify-between items-center pr-4">
+            <CardTitle className="p-4">Pump Curve</CardTitle>
+            <ChevronDown className="w-3.5 h-3.5" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="flex flex-col gap-2 text-sm">
+              <div className="flex gap-2">
+                <HeadFlowGraph
+                  chartData={factoryCurveData}
+                  scatter={false}
+                  isLoading={isLoading}
+                  isError={isError}
+                />
+                <FlowPowerGraph
+                  chartData={factoryCurveData}
+                  scatter={false}
+                  isLoading={isLoading}
+                  isError={isError}
+                />
+                <NpshrFlowGraph
+                  chartData={factoryCurveData}
+                  scatter={false}
+                  isLoading={isLoading}
+                  isError={isError}
+                />
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card> */}
       <Card className="w-full">
         <Collapsible>
           <CollapsibleTrigger className="flex w-full justify-between items-center pr-4">

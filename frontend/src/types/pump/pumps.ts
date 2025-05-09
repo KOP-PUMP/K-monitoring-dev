@@ -152,6 +152,7 @@ export interface PumpDetailLOVResponse {
   pump_lov_id ?: string ;
   pump_code_name ?: string ;
   pump_brand ?: string ;
+  
   pump_model ?: string ;
   model_size ?: string ;
   pump_design ?: string ;

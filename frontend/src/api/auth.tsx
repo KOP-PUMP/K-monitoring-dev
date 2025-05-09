@@ -8,17 +8,20 @@ import { FetchDataResponse } from "@/types/response";
 
 const API_PUBLIC_BASE_URL = import.meta.env.VITE_API_PUBLIC_BASE_URL as string;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_LOCAL_URL = import.meta.env.VITE_API_BASE_LOCAL_URL as string;
 
 const API_URL =
   window.location.origin === "http://pecsystem.ddns.net:5173"
     ? API_PUBLIC_BASE_URL
-    : API_BASE_URL;
+    : window.location.origin === "http://192.168.1.177:5173"
+      ? API_BASE_URL
+      : API_BASE_LOCAL_URL;
 
 export const login = async (
   credentials: LoginRequest
 ): Promise<FetchDataResponse<TokenResponse>> => {
   try {
-    const response = await fetch(`${API_PUBLIC_BASE_URL}/token/pair/`, {
+    const response = await fetch(`${API_URL}/token/pair/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,7 +32,7 @@ export const login = async (
     if (!response.ok) {
       throw new Error("Login failed");
     }
-    
+
     const data: TokenResponse = await response.json();
     return { data };
   } catch (error) {
@@ -44,7 +47,7 @@ export const verifyToken = async (
   token: VerifyRequest
 ): Promise<FetchDataResponse<void>> => {
   try {
-    const response = await fetch(`${API_PUBLIC_BASE_URL}/token/verify/`, {
+    const response = await fetch(`${API_URL}/token/verify/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -69,7 +72,7 @@ export const refreshToken = async (
   token: RefreshRequest
 ): Promise<FetchDataResponse<TokenResponse>> => {
   try {
-    const response = await fetch(`${API_PUBLIC_BASE_URL}/token/refresh/`, {
+    const response = await fetch(`${API_URL}/token/refresh/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

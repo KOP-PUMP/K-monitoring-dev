@@ -36,6 +36,10 @@ class FactoryCurve(models.Model):
 class FactoryCurveNumber(models.Model):
   id = models.AutoField(primary_key=True, editable=False)
   fac_number = models.CharField(max_length=100,blank=True, null=True)
+  brand = models.CharField(max_length=100,blank=True, null=True)
+  model_short = models.CharField(max_length=100,blank=True, null=True)
+  model = models.CharField(max_length=100,blank=True, null=True)
+  rpm = models.CharField(max_length=100,blank=True, null=True)
   created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
   created_by = models.CharField(max_length=100,blank=True, null=True)
   updated_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
