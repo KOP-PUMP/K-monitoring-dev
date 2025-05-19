@@ -11,7 +11,10 @@ import {
   deletePumpDetailLOV,
   updatePumpDetailLOV,
   getShaftSealDetailLOV,
-  getMatDetailLOV,
+  getMaterialDetailLOV,
+  createMaterialLOV,
+  updateMaterialLOV,
+  deleteMaterialLOV,
   getMotorDetailLOV,
   createMotorLOV,
   updateMotorLOV,
@@ -239,14 +242,59 @@ export const useUpdateMotorLOV = () => {
   });
 };
 
-/* Motor detaik LOV Hook */
+/* Material detail LOV API */
 
-export const useGetMatDetailLOV = (id: string | null) => {
+export const useGetMaterialDetailLOV = (id: string | null) => {
   return useQuery<PumpMatLOVResponse[]>({
     queryKey: ["material", "material_lov", id],
-    queryFn: () => getMatDetailLOV(id),
+    queryFn: () => getMaterialDetailLOV(id),
   });
 };
+
+export const useCreateMaterialLOV = () => {
+  return useMutation({
+    mutationFn: createMaterialLOV,
+    onSuccess: () => {
+      toast.success("Material LOV created successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: () => {
+      toast.error("Error creating material LOV");
+    },
+  });
+};
+
+export const useDeleteMaterialLOVById = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id : string) => deleteMaterialLOV(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["material", "material_lov"]});
+      toast.success("Material LOV deleted successfully")
+    },
+    onError: () => toast.error("Error deleting material LOV"),
+  });
+};
+
+export const useUpdateMaterialLOV = () => {
+  return useMutation({
+    mutationFn: ({ id, data } : { id: string; data: PumpMatLOVResponse }) => updateMaterialLOV({ id, data }),
+    onSuccess: () => {
+      toast.success("Material LOV updated successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: (error) => {
+      toast.error("Error updating material LOV");
+      console.error("Update Error:", error);
+    },
+  });
+};
+
+/* Shaft/Seal detail LOV API */
 
 export const useGetShaftSealDetailLOV = (id: string | null) => {
   return useQuery<PumpShaftSealLOVResponse[]>({
@@ -294,7 +342,7 @@ export const useDeleteMediaLOVById = () => {
 
 export const useUpdateMediaLOV = () => {
   return useMutation({
-    mutationFn: ({ id, data } : { id: string; data: MediaLOVResponse }) => updateMediaLOV({ id, data }),
+    mutationFn: ({ id, data } : { id: string; data: PumpMatLOVResponse }) => updateMediaLOV({ id, data }),
     onSuccess: () => {
       toast.success("Media LOV updated successfully");
       setTimeout(() => {

@@ -6,6 +6,7 @@ import {
   FetchDataResponse,
   PumpDetailLOVResponse,
   MotorDetailLOVResponse,
+  PumpMatLOVResponse,
 } from "@/types/index";
 import { axiosInstance } from "../utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -104,9 +105,7 @@ export const deleteMotorLOV = async (id: string) => {
   return response.data;
 };
 
-
-
-
+/* Shaft/Seal Detail LOV API */
 
 export const getShaftSealDetailLOV = async (id: string | null) => {
   if (!id || id === "") {
@@ -118,15 +117,34 @@ export const getShaftSealDetailLOV = async (id: string | null) => {
   }
 };
 
-export const getMatDetailLOV = async (id: string | null) => {
+/* Material Detail LOV API */
+export const getMaterialDetailLOV = async (id: string | null) => {
   if (!id || id === "") {
     const response = await axiosInstance.get("/pump-data/material-lov")
     return response.data.data;
   } else {
     const response = await axiosInstance.get(`/pump-data/material-lov?id=${id}`);
-    return response.data;
+    return response.data.data;
   }
 };
+
+export const createMaterialLOV = async (data: PumpMatLOVResponse) => {
+  const response = await axiosInstance.post("/pump-data/material-lov", data);
+  return response.data;
+};
+
+export const updateMaterialLOV = async ({ id, data }: { id: string; data: PumpMatLOVResponse }) => {
+  const response = await axiosInstance.put(`/pump-data/material-lov/${id}`, data);
+  return response.data;
+};
+
+
+export const deleteMaterialLOV = async (id: string) => {
+  const response = await axiosInstance.delete(`/pump-data/material-lov/${id}`);
+  return response.data;
+};
+
+/* Media Detail LOV API */
 
 export const getMediaLOV = async (id: string | null) => {
   try {
@@ -153,7 +171,6 @@ export const updateMediaLOV = async ({ id, data }: { id: string; data: MediaLOVR
   const response = await axiosInstance.put(`/pump-data/media-lov/${id}`, data);
   return response.data;
 };
-
 
 export const deleteMediaLOV = async (id: string) => {
   const response = await axiosInstance.delete(`/pump-data/media-lov/${id}`);

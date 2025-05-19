@@ -45,7 +45,7 @@ import {
   useGetAllUnitLOVData,
   useGetAllPumpLOVData,
   useGetPumpDetailLOV,
-  useGetMatDetailLOV,
+  useGetMaterialDetailLOV,
   useGetShaftSealDetailLOV,
   useGetMotorDetailLOV,
   useGetMediaLOVData,
@@ -127,10 +127,10 @@ export default function PumpList() {
   const [pumpDetailLOVData, setPumpDetailLOVData] =
     useState<PumpDetailLOVResponse[]>();
   /* Dropdown option from pump data */ 
-  const {data : mediaData} = useGetMediaLOVData();
+  const {data : mediaData} = useGetMediaLOVData("");
   const { data: companyData } = useGetCompanyDetailByCode(CompanyCode);
   const { data: pumpDetailLOVResponse } = useGetPumpDetailLOV("");
-  const { data: pumpMatLOVResponse } = useGetMatDetailLOV("");
+  const { data: pumpMatLOVResponse } = useGetMaterialDetailLOV("");
   const { data: pumpShaftSealLOVResponse } = useGetShaftSealDetailLOV("");
   const { data: pumpMotorLOVResponse } = useGetMotorDetailLOV("");
   /* Dropdown option from LOV */

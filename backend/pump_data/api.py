@@ -1,6 +1,6 @@
 from ninja_extra import api_controller, http_get, http_post, http_put, http_delete
 from ninja_jwt.authentication import JWTAuth
-from pump_data.models import KMonitoringLOV, PumpDetail, PumpDetailLOV, MotorDetailLOV, ShaftSealLOV, PumpMaterialLOV, MediaLOV 
+from pump_data.models import KMonitoringLOV, PumpDetail, PumpDetailLOV, MotorDetailLOV, ShaftSealLOV, PumpMaterialLOV, MediaLOV
 from pump_data.schema.pump_lov import KMonitoringLOV_schema, PumpDetailLOV_schema, PumpDetail_schema, MotorDetailLOV_schema, ShaftSealLOV_schema, PumpMaterialLOV_schema, MediaLOV_schema
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
@@ -245,31 +245,38 @@ class ListOfValuesController:
     # Material Detail LOV API
 
     @http_get('/material-lov')
-    def get_pump_material_lov(self, request):
-        pump_material_lov_id = request.GET.get('id')
-        if pump_material_lov_id:
+    def get_material_lov(self, request):
+        material_lov_id = request.GET.get('id')
+        if material_lov_id:
             try:
-                pump_material_lov = PumpMaterialLOV.objects.get(material_id=pump_material_lov_id)
-                return JsonResponse({"data": pump_material_lov}, status=200)
+                material_lov = PumpMaterialLOV.objects.get(material_id=material_lov_id)
+                return JsonResponse({"data": model_to_dict(material_lov)}, status=200)
             except PumpMaterialLOV.DoesNotExist:
-                return JsonResponse({"error": "Pump Material LOV not found"}, status=404)
+                return JsonResponse({"error": "Material LOV not found"}, status=404)
         else:
-            pump_material_lovs = list(PumpMaterialLOV.objects.all().values())
-            return JsonResponse({"data": pump_material_lovs}, status=200)
+            material_lovs = list(PumpMaterialLOV.objects.all().values())
+            return JsonResponse({"data": material_lovs}, status=200)
+
+    @http_put('/material-lov/{id}', response=PumpMaterialLOV_schema)
+    def update_material_lov(self, request, id: str, payload: PumpMaterialLOV_schema):
+        uuid_id = UUID(id)
+        data = get_object_or_404(PumpMaterialLOV, pk=uuid_id)
+        for attr, value in payload.dict(exclude_unset=True).items():
+            setattr(data, attr, value) 
+        data.save()
+        return data
         
-    @http_post('/pump-material-lov')
-    def create_pump_material_lov(self, request, payload: PumpMaterialLOV_schema):
+    @http_post('/material-lov')
+    def create_material_lov(self, request, payload: PumpMaterialLOV_schema):
         PumpMaterialLOV.objects.create(**payload.dict())
-        return JsonResponse({"success": True, "message": "Pump Material LOV created successfully"}, status=200)
-    
+        return JsonResponse({"success": True, "message": "Material LOV created successfully"}, status=200)
+        
     @http_delete('/material-lov/{id}')
-    def delete_pump_material_lov(self, request, id: str):
+    def delete_material_lov(self, request, id: str):
         try:
             uuid_id = UUID(id)
-            data = get_object_or_404(KMonitoringLOV, pk=uuid_id)
+            data = get_object_or_404(PumpMaterialLOV, pk=uuid_id)
             data.delete()
-            return JsonResponse({"success": True, "message": "Pump Material LOV deleted successfully"}, status=200)
+            return JsonResponse({"success": True, "message": "Material LOV deleted successfully"}, status=200)
         except ValueError:
             return JsonResponse({"error": "Invalid ID format"}, status=400)
-        
-    

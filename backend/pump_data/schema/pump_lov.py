@@ -83,6 +83,7 @@ class ShaftSealLOV_schema(Schema):
 
 class PumpMaterialLOV_schema(Schema):
     material_id : Optional[UUID]=Field(default_factory=uuid4)
+    mat_code_name : Optional[str]=None
     pump_type_mat : Optional[str]=None
     pump_mat_code : Optional[str]=None
     casing_mat : Optional[str]=None

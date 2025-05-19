@@ -400,6 +400,7 @@ export const ShaftSealLOVSchema = z.object({
 });
 
 export const PumpMatLOVSchema = z.object({
+  mat_code_name : z.string().optional(),
   pump_type_mat : z.string().optional(),
   pump_mat_code : z.string().optional(),
   casing_mat : z.string().optional(),
@@ -410,6 +411,10 @@ export const PumpMatLOVSchema = z.object({
   pump_head_mat : z.string().optional(),
   pump_head_cover_mat : z.string().optional(),
   stage_casing_diffuser_mat : z.string().optional(),
+  created_at : z.string().optional(),
+  created_by : z.string().optional(),
+  updated_at : z.string().optional(),
+  updated_by : z.string().optional(),
 });
 
 export const AddingUnitLOVSchema = z.object({

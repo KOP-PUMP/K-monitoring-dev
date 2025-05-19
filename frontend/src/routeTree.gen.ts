@@ -38,6 +38,7 @@ import { Route as AuthPumpMotorloveditImport } from './routes/_auth/pump/motor_l
 import { Route as AuthPumpMedialovlistImport } from './routes/_auth/pump/media_lov_list'
 import { Route as AuthPumpMedialoveditImport } from './routes/_auth/pump/media_lov_edit'
 import { Route as AuthPumpMateriallovlistImport } from './routes/_auth/pump/material_lov_list'
+import { Route as AuthPumpMaterialloveditImport } from './routes/_auth/pump/material_lov_edit'
 import { Route as AuthPumpLovlistImport } from './routes/_auth/pump/lov_list'
 import { Route as AuthPumpLoveditImport } from './routes/_auth/pump/lov_edit'
 import { Route as AuthPumpListeditImport } from './routes/_auth/pump/list_edit'
@@ -183,6 +184,11 @@ const AuthPumpMedialoveditRoute = AuthPumpMedialoveditImport.update({
 
 const AuthPumpMateriallovlistRoute = AuthPumpMateriallovlistImport.update({
   path: '/pump/material_lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpMaterialloveditRoute = AuthPumpMaterialloveditImport.update({
+  path: '/pump/material_lov_edit',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -336,6 +342,13 @@ declare module '@tanstack/react-router' {
       path: '/pump/lov_list'
       fullPath: '/pump/lov_list'
       preLoaderRoute: typeof AuthPumpLovlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/material_lov_edit': {
+      id: '/_auth/pump/material_lov_edit'
+      path: '/pump/material_lov_edit'
+      fullPath: '/pump/material_lov_edit'
+      preLoaderRoute: typeof AuthPumpMaterialloveditImport
       parentRoute: typeof AuthImport
     }
     '/_auth/pump/material_lov_list': {
@@ -518,6 +531,7 @@ export const routeTree = rootRoute.addChildren({
     AuthPumpListeditRoute,
     AuthPumpLoveditRoute,
     AuthPumpLovlistRoute,
+    AuthPumpMaterialloveditRoute,
     AuthPumpMateriallovlistRoute,
     AuthPumpMedialoveditRoute,
     AuthPumpMedialovlistRoute,
@@ -572,6 +586,7 @@ export const routeTree = rootRoute.addChildren({
         "/_auth/pump/list_edit",
         "/_auth/pump/lov_edit",
         "/_auth/pump/lov_list",
+        "/_auth/pump/material_lov_edit",
         "/_auth/pump/material_lov_list",
         "/_auth/pump/media_lov_edit",
         "/_auth/pump/media_lov_list",
@@ -646,6 +661,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_auth/pump/lov_list": {
       "filePath": "_auth/pump/lov_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/material_lov_edit": {
+      "filePath": "_auth/pump/material_lov_edit.tsx",
       "parent": "/_auth"
     },
     "/_auth/pump/material_lov_list": {
