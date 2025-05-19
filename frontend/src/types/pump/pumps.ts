@@ -152,7 +152,6 @@ export interface PumpDetailLOVResponse {
   pump_lov_id ?: string ;
   pump_code_name ?: string ;
   pump_brand ?: string ;
-  
   pump_model ?: string ;
   model_size ?: string ;
   pump_design ?: string ;
@@ -167,18 +166,15 @@ export interface PumpDetailLOVResponse {
   pump_max_temp ?: string ;
   pump_suction_size_id ?: string ;
   pump_suction_size ?: string ;
-  pump_suction_rating_id ?: string ;
   pump_suction_rating ?: string ;
   pump_discharge_size_id ?: string ;
   pump_discharge_size ?: string ;
-  pump_discharge_rating_id ?: string ;
   pump_discharge_rating ?: string ;
   created_at ?: string ;
   created_by ?: string ;
   updated_at ?: string ;
   updated_by ?: string ;
 }
-
 export interface MotorDetailLOVResponse {
   motor_id ?: string ;
   motor_code_name ?: string ;
@@ -237,3 +233,18 @@ export interface PumpMatLOVResponse {
   updated_at ?: string ;
   updated_by ?: string ;
 }
+
+export interface MediaLOVResponse {
+  media_id ?: string ;
+  media_name ?: string ;
+  media_density ?: string ;
+  media_viscosity ?: string ;
+  media_concentration_percentage ?: string ;
+  operating_temperature ?: string ;
+  vapor_pressure ?: string ;
+  created_at ?: string ;
+  created_by ?: string ;
+  updated_at ?: string ;
+  updated_by ?: string ;
+}
+

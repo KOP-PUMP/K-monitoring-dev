@@ -1,5 +1,5 @@
 from django.contrib import admin
-from pump_data.models import KMonitoringLOV, PumpDetailLOV, MotorDetailLOV, ShaftSealLOV, PumpMaterialLOV, PumpDetail
+from pump_data.models import KMonitoringLOV, PumpDetailLOV, MotorDetailLOV, ShaftSealLOV, PumpMaterialLOV, PumpDetail, MediaLOV
 
 # Register your models here.
 
@@ -8,6 +8,12 @@ class KMonitoringLOV_admin(admin.ModelAdmin):
     search_fields = ('id','type_name', 'product_name', 'data_value','data_value2','data_value3','data_value4')
 
 admin.site.register(KMonitoringLOV, KMonitoringLOV_admin)
+
+class MediaLOV_admin(admin.ModelAdmin):
+    list_display = [field.name for field in MediaLOV._meta.fields]
+    search_fields = ('media_id','media_name')
+
+admin.site.register(MediaLOV, MediaLOV_admin)
 
 class PumpDetailLOV_admin(admin.ModelAdmin):
     list_display = [field.name for field in PumpDetailLOV._meta.fields]

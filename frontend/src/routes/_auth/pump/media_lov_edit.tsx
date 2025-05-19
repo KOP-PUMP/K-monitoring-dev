@@ -4,8 +4,9 @@ import { z } from "zod";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
 import {
   Form,
   FormControl,
@@ -16,85 +17,68 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useEffect } from "react";
-import { AddingPumpLOVSchema } from "@/validators/pump";
+import { AddingMediaLOVSchema } from "@/validators/pump";
 import { useSettings } from "@/lib/settings";
 import { FormBox } from "@/components/common/FormBox";
-import { Link } from "@tanstack/react-router";
-import { useCreateLOV, useUpdateLOV, useGetLOVById } from "@/hook/pump/pump";
-import { useSearch } from "@tanstack/react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useGetMediaLOVData, useUpdateMediaLOV, useCreateMediaLOV } from "@/hook/pump/pump";
+import { create } from "domain";
 
-/* import { AddPumpListData, AddUnitListData } from "@/api/pump/pump";
-import { create } from "domain"; */
-
-export function LOVEdit() {
-  // Pump form setup
-  const pumpForm = useForm<z.infer<typeof AddingPumpLOVSchema>>({
-    resolver: zodResolver(AddingPumpLOVSchema),
+function MediaLOVEdit() {
+  // Unit form setup
+  const localstorage = window.localStorage.getItem("user");
+  const userData = localstorage !== null ? JSON.parse(localstorage) : null;
+  const mediaLOVForm = useForm<z.infer<typeof AddingMediaLOVSchema>>({
+    resolver: zodResolver(AddingMediaLOVSchema),
   });
 
-  const { id } = useSearch({ from: "/_auth/pump/lov_edit" });
-  const { data } = useGetLOVById(id);
+  const addData = {
+    media_name: "",
+    media_density: "",
+    media_viscosity: "",
+    media_concentration_percentage: "",
+    operating_temperature: "",
+    vapor_pressure: "",
+  };
+
+  const { id } = useSearch({ from: "/_auth/pump/media_lov_edit" });
+  const { data } = useGetMediaLOVData(id);
 
   useEffect(() => {
     if (id && data) {
-      pumpForm.setValue("data_type", data?.type_name ?? "");
-      pumpForm.setValue("data_name", data?.product_name ?? "");
-      pumpForm.setValue("data_value", data?.data_value ?? "");
-      pumpForm.setValue("additional_1", data?.data_value2 ?? "");
-      pumpForm.setValue("additional_2", data?.data_value3 ?? "");
-      pumpForm.setValue("additional_3", data?.data_value4 ?? "");
+      mediaLOVForm.setValue("media_name", data?.media_name ?? "");
+      mediaLOVForm.setValue("media_density", data?.media_density ?? "");
+      mediaLOVForm.setValue("media_viscosity", data?.media_viscosity ?? "");
+      mediaLOVForm.setValue("media_concentration_percentage", data?.media_concentration_percentage ?? "");
+      mediaLOVForm.setValue("operating_temperature", data?.operating_temperature ?? "");
+      mediaLOVForm.setValue("vapor_pressure", data?.vapor_pressure ?? "");
     }
   }, [id, data]);
 
   const { showDescriptions } = useSettings();
-  const localstorage = window.localStorage.getItem("user");
-  const userData = localstorage !== null ? JSON.parse(localstorage) : null;
-  const addData = {
-    type_name: "",
-    product_name: "",
-    data_value: "",
-    data_value2: "",
-    data_value3: "",
-    data_value4: "",
-  };
-  // Submission handlers
 
-  const createMutation = useCreateLOV();
-  const updateMutation = useUpdateLOV();
+  //Get data for update when URL has id for update data
+  const createMutation = useCreateMediaLOV();
+  const updateMutation = useUpdateMediaLOV();
 
-  const handlePumpSubmit = (values: z.infer<typeof AddingPumpLOVSchema>) => {
+  const handleUnitSubmit = (values: z.infer<typeof AddingMediaLOVSchema>) => {
     if (!id) {
-      createMutation.mutate({
+      createMutation.mutate(values);
+    } else {
+      updateMutation.mutate({id, data: {
         ...addData,
-        type_name: values.data_type,
-        product_name: values.data_name,
-        data_value: values.data_value,
-        data_value2: values.additional_1,
-        data_value3: values.additional_2,
-        data_value4: values.additional_3,
-        created_at: new Date().toISOString(),
-        created_by: userData?.user.user_email,
+        media_name: values.media_name,
+        media_density: values.media_density,
+        media_viscosity: values.media_viscosity,
+        media_concentration_percentage: values.media_concentration_percentage,
+        operating_temperature: values.operating_temperature,
+        vapor_pressure: values.vapor_pressure,
         updated_at: new Date().toISOString(),
         updated_by: userData?.user.user_email,
-      });
-    } else {
-      updateMutation.mutate({
-        id,
-        data: {
-          ...addData,
-          type_name: values.data_type,
-          product_name: values.data_name,
-          data_value: values.data_value,
-          data_value2: values.additional_1,
-          data_value3: values.additional_2,
-          data_value4: values.additional_3,
-          updated_at: new Date().toISOString(),
-          updated_by: userData?.user.user_email,
-        },
-      });
+      }});
     }
   };
 
@@ -102,28 +86,31 @@ export function LOVEdit() {
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">
-        {id ? "Updating List of value" : "Adding List of Value"}
+          {id ? "Updating Media" : "Adding Media"}
         </h2>
-        <Link to="/pump/lov_list">Back</Link>
+        <Link to="/pump/media_lov_list">Back</Link>
       </div>
+
       <Card className="w-full mt-5">
         <CardContent>
-          {/* Pump Data Tab */}
-          <Form {...pumpForm}>
-            <form onSubmit={pumpForm.handleSubmit(handlePumpSubmit)}>
+          <Form {...mediaLOVForm}>
+            <form onSubmit={mediaLOVForm.handleSubmit(handleUnitSubmit, (errors) => {
+                console.log("Validation Errors:", [errors, mediaLOVForm.getValues()]);
+                toast.error("Validation Errors");
+              } )}>
               <div className="text-foreground dark:text-foreground grow flex-1">
-                <FormBox field="Pump Information">
+                <FormBox field="Media Information">
                   <div className="space-y-2">
                     <FormField
-                      control={pumpForm.control}
-                      name="data_type"
+                      control={mediaLOVForm.control}
+                      name="media_name"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">
-                            <FormLabel className="w-2/12">Type</FormLabel>
+                            <FormLabel className="w-2/12">Media name</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="E.g. bearing or impeller"
+                                placeholder="E.g. Water (30C) or Oil (60C)"
                                 {...field}
                                 className="h-7"
                               />
@@ -139,18 +126,18 @@ export function LOVEdit() {
                       )}
                     />
                     <FormField
-                      control={pumpForm.control}
-                      name="data_name"
+                      control={mediaLOVForm.control}
+                      name="media_density"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">
-                            <FormLabel className="w-2/12 text-primary">
-                              Name
-                              <span className="text-primary">*</span>
+                            <FormLabel className="w-2/12 ">
+                              Density (g/cm³)
+                              
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="E.g. rotation or impeller_type_name"
+                                placeholder="E.g. 1 or 0.98"
                                 {...field}
                                 className="h-7"
                               />
@@ -166,18 +153,17 @@ export function LOVEdit() {
                       )}
                     />
                     <FormField
-                      control={pumpForm.control}
-                      name="data_value"
+                      control={mediaLOVForm.control}
+                      name="media_viscosity"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">
-                            <FormLabel className="w-2/12 text-primary">
-                              Value
-                              <span className="text-primary">*</span>
+                            <FormLabel className="w-2/12 ">
+                              Viscosity (mm²/s)
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="E.g. CCW or Semi-open"
+                                placeholder="E.g. 1 or 0.98"
                                 {...field}
                                 className="h-7"
                               />
@@ -193,17 +179,17 @@ export function LOVEdit() {
                       )}
                     />
                     <FormField
-                      control={pumpForm.control}
-                      name="additional_1"
+                      control={mediaLOVForm.control}
+                      name="media_concentration_percentage"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">
-                            <FormLabel className="w-2/12 text-primary">
-                              Add. 1<span className="text-primary">*</span>
+                            <FormLabel className="w-2/12 ">
+                              Concentration Percentage
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Optional"
+                                placeholder="E.g. 0 - 100"
                                 {...field}
                                 className="h-7"
                               />
@@ -219,17 +205,17 @@ export function LOVEdit() {
                       )}
                     />
                     <FormField
-                      control={pumpForm.control}
-                      name="additional_2"
+                      control={mediaLOVForm.control}
+                      name="operating_temperature"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">
-                            <FormLabel className="w-2/12 text-primary">
-                              Add. 2<span className="text-primary">*</span>
+                            <FormLabel className="w-2/12 ">
+                              Operating Temperature (°C)
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Optional"
+                                placeholder="E.g. 30 or 70"
                                 {...field}
                                 className="h-7"
                               />
@@ -245,17 +231,17 @@ export function LOVEdit() {
                       )}
                     />
                     <FormField
-                      control={pumpForm.control}
-                      name="additional_3"
+                      control={mediaLOVForm.control}
+                      name="vapor_pressure"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">
-                            <FormLabel className="w-2/12 text-primary">
-                              Add. 3<span className="text-primary">*</span>
+                            <FormLabel className="w-2/12 ">
+                              Vapor Pressure (g/mL)
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Optional"
+                                placeholder="E.g. 1 or 10"
                                 {...field}
                                 className="h-7"
                               />
@@ -273,8 +259,8 @@ export function LOVEdit() {
                   </div>
                   <Button size="sm" className="sm:w-28 gap-1 " type="submit">
                     <PlusCircle className="h-3.5 w-3.5" />
-                    <span className="sm:whitespace-nowrap">
-                      {id ? "Update data" : "Add data"}
+                    <span className=" sm:whitespace-nowrap">
+                      {id ? "Update Media" : "Add Media"}
                     </span>
                   </Button>
                 </FormBox>
@@ -287,8 +273,8 @@ export function LOVEdit() {
   );
 }
 
-export const Route = createFileRoute("/_auth/pump/lov_edit")({
-  component: LOVEdit,
+export const Route = createFileRoute("/_auth/pump/media_lov_edit")({
+  component: MediaLOVEdit,
   validateSearch: (search : { id : string}) => {
     return { id: search.id || null};
   },

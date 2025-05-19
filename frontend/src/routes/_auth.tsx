@@ -195,7 +195,7 @@ function Dashboard() {
                             List of Values
                           </Link>
                           <Link
-                            to="/pump/pump_lov_list"
+                            to="/pump/pump_detail_lov_list"
                             className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
                             activeProps={activeProps}
                           >
@@ -221,6 +221,13 @@ function Dashboard() {
                             activeProps={activeProps}
                           >
                             Seal / Shaft Data
+                          </Link>
+                          <Link
+                            to="/pump/media_lov_list"
+                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                            activeProps={activeProps}
+                          >
+                            Media Data
                           </Link>
                         </CollapsibleContent>
                       </Collapsible>

@@ -181,23 +181,6 @@ export function DataTable({
                           alt="image"
                           className="h-[85px] w-[165px] max-w-[165px] object-cover"
                         />
-                      ) : cell.column.id === "action" ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <Link
-                              to={`/pump/pump_detail?code=${data[index].company_code}&name=${data[index].name}&status=${data[index].status}`}
-                            >
-                              <DropdownMenuItem>View</DropdownMenuItem>
-                            </Link>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       ) : (
                         flexRender(
                           cell.column.columnDef.cell,

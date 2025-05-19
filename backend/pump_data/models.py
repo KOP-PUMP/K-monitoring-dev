@@ -44,11 +44,9 @@ class PumpDetailLOV(models.Model):
     pump_max_temp = models.TextField(max_length=100,blank=True, null=True)
     pump_suction_size_id = models.TextField(max_length=100,blank=True, null=True)
     pump_suction_size = models.TextField(max_length=100,blank=True, null=True)
-    pump_suction_rating_id = models.TextField(max_length=100,blank=True, null=True)
     pump_suction_rating = models.TextField(max_length=100,blank=True, null=True)
     pump_discharge_size_id = models.TextField(max_length=100,blank=True, null=True)
     pump_discharge_size = models.TextField(max_length=100,blank=True, null=True)
-    pump_discharge_rating_id = models.TextField(max_length=100,blank=True, null=True)
     pump_discharge_rating = models.TextField(max_length=100,blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     created_by = models.CharField(max_length=100,blank=True, null=True)
@@ -135,6 +133,24 @@ class PumpMaterialLOV(models.Model):
     def __str__(self):
         return f"{self.pump_type_mat}"
 
+class MediaLOV(models.Model):
+    media_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    media_name = models.TextField(max_length=100,blank=True, null=True)
+    media_density = models.TextField(max_length=100,blank=True, null=True)
+    media_viscosity = models.TextField(max_length=100,blank=True, null=True)
+    media_concentration_percentage = models.TextField(max_length=100,blank=True, null=True)
+    operating_temperature = models.TextField(max_length=100,blank=True, null=True)
+    vapor_pressure = models.TextField(max_length=100,blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=100,blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(max_length=100,blank=True, null=True)
+
+    class Meta:
+        db_table = 'tbl_media_lov'
+
+    def __str__(self):
+        return f"{self.media_name}"
 
 class PumpDetail(models.Model):
     #Related tables

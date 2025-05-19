@@ -12,13 +12,14 @@ class KMonitoringLOV_schema(Schema):
     data_value2: Optional[str] = None
     data_value3: Optional[str] = None
     data_value4: Optional[str] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
     created_by: Optional[str] = None
     updated_at: datetime
     updated_by: Optional[str] = None
 
 class PumpDetailLOV_schema(Schema):
     pump_lov_id : Optional[UUID]=Field(default_factory=uuid4)
+    pump_code_name : Optional[str]=None
     pump_brand : Optional[str]=None
     pump_model : Optional[str]=None
     model_size : Optional[str]=None
@@ -34,25 +35,24 @@ class PumpDetailLOV_schema(Schema):
     pump_max_temp : Optional[str]=None
     pump_suction_size_id : Optional[str]=None
     pump_suction_size : Optional[str]=None
-    pump_suction_rating_id : Optional[str]=None
     pump_suction_rating : Optional[str]=None
     pump_discharge_size_id : Optional[str]=None
     pump_discharge_size : Optional[str]=None
-    pump_discharge_rating_id : Optional[str]=None
     pump_discharge_rating : Optional[str]=None
-    created_at : Optional[str]=None
-    created_by : Optional[str]=None
-    updated_at : Optional[str]=None
-    updated_by : Optional[str]=None
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+    updated_at: datetime
+    updated_by: Optional[str] = None
     
 class MotorDetailLOV_schema(Schema):
     motor_id : Optional[UUID]=Field(default_factory=uuid4)
-    motor_model : Optional[str]=None
+    motor_code_name : Optional[str]=None
     motor_serial_no : Optional[str]=None
     motor_brand : Optional[str]=None
     motor_drive : Optional[str]=None
     motor_standard : Optional[str]=None
     motor_ie : Optional[str]=None
+    motor_model : Optional[str]=None
     motor_speed : Optional[str]=None
     motor_speed_unit : Optional[str]=None
     motor_rated : Optional[str]=None
@@ -64,10 +64,10 @@ class MotorDetailLOV_schema(Schema):
     motor_efficiency_unit : Optional[str]=None
     motor_rated_current : Optional[str]=None
     motor_rated_current_unit : Optional[str]=None
-    created_at : Optional[str]=None
-    created_by : Optional[str]=None
-    updated_at : Optional[str]=None
-    updated_by : Optional[str]=None
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+    updated_at: datetime
+    updated_by: Optional[str] = None
 
 class ShaftSealLOV_schema(Schema):
     shaft_seal_id : Optional[UUID]=Field(default_factory=uuid4)
@@ -76,10 +76,10 @@ class ShaftSealLOV_schema(Schema):
     shaft_seal_model : Optional[str]=None
     shaft_seal_material : Optional[str]=None
     mechanical_seal_api_plan : Optional[str]=None
-    created_at : Optional[str]=None
-    created_by : Optional[str]=None
-    updated_at : Optional[str]=None
-    updated_by : Optional[str]=None
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+    updated_at: datetime
+    updated_by: Optional[str] = None
 
 class PumpMaterialLOV_schema(Schema):
     material_id : Optional[UUID]=Field(default_factory=uuid4)
@@ -93,10 +93,10 @@ class PumpMaterialLOV_schema(Schema):
     pump_head_mat : Optional[str]=None
     pump_head_cover_mat : Optional[str]=None
     stage_casing_diffuser_mat : Optional[str]=None
-    created_at : Optional[str]=None
-    created_by : Optional[str]=None
-    updated_at : Optional[str]=None
-    updated_by : Optional[str]=None
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+    updated_at: datetime
+    updated_by: Optional[str] = None
 
 class PumpDetail_schema(Schema):
     #Related tables
@@ -242,7 +242,20 @@ class PumpDetail_schema(Schema):
     bearing_de_two_id : Optional[str]=None
     bearing_de_two : Optional[str]=None
     bearing_last_chg_dt : Optional[str]=None
-    created_at : Optional[str]=None
-    created_by : Optional[str]=None
-    updated_at : Optional[str]=None
-    updated_by : Optional[str]=None
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+    updated_at: datetime
+    updated_by: Optional[str] = None
+
+class MediaLOV_schema(Schema):
+    media_id : Optional[UUID]=Field(default_factory=uuid4)
+    media_name : Optional[str]=None
+    media_density : Optional[str]=None
+    media_viscosity : Optional[str]=None
+    media_concentration_percentage : Optional[str]=None
+    operating_temperature : Optional[str]=None
+    vapor_pressure : Optional[str]=None
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+    updated_at: datetime
+    updated_by: Optional[str] = None

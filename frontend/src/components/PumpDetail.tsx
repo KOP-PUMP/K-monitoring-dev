@@ -48,6 +48,7 @@ import {
   useGetMatDetailLOV,
   useGetShaftSealDetailLOV,
   useGetMotorDetailLOV,
+  useGetMediaLOVData,
 } from "@/hook/pump/pump";
 import { PumpDetailLOVSchema } from "@/validators/pump";
 import {
@@ -55,6 +56,7 @@ import {
   PumpMatLOVResponse,
   PumpShaftSealLOVResponse,
   MotorDetailLOVResponse,
+  MediaLOVResponse,
 } from "@/types/pump/pumps";
 import {
   PumpDetailCalResponse,
@@ -121,9 +123,11 @@ export default function PumpList() {
   const [pumpMotorLOVData, setPumpMotorLOVData] =
     useState<MotorAndCouplingDetail[]>();
   const [pumpUnitLOVData, setPumpUnitLOVData] = useState<ComboboxItemProps[]>();
+  const [mediaLOVData, setMediaLOVData] = useState<ComboboxItemProps[]>();
   const [pumpDetailLOVData, setPumpDetailLOVData] =
     useState<PumpDetailLOVResponse[]>();
-  /* Dropdown option from pump data */
+  /* Dropdown option from pump data */ 
+  const {data : mediaData} = useGetMediaLOVData();
   const { data: companyData } = useGetCompanyDetailByCode(CompanyCode);
   const { data: pumpDetailLOVResponse } = useGetPumpDetailLOV("");
   const { data: pumpMatLOVResponse } = useGetMatDetailLOV("");
@@ -145,7 +149,7 @@ export default function PumpList() {
 
   /* Mapping Data for drop down option */
   useEffect(() => {
-    if (pumpLOVResponse && pumpUnitLOVResponse && pumpMatLOVResponse) {
+    if (pumpLOVResponse && pumpUnitLOVResponse && pumpMatLOVResponse && mediaData) {
       const newPumpLOVData = pumpLOVResponse.map((data) => {
         return {
           type_name: data.type_name,
@@ -162,10 +166,21 @@ export default function PumpList() {
           label: data.data_value,
         };
       });
+      const newMediaLOVData = mediaData.map((data) => {
+        return {
+          type_name: "media",
+          product_name: "media",
+          value: data.media_name,
+          label: data.media_name,
+        };
+      })
+      
       setPumpLOVData(newPumpLOVData);
       setPumpUnitLOVData(newPumpUnitLOVData);
+      setMediaLOVData(newMediaLOVData);
     }
-  }, [pumpLOVResponse]);
+  }, [pumpLOVResponse, mediaData]);
+
 
   const getFormData = (key: string) =>
     JSON.parse(localStorage.getItem(key) || "{}");
@@ -1145,12 +1160,7 @@ export default function PumpList() {
                                   </FormLabel>
                                   <FormControl className="w-full">
                                     <Combobox
-                                      items={
-                                        handleLOVDataFilter(
-                                          "media",
-                                          "pump_data"
-                                        ) || []
-                                      }
+                                      items={mediaLOVData || []}
                                       label={
                                         getFormData("formData1").media
                                           ? getFormData("formData1").media

@@ -343,6 +343,8 @@ export const PumpDetailSchema = z.object({
 });
 
 export const PumpDetailLOVSchema = z.object({
+  pump_lov_id : z.string().optional(),
+  pump_code_name : z.string().optional(),
   pump_brand : z.string().optional(),
   pump_model : z.string().optional(),
   model_size : z.string().optional(),
@@ -358,11 +360,9 @@ export const PumpDetailLOVSchema = z.object({
   pump_max_temp : z.string().optional(),
   pump_suction_size_id : z.string().optional(),
   pump_suction_size : z.string().optional(),
-  pump_suction_rating_id : z.string().optional(),
   pump_suction_rating : z.string().optional(),
   pump_discharge_size_id : z.string().optional(),
   pump_discharge_size : z.string().optional(),
-  pump_discharge_rating_id : z.string().optional(),
   pump_discharge_rating : z.string().optional(),
   created_at : z.string().optional(),
   created_by : z.string().optional(),
@@ -425,6 +425,20 @@ export const AddingPumpLOVSchema = z.object({
   data_name: z.string(),
   data_value: z.string(),
   additional_1: z.string().optional(),
-  additional_2: z.string().optional(),
+  additional_2: z.string().optional(),      
   additional_3: z.string().optional(),
+})
+
+export const AddingMediaLOVSchema = z.object({
+  media_id : z.string().optional(),
+  media_name : z.string(),
+  media_density : z.string(),
+  media_viscosity : z.string(),
+  media_concentration_percentage : z.string(),
+  operating_temperature : z.string(),
+  vapor_pressure : z.string(),
+  created_at : z.string().optional(),
+  created_by : z.string().optional(),
+  updated_at : z.string().optional(),
+  updated_by : z.string().optional(),
 })
