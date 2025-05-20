@@ -216,11 +216,11 @@ function Dashboard() {
                             Material Data
                           </Link>
                           <Link
-                            to="/pump/seal_shaft_lov_list"
+                            to="/pump/shaft_seal_lov_list"
                             className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
                             activeProps={activeProps}
                           >
-                            Seal / Shaft Data
+                            Shaft/Seal Data
                           </Link>
                           <Link
                             to="/pump/media_lov_list"

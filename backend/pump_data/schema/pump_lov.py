@@ -71,6 +71,7 @@ class MotorDetailLOV_schema(Schema):
 
 class ShaftSealLOV_schema(Schema):
     shaft_seal_id : Optional[UUID]=Field(default_factory=uuid4)
+    shaft_seal_code_name : Optional[str]=None
     shaft_seal_design : Optional[str]=None
     shaft_seal_brand : Optional[str]=None
     shaft_seal_model : Optional[str]=None

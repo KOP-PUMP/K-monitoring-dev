@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { PumpMatLOVResponse } from "@/types";
-import { useGetMaterialDetailLOV, useDeleteMaterialLOVById } from "@/hook/pump/pump";
+import { PumpShaftSealLOVResponse } from "@/types";
+import { useGetShaftSealDetailLOV, useDeleteShaftSealLOVById } from "@/hook/pump/pump";
 import { Card } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 
@@ -23,211 +23,121 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
   label?: string; // Add the label property
 };
 
-const MaterialTable = () => {
-  const { data : materialData} = useGetMaterialDetailLOV("");
-  const deleteMutation = useDeleteMaterialLOVById();
+const ShaftSealTable = () => {
+  const { data : shaftSealData} = useGetShaftSealDetailLOV("");
+  const deleteMutation = useDeleteShaftSealLOVById();
   const handleDeleteData = (id : string) => {
     deleteMutation.mutate(id);
   }; 
 
   /* Set column */
-  const columns: ExtendedColumnDef<PumpMatLOVResponse>[] = [
+  const columns: ExtendedColumnDef<PumpShaftSealLOVResponse>[] = [
     {
-      accessorKey: "mat_code_name",
+      accessorKey: "shaft_seal_code_name",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Material Code Name
+            Shaft/Seal Code Name
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
-      label: "Material Code Name",
+      label: "Shaft/Seal Code Name",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("mat_code_name")}</div>;
+        return <div className="pl-4">{row.getValue("shaft_seal_code_name")}</div>;
       },
     },
     {
-      accessorKey: "pump_type_mat",
+      accessorKey: "shaft_seal_design",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Pump Material Type
+            Shaft/Seal Design
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
-      label: "Pump Material Type",
+      label: "Shaft/Seal Design",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("pump_type_mat")}</div>;
+        return <div className="pl-4">{row.getValue("shaft_seal_design")}</div>;
       },
     },
     {
-      accessorKey: "pump_mat_code",
+      accessorKey: "shaft_seal_brand",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Pump Material Code
+            Shaft/Seal Brand
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
-      label: "Pump Material Code",
+      label: "Shaft/Seal Brand",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("pump_mat_code")}</div>;
+        return <div className="pl-4">{row.getValue("shaft_seal_brand")}</div>;
       },
     },
     {
-      accessorKey: "casing_mat",
+      accessorKey: "shaft_seal_model",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Casing Material
+            Shaft/Seal Model
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
-      label: "Casing Material",
+      label: "Shaft/Seal Model",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("casing_mat")}</div>;
+        return <div className="pl-4">{row.getValue("shaft_seal_model")}</div>;
       },
     },
     {
-      accessorKey: "casing_cover_mat",
+      accessorKey: "shaft_seal_material",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Casing Cover Material
+            Shaft/Seal Material
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
-      label: "Casing Cover Material",
+      label: "Shaft/Seal Material",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("casing_cover_mat")}</div>;
+        return <div className="pl-4">{row.getValue("shaft_seal_material")}</div>;
       },
     },
     {
-      accessorKey: "impeller_mat",
+      accessorKey: "mechanical_seal_api_plan",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Impeller Material
+            Shaft/Seal API Plan
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
-      label: "Impeller Material",
+      label: "Shaft/Seal API Plan",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("impeller_mat")}</div>;
-      },
-    },
-    {
-      accessorKey: "liner_mat",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Liner Material
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      label: "Liner Material",
-      cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("liner_mat")}</div>;
-      },
-    },
-    {
-      accessorKey: "base_mat",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Base Material
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      label: "Base Material",
-      cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("base_mat")}</div>;
-      },
-    },
-    {
-      accessorKey: "pump_head_mat",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Pump Head Material
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      label: "Pump Head Material",
-      cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("pump_head_mat")}</div>;
-      },
-    },
-    {
-      accessorKey: "pump_head_cover_mat",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Pump Head Cover Material
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      label: "Pump Head Cover Material",
-      cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("pump_head_cover_mat")}</div>;
-      },
-    },
-    {
-      accessorKey: "stage_casing_diffuser_mat",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Stage Casing Diffuser Material
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      label: "Stage Casing Diffuser Material",
-      cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("stage_casing_diffuser_mat")}</div>;
+        return <div className="pl-4">{row.getValue("mechanical_seal_api_plan")}</div>;
       },
     },
     {
@@ -306,11 +216,11 @@ const MaterialTable = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <Link to={`/pump/material_lov_edit?id=${data.material_id}`}>
+              <Link to={`/pump/shaft_seal_lov_edit?id=${data.shaft_seal_id}`}>
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() =>handleDeleteData(data.material_id)}
+                onClick={() =>handleDeleteData(data.shaft_seal_id)}
               >
                 Delete
               </DropdownMenuItem>
@@ -324,16 +234,16 @@ const MaterialTable = () => {
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 ">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Material Data</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Shaft/Seal Data</h2>
         <div className="flex items-center space-x-2">
-          <Link to="/pump/media_lov_edit" search={{ id: null }}>
-            <Button>Add Material</Button>
+          <Link to="/pump/shaft_seal_lov_edit" search={{ id: null }}>
+            <Button>Add Shaft/Seal</Button>
           </Link>
         </div>
       </div>
       <Card className="px-6 w-full max-w-full overflow-x-hidden">
-        {materialData ? (
-          <DataTable data={materialData} columns={columns} search={"mat_code_name"} />
+        {shaftSealData ? (
+          <DataTable data={shaftSealData} columns={columns} search={"shaft_seal_code_name"} />
         ) : (
           <div>Error</div>
         )}
@@ -342,6 +252,6 @@ const MaterialTable = () => {
   );
 };
 
-export const Route = createFileRoute("/_auth/pump/material_lov_list")({
-  component: MaterialTable,
+export const Route = createFileRoute("/_auth/pump/shaft_seal_lov_list")({
+  component: ShaftSealTable,
 });

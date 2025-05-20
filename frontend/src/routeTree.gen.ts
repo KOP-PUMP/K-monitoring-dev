@@ -29,7 +29,8 @@ import { Route as AuthUsersCompanyeditImport } from './routes/_auth/users/compan
 import { Route as AuthPumpUnitlistImport } from './routes/_auth/pump/unit_list'
 import { Route as AuthPumpUniteditImport } from './routes/_auth/pump/unit_edit'
 import { Route as AuthPumpTotalpumpImport } from './routes/_auth/pump/total_pump'
-import { Route as AuthPumpSealshaftlovlistImport } from './routes/_auth/pump/seal_shaft_lov_list'
+import { Route as AuthPumpShaftseallovlistImport } from './routes/_auth/pump/shaft_seal_lov_list'
+import { Route as AuthPumpShaftsealloveditImport } from './routes/_auth/pump/shaft_seal_lov_edit'
 import { Route as AuthPumpPumpdetaillovlistImport } from './routes/_auth/pump/pump_detail_lov_list'
 import { Route as AuthPumpPumpdetailloveditImport } from './routes/_auth/pump/pump_detail_lov_edit'
 import { Route as AuthPumpPumpdetailImport } from './routes/_auth/pump/pump_detail'
@@ -142,8 +143,13 @@ const AuthPumpTotalpumpRoute = AuthPumpTotalpumpImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
-const AuthPumpSealshaftlovlistRoute = AuthPumpSealshaftlovlistImport.update({
-  path: '/pump/seal_shaft_lov_list',
+const AuthPumpShaftseallovlistRoute = AuthPumpShaftseallovlistImport.update({
+  path: '/pump/shaft_seal_lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpShaftsealloveditRoute = AuthPumpShaftsealloveditImport.update({
+  path: '/pump/shaft_seal_lov_edit',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -407,11 +413,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPumpPumpdetaillovlistImport
       parentRoute: typeof AuthImport
     }
-    '/_auth/pump/seal_shaft_lov_list': {
-      id: '/_auth/pump/seal_shaft_lov_list'
-      path: '/pump/seal_shaft_lov_list'
-      fullPath: '/pump/seal_shaft_lov_list'
-      preLoaderRoute: typeof AuthPumpSealshaftlovlistImport
+    '/_auth/pump/shaft_seal_lov_edit': {
+      id: '/_auth/pump/shaft_seal_lov_edit'
+      path: '/pump/shaft_seal_lov_edit'
+      fullPath: '/pump/shaft_seal_lov_edit'
+      preLoaderRoute: typeof AuthPumpShaftsealloveditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/shaft_seal_lov_list': {
+      id: '/_auth/pump/shaft_seal_lov_list'
+      path: '/pump/shaft_seal_lov_list'
+      fullPath: '/pump/shaft_seal_lov_list'
+      preLoaderRoute: typeof AuthPumpShaftseallovlistImport
       parentRoute: typeof AuthImport
     }
     '/_auth/pump/total_pump': {
@@ -540,7 +553,8 @@ export const routeTree = rootRoute.addChildren({
     AuthPumpPumpdetailRoute,
     AuthPumpPumpdetailloveditRoute,
     AuthPumpPumpdetaillovlistRoute,
-    AuthPumpSealshaftlovlistRoute,
+    AuthPumpShaftsealloveditRoute,
+    AuthPumpShaftseallovlistRoute,
     AuthPumpTotalpumpRoute,
     AuthPumpUniteditRoute,
     AuthPumpUnitlistRoute,
@@ -595,7 +609,8 @@ export const routeTree = rootRoute.addChildren({
         "/_auth/pump/pump_detail",
         "/_auth/pump/pump_detail_lov_edit",
         "/_auth/pump/pump_detail_lov_list",
-        "/_auth/pump/seal_shaft_lov_list",
+        "/_auth/pump/shaft_seal_lov_edit",
+        "/_auth/pump/shaft_seal_lov_list",
         "/_auth/pump/total_pump",
         "/_auth/pump/unit_edit",
         "/_auth/pump/unit_list",
@@ -699,8 +714,12 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth/pump/pump_detail_lov_list.tsx",
       "parent": "/_auth"
     },
-    "/_auth/pump/seal_shaft_lov_list": {
-      "filePath": "_auth/pump/seal_shaft_lov_list.tsx",
+    "/_auth/pump/shaft_seal_lov_edit": {
+      "filePath": "_auth/pump/shaft_seal_lov_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/shaft_seal_lov_list": {
+      "filePath": "_auth/pump/shaft_seal_lov_list.tsx",
       "parent": "/_auth"
     },
     "/_auth/pump/total_pump": {

@@ -392,11 +392,16 @@ export const MotorDetailLOVSchema = z.object({
 });
 
 export const ShaftSealLOVSchema = z.object({
+  shaft_seal_code_name : z.string().optional(),
   shaft_seal_design : z.string().optional(),
   shaft_seal_brand : z.string().optional(),
   shaft_seal_model : z.string().optional(),
   shaft_seal_material : z.string().optional(),
   mechanical_seal_api_plan : z.string().optional(),
+  created_at : z.string().optional(),
+  created_by : z.string().optional(),
+  updated_at : z.string().optional(),
+  updated_by : z.string().optional(),
 });
 
 export const PumpMatLOVSchema = z.object({

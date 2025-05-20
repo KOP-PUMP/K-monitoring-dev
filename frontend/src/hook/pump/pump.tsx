@@ -11,6 +11,9 @@ import {
   deletePumpDetailLOV,
   updatePumpDetailLOV,
   getShaftSealDetailLOV,
+  createShaftSealLOV,
+  updateShaftSeaLOV,
+  deleteShaftSeaLOV,
   getMaterialDetailLOV,
   createMaterialLOV,
   updateMaterialLOV,
@@ -34,6 +37,7 @@ import {
 } from "@/types/pump/pumps";
 import toast from "react-hot-toast";
 import { get } from "http";
+import { create } from "domain";
 
 export const useGetAllUnitLOVData = () => {
   return useQuery<LOVData[]>({
@@ -300,6 +304,49 @@ export const useGetShaftSealDetailLOV = (id: string | null) => {
   return useQuery<PumpShaftSealLOVResponse[]>({
     queryKey: ["shaft_seal", "shaft_seal_lov", id],
     queryFn: () => getShaftSealDetailLOV(id),
+  });
+};
+
+export const useCreateShaftSealLOV = () => {
+  return useMutation({
+    mutationFn: createShaftSealLOV,
+    onSuccess: () => {
+      toast.success("Shaft/Seal LOV created successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: () => {
+      toast.error("Error creating motor LOV");
+    },
+  });
+};
+
+export const useDeleteShaftSealLOVById = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id : string) => deleteShaftSeaLOV(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shaft_seal", "shaft_seal_lov"]});
+      toast.success("Shaft/Seal LOV deleted successfully")
+    },
+    onError: () => toast.error("Error deleting shaft/seal LOV"),
+  });
+};
+
+export const useUpdateShaftSealLOV = () => {
+  return useMutation({
+    mutationFn: ({ id, data } : { id: string; data: PumpShaftSealLOVResponse }) => updateShaftSeaLOV({ id, data }),
+    onSuccess: () => {
+      toast.success("Shaft/Seal LOV updated successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: (error) => {
+      toast.error("Error updating shaft/seal LOV");
+      console.error("Update Error:", error);
+    },
   });
 };
 

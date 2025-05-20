@@ -220,18 +220,27 @@ class ListOfValuesController:
         if shaft_seal_lov_id:
             try:
                 shaft_seal_lov = ShaftSealLOV.objects.get(shaft_seal_id=shaft_seal_lov_id)
-                return JsonResponse({"data": shaft_seal_lov}, status=200)
+                return JsonResponse({"data": model_to_dict(shaft_seal_lov)}, status=200)
             except ShaftSealLOV.DoesNotExist:
                 return JsonResponse({"error": "Shaft Seal LOV not found"}, status=404)
         else:
             shaft_seal_lovs = list(ShaftSealLOV.objects.all().values())
             return JsonResponse({"data": shaft_seal_lovs}, status=200)
         
-    @http_post('/shaft_seal_lov')
+    @http_put('/shaft-seal-lov/{id}', response=ShaftSealLOV_schema)
+    def update_shaft_seal_lov(self, request, id: str, payload: ShaftSealLOV_schema):
+        uuid_id = UUID(id)
+        data = get_object_or_404(ShaftSealLOV, pk=uuid_id)
+        for attr, value in payload.dict(exclude_unset=True).items():
+            setattr(data, attr, value) 
+        data.save()
+        return data
+        
+    @http_post('/shaft-seal-lov')
     def create_shaft_seal_lov(self, request, payload: ShaftSealLOV_schema):
         ShaftSealLOV.objects.create(**payload.dict())
         return JsonResponse({"success": True, "message": "Shaft Seal LOV created successfully"}, status=200)
-
+    
     @http_delete('/shaft-seal-lov/{id}')
     def delete_shaft_seal_lov(self, request, id: str):
         try:
