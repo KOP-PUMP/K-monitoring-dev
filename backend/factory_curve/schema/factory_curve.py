@@ -59,7 +59,7 @@ class CurveDataAtImp_schema(Schema):
     kw: Optional[str]
     imp_dia: str
 
-class CalPumpDetail_schema(Schema):
+class CalPumpResponse_schema(Schema):
     BEP_head: str
     BEP_flow: str
     min_flow: str
@@ -78,3 +78,16 @@ class CalPumpDetail_schema(Schema):
     power_max_flow:str
     curve: List[CurveDataAtImp_schema]
 
+class CalPumpPayload_schema(Schema):
+    design_impeller_dia : str
+    model_short : str
+    pump_model_size : str
+    pump_speed : str
+    pump_speed_unit : str
+    design_flow : str
+    design_flow_unit : str
+    design_head : str
+    design_head_unit : str
+    media : str
+    density : str
+    density_unit : str

@@ -26,6 +26,7 @@ import {
   createMediaLOV,
   deleteMediaLOV,
   updateMediaLOV,
+  createPumpDetail
 } from "@/api/pump/pump";
 import { LOVData } from "@/types/table";
 import {
@@ -38,6 +39,24 @@ import {
 import toast from "react-hot-toast";
 import { get } from "http";
 import { create } from "domain";
+
+export const useCreatePumpDetail = () => {
+  return useMutation({
+    mutationFn: createPumpDetail,
+    onSuccess: () => {
+      toast.success("Pump Detail created successfully");
+      setTimeout(() => {
+        for (let n = 1; n <= 5; n++) {
+          window.localStorage.removeItem(`formData${n}`);
+        }
+        window.location.reload();
+      }, 2000);
+    },
+    onError: () => {
+      toast.error("Error creating pump detail");
+    },
+  });
+};
 
 export const useGetAllUnitLOVData = () => {
   return useQuery<LOVData[]>({

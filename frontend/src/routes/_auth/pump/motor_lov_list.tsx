@@ -276,11 +276,11 @@ const MotorLOV = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <Link to={`/pump/motor_lov_edit?id=${payment.motor_id}`}>
+              <Link to={`/pump/motor_lov_edit?id=${payment.motor_lov_id}`}>
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() => handleDeleteData(payment.motor_id)}
+                onClick={() => handleDeleteData(payment.motor_lov_id)}
               >
                 Delete
               </DropdownMenuItem>

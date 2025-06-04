@@ -97,7 +97,7 @@ class UserProfile(models.Model):
 
 
 class CompaniesDetail(models.Model):
-    customer_id= models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4) 
+    company_id= models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4) 
     customer_code = models.CharField(max_length=100 , blank=False, null=False)
     customer_industry_id = models.CharField(max_length=100 , blank=True, null=True)
     customer_industry_group = models.CharField(max_length=100 , blank=True, null=True)
@@ -108,10 +108,10 @@ class CompaniesDetail(models.Model):
     map = models.CharField(max_length=100 , blank=True, null=True)  
     province = models.CharField(max_length=100 , blank=False, null=False)
     sales_area = models.CharField(max_length=100 , blank=False, null=False)
-    created_by = models.CharField(max_length=100 , blank=False, null=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_by = models.CharField(max_length=100 , blank=False, null=False)
-    updated_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.CharField(max_length=100,blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_by = models.CharField(max_length=100,blank=True, null=True)
 
     class Meta:
         db_table = 'tbl_company_detail'

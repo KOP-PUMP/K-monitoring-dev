@@ -1,6 +1,6 @@
 
 export interface CompaniesResponse {
-    customer_id ?: any,
+    company_id ?: any,
     customer_code : string,
     customer_industry_id ?: string | null,
     customer_industry_group ?: string | null,

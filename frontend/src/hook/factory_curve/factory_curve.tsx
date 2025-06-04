@@ -5,7 +5,7 @@ import {
 } from "@/api/factory_curve/factory_curve_data";
 import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { PumpDetailDataOut } from "@/types/factory_curve/factory_curve_data";
+import { PumpDetailCalDataOut } from "@/types/factory_curve/factory_curve_data";
 import toast from "react-hot-toast";
 
 export const useGetFactoryCurveData = (
@@ -26,10 +26,8 @@ export const useGetFactoryCurveNumber = () => {
   });
 };
 
-export const useGetCalPumpData = (data : PumpDetailDataOut | null | undefined) =>{
-    return useQuery({
-        queryKey: ["factory_curve", "cal", data],
-        queryFn: () => getCalPumpData(data),
-        enabled: !!data
-    })
+export const useGetCalPumpData = () =>{
+  return useMutation({
+    mutationFn: getCalPumpData,
+  })
 }

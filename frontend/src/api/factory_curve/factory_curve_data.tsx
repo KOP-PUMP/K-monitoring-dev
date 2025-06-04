@@ -4,7 +4,7 @@ import {
 } from "@/types/factory_curve/factory_curve_data";
 import { axiosInstance } from "../utils";
 import {
-  PumpDetailDataOut,
+  PumpDetailCalDataOut,
   PumpDetailCalResponse,
 } from "@/types/factory_curve/factory_curve_data";
 
@@ -41,11 +41,11 @@ export const getFactoryCurveNumber = async (): Promise<
 };
 
 
-export const getCalPumpData = async (data: PumpDetailDataOut | null | undefined) => {
+export const getCalPumpData = async (data: PumpDetailCalDataOut) => {
   try {
     //const response = await axiosInstance.get(
     //  `/factory-curve/cal?operation_flow=${data.operation_flow}&operation_flow_unit=${data.operation_flow_unit}&operation_head=${data.operation_head}&operation_head_unit=${data.operation_head_unit}&impeller_dia=${data.impeller_dia}&model=${data.model}&speed=${data.speed}&size=${data.size}` );
-    const response = await axiosInstance.get("/factory-curve/cal",{params : data})
+    const response = await axiosInstance.post("/factory-curve/cal",data)
     return response.data.data
 
   } catch (error: any) {

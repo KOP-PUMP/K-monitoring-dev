@@ -75,11 +75,10 @@ class CompaniesController:
     def get_companies(self, request):
         return CompaniesDetail.objects.all()
     
-    @http_get('/{code}')
+    @http_get('/{code}', response = Companies_Schema)
     def get_company(self, request, code: str):
-        data = get_object_or_404(CompaniesDetail, customer_code=code)
-        data = model_to_dict(data)
-        return data
+        company = get_object_or_404(CompaniesDetail.objects.values(), customer_code=code)
+        return company
     
     @http_delete('/{code}', auth=JWTAuth())
     def delete_companies(self, request, code: str):
@@ -87,7 +86,7 @@ class CompaniesController:
         contact_data.delete()
         return JsonResponse({"success": True, "message": "Company deleted successfully and related contacts deleted"}, status=200)
         
-    @http_post('/', response=list[Companies_Schema]  )
+    @http_post('/', response=list[Companies_Schema])
     def create_companies(self, request, payload: Companies_Schema):
         lov = CompaniesDetail.objects.create(**payload.dict())
         return JsonResponse({"success": True, "message": "Company created successfully"}, status=200)
@@ -95,7 +94,7 @@ class CompaniesController:
     @http_put('/{code}', response = list[Companies_Schema])
     def update_companies(self, request, code: str, payload: Companies_Schema):
         data = get_object_or_404(CompaniesDetail, customer_code=code)
-        for attr, value in payload.dict(exclude={"customer_id","pk"}).items():
+        for attr, value in payload.dict(exclude={"company_id","pk"}).items():
             setattr(data, attr, value)
         data.save()
         return data

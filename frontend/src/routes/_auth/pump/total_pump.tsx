@@ -8,24 +8,27 @@ import {
   ClockIcon,
   FileTextIcon,
 } from "@radix-ui/react-icons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 import { pumpData } from "@/data/pump_models";
 
 export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
-    TData,
-    TValue
-  > & {
-    label?: string; // Add the label property
-  };
+  TData,
+  TValue
+> & {
+  label?: string; // Add the label property
+};
 
 /**
  * TotalPump
@@ -43,9 +46,7 @@ function TotalPump() {
     {
       accessorKey: "image",
       header: ({ column }) => {
-        return (
-          ""
-        );
+        return "";
       },
       label: "image",
       cell: ({ row }) => {
@@ -66,9 +67,7 @@ function TotalPump() {
           </Button>
         );
       },
-      cell: ({ row }) => (
-        <div className="pl-4">{row.getValue("name")}</div>
-      ),
+      cell: ({ row }) => <div className="pl-4">{row.getValue("name")}</div>,
     },
     {
       accessorKey: "brand",
@@ -84,9 +83,7 @@ function TotalPump() {
           </Button>
         );
       },
-      cell: ({ row }) => (
-        <div className="pl-4">{row.getValue("brand")}</div>
-      ),
+      cell: ({ row }) => <div className="pl-4">{row.getValue("brand")}</div>,
     },
     {
       accessorKey: "company_code",
@@ -102,7 +99,9 @@ function TotalPump() {
           </Button>
         );
       },
-      cell: ({ row }) => <div className="pl-4">{row.getValue("company_code")}</div>,
+      cell: ({ row }) => (
+        <div className="pl-4">{row.getValue("company_code")}</div>
+      ),
     },
     {
       accessorKey: "province",
@@ -118,9 +117,7 @@ function TotalPump() {
           </Button>
         );
       },
-      cell: ({ row }) => (
-        <div className="pl-4">{row.getValue("province")}</div>
-      ),
+      cell: ({ row }) => <div className="pl-4">{row.getValue("province")}</div>,
     },
     {
       accessorKey: "sales_area",
@@ -154,9 +151,7 @@ function TotalPump() {
           </Button>
         );
       },
-      cell: ({ row }) => (
-        <div className="pl-4">{row.getValue("status")}</div>
-      ),
+      cell: ({ row }) => <div className="pl-4">{row.getValue("status")}</div>,
     },
     {
       accessorKey: "created_at",
@@ -249,9 +244,23 @@ function TotalPump() {
       cell: ({ row }) => {
         const company = row.original;
         return (
-          <>
-          </>
-        );
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <Link
+                to={`/pump/pump_detail?code=${company.company_code}&name=${company.name}&status=${company.status}`}
+              >
+                <DropdownMenuItem>View</DropdownMenuItem>
+              </Link>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
       },
     },
   ];
@@ -316,11 +325,15 @@ function TotalPump() {
 
       <div className="flex flex-col gap-4 max-w-full w-full">
         <Card className="w-full flex flex-col gap-4 p-4 overflow-x-hidden">
-        {pumpData ? (
-              <DataTable data={pumpData} columns={columns} search={["name","status"]}/>
-        ) : (
-          <div>Error</div>
-        )}
+          {pumpData ? (
+            <DataTable
+              data={pumpData}
+              columns={columns}
+              search={["name", "status"]}
+            />
+          ) : (
+            <div>Error</div>
+          )}
         </Card>
       </div>
     </div>
@@ -328,5 +341,5 @@ function TotalPump() {
 }
 
 export const Route = createFileRoute("/_auth/pump/total_pump")({
-  component: TotalPump
+  component: TotalPump,
 });

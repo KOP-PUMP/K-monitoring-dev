@@ -41,15 +41,20 @@ export interface FactoryCurveNumberResponse {
     updated_by ?: string;
 }
 
-export interface PumpDetailDataOut {
-    operation_flow ?: string | undefined
-    operation_flow_unit ?: string| undefined
-    operation_head ?: string | undefined
-    operation_head_unit ?: string | undefined
-    impeller_dia ?: string | undefined
-    model ?: string | undefined
-    speed ?: string | undefined
-    size ?: string | undefined
+export interface PumpDetailCalDataOut {
+    pump_lov_id : string
+    design_impeller_dia : string
+    model_short : string 
+    pump_model_size : string 
+    pump_speed : string 
+    pump_speed_unit : string
+    design_flow : string 
+    design_flow_unit : string 
+    design_head : string 
+    design_head_unit : string 
+    media : string
+    density : string
+    density_unit : string 
 }
 
 export interface PumpDetailCalResponse {

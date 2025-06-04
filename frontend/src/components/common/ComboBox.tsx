@@ -9,8 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 export interface ComboboxItemProps {
   type_name?: string | null;
   product_name?: string | null;
-  value: string | null;
-  label: string | null;
+  value: string | null | undefined;
+  label: string | null | undefined;
 }
 
 interface ComboboxProps {

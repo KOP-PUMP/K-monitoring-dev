@@ -1,6 +1,7 @@
 from ninja_extra import api_controller, http_get, http_post, http_put, http_delete
 from ninja_jwt.authentication import JWTAuth
 from pump_data.models import KMonitoringLOV, PumpDetail, PumpDetailLOV, MotorDetailLOV, ShaftSealLOV, PumpMaterialLOV, MediaLOV
+from users.models import CompaniesDetail
 from pump_data.schema.pump_lov import KMonitoringLOV_schema, PumpDetailLOV_schema, PumpDetail_schema, MotorDetailLOV_schema, ShaftSealLOV_schema, PumpMaterialLOV_schema, MediaLOV_schema
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
@@ -10,6 +11,12 @@ from django.http import JsonResponse
 
 @api_controller('/pump-data/', tags=['pump-data'])
 class ListOfValuesController:
+
+    @http_post('/pump-detail')
+    def create_pump_detail(self, request, payload: PumpDetail_schema):
+        PumpDetail.objects.create(**payload.dict())
+        return JsonResponse({"success": True, "message": f"Pump detail created successfully"}, status=200)
+
     @http_get('/data-lov', response=list[KMonitoringLOV_schema])
     def get_select_option(self, request, name : str = None,type: str = None):
         query = KMonitoringLOV.objects.all()
@@ -55,7 +62,8 @@ class ListOfValuesController:
         lov = KMonitoringLOV.objects.create(**payload.dict())
         return lov
     
-    
+
+
     @http_post('/pump-lov')
     def create_pump_lov(self, request, payload: PumpDetailLOV_schema):
         PumpDetailLOV.objects.create(**payload.dict())
@@ -187,7 +195,7 @@ class ListOfValuesController:
         else:
             motor_lovs = list(MotorDetailLOV.objects.all().values())
             return JsonResponse({"data": motor_lovs}, status=200)
-        
+        00
     @http_put('/motor-lov/{id}', response=MotorDetailLOV_schema)
     def update_motor_lov(self, request, id: str, payload: MotorDetailLOV_schema):
         uuid_id = UUID(id)

@@ -4,6 +4,7 @@ import {
   MotorDetailLOVResponse,
   PumpMatLOVResponse,
   PumpShaftSealLOVResponse,
+  PumpDetailResponse
 } from "@/types/index";
 import { axiosInstance } from "../utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -27,6 +28,12 @@ export const getAllPumpLOV = async (): Promise<LOVOut[]> => {
     throw new Error("Failed to fetch pump LOV data");
   }
 };
+
+export const createPumpDetail = async (data: PumpDetailResponse) => {
+  console.log(data)
+  const response = await axiosInstance.post("/pump-data/pump-detail", data);
+  return response.data;
+}
 
 export const getLOVById = async (id: string) => {
   const response = await axiosInstance.get(`/pump-data/lov/${id}`);

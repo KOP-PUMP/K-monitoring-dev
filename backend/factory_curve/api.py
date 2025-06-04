@@ -1,7 +1,8 @@
 from ninja_extra import api_controller, http_get, http_post, http_put, http_delete
 from ninja_jwt.authentication import JWTAuth
 from factory_curve.models import FactoryCurve, FactoryCurveNumber
-from factory_curve.schema.factory_curve import FactoryCurve_schema, FactoryCurveNumber_schema, CalPumpDetail_schema
+from pump_data.models import KMonitoringLOV
+from factory_curve.schema.factory_curve import FactoryCurve_schema, FactoryCurveNumber_schema, CalPumpResponse_schema, CalPumpPayload_schema
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from uuid import UUID
@@ -48,20 +49,40 @@ class FactoryCurveController:
         # Serialize data to return as response
         serialized_data = [model_to_dict(item) for item in data]
         return JsonResponse(serialized_data, safe=False, status=200)
-    @http_get('/cal')
-    def get_cal_factory_curve(self, request):
+    @http_post('/cal')
+    def get_cal_factory_curve(self, request, payload: CalPumpPayload_schema):
         # Get query parameters
-        operation_flow = float("300")
-        operation_flow_unit = float("1")
-        operation_head = float("12.9")
-        operation_head_unit = float("1")
-        impeller_dia = float("208")
-        model = "KDIN"
-        speed = "1450"
-        size = "150-20"
-        media_density = 998
+        impeller_dia = float(payload.design_impeller_dia)
+        model = payload.model_short
+        speed = payload.pump_speed 
+        size = payload.pump_model_size
         model_input = f"{model} {size}  {speed}RPM"
         cal_result = {}
+
+        def FindUnitConversion(unit_group : str , unit : str):
+            return KMonitoringLOV.objects.filter(type_name = 'pump_unit' ,product_name = unit_group, data_value = unit).first()
+
+        operation_flow_unit = FindUnitConversion('unit_flow',payload.design_flow_unit)
+        operation_flow_unit_conversion = model_to_dict(operation_flow_unit) if operation_flow_unit else None
+        operation_flow_unit_conversion = float(operation_flow_unit_conversion["data_value2"])
+        operation_head_unit = FindUnitConversion('unit_head',payload.design_head_unit)
+        operation_head_unit_conversion = model_to_dict(operation_head_unit) if operation_head_unit else None
+        operation_head_unit_conversion = float(operation_head_unit_conversion["data_value2"])
+        media_density_unit = FindUnitConversion('unit_density',payload.density_unit)
+        media_density_unit_conversion = model_to_dict(media_density_unit) if media_density_unit else None
+        media_density_unit_conversion = float(media_density_unit_conversion["data_value2"])
+        
+        media_density = float(payload.density) * media_density_unit_conversion
+        operation_flow = float(payload.design_flow) * operation_flow_unit_conversion
+        operation_head = float(payload.design_head) * operation_head_unit_conversion
+
+        #return JsonResponse({
+        #    "data": [
+        #        media_density,
+        #        operation_flow,
+        #        operation_head
+        #    ]
+        #}, safe=False, status=200)
         
         # Filter FactoryCurve objects based on the query parameters
         data = list(FactoryCurve.objects.filter(model=model_input))
@@ -180,7 +201,6 @@ class FactoryCurveController:
                     return round(interp_eff,2)
                     best_candidate["eff"] = interp_eff
                     best_candidate["point_label"] = f"Bep. {interp_eff}%"
-                        
                 #return JsonResponse( {"data" : [float(closest_point_upper["eff"].strip("%LR ")),float(lower_eff.strip("%LR ")),0,distance_upper,distance_lower]} ,status = 200)
                 #Find position 
                 #return JsonResponse({"data" : [float(upper_eff.strip("%LR ")),float(closest_point["eff"].strip("%LR ")),float(target_flow),float(closest_point_upper["flow"]),float(closest_point["flow"])]},status = 200)
@@ -190,6 +210,7 @@ class FactoryCurveController:
                 best_candidate["eff"] = round(predicted_eff,2)
                 best_candidate["point_label"] = f"Bep. {round(predicted_eff,2)}%" 
 
+        #return JsonResponse( {"data" : cal_result} ,status = 200)
         if not data:
             return JsonResponse({"error": f"Factory curve not found for the given model:{model_input}"}, status=404)    
 
@@ -229,10 +250,10 @@ class FactoryCurveController:
         #return JsonResponse( {"data" : [eff_key,eff_value]} ,status = 200)
 
         #test return
-        #return JsonResponse({"data":eff_grouped[eff_key[3]]},status = 200)
+        #return JsonResponse({"data":eff_grouped},status = 200)
 
         if impeller_dia > max(imp_grouped) or impeller_dia < min(imp_grouped):
-            return JsonResponse({"error": "Error your impeller diameter out of range"},status = 404)
+            return JsonResponse({"error": f"Error your impeller {impeller_dia} out of range {min(imp_grouped)} - {max(imp_grouped)}"},status = 404)
 
         def get_eff_min_max_flow(eff):
             flows = [float(p['flow']) for p in eff_grouped[eff] if p.get('flow') is not None]
@@ -946,11 +967,15 @@ class FactoryCurveController:
 
         used_points = set()
         eff_intersections = []
-
+   
         tolerance = 0.7
 
         for eff in eff_key:
             curve_info = fitting_result_eff_curve.get(eff)
+            flow_limit_min = curve_info["flow_limit"]["min_flow_limit"]
+            flow_limit_max = curve_info["flow_limit"]["max_flow_limit"]
+            head_limit_min = curve_info["head_limit"]["min_head_limit"]
+            head_limit_max = curve_info["head_limit"]["max_head_limit"]
 
             if not curve_info or not curve_info.get("best_coefficients"):
                 continue
@@ -967,6 +992,11 @@ class FactoryCurveController:
                 if key in used_points:
                     continue  # prevent sharing across effs
                 
+                # Skip if point is out of bounds
+                if not (flow_limit_min <= flow <= flow_limit_max and head_limit_min <= head <= head_limit_max):
+                    continue
+                
+                # Calculate predicted value
                 if "Reverse" in method:
                     predicted_flow = model_poly(head)
                     diff = abs(predicted_flow - flow)
@@ -974,13 +1004,19 @@ class FactoryCurveController:
                     predicted_head = model_poly(flow)
                     diff = abs(predicted_head - head)
 
+                # Accept if within tolerance and inside limits
                 if diff < tolerance:
-                    used_points.add(key)  # reserve point
+                    used_points.add(key)
                     eff_intersections.append({
-                        "flow": round(flow, 3),
-                        "head": round(head, 3),
+                        "point_flow": round(flow, 3),
+                        "point_head": round(head, 3),
+                        "point_label": f"Intersection of {eff}%",
                         "eff": eff
                     })
+
+            
+        #return JsonResponse({"data": eff_intersections}, status=200)
+            
 
         # Step 1: Group intersections by efficiency
         grouped_by_eff = {}
@@ -995,14 +1031,14 @@ class FactoryCurveController:
 
         for eff, points in grouped_by_eff.items():
             # Sort by flow
-            sorted_points = sorted(points, key=lambda p: p['flow'])
+            sorted_points = sorted(points, key=lambda p: p['point_flow'])
 
             groups = []
             current_group = [sorted_points[0]]
             current_close_point = []
 
             for prev, curr in zip(sorted_points, sorted_points[1:]):
-                if abs(curr['flow'] - prev['flow']) > 10:
+                if abs(curr['point_flow'] - prev['point_flow']) > 10:
                     groups.append(current_group)
                     current_group = [curr]
                 else:
@@ -1015,8 +1051,8 @@ class FactoryCurveController:
                 if len(group) == 1:
                     final_filtered_points[eff] = [group[0]]
                 else:
-                    avg_flow = sum(p['flow'] for p in group) / len(group)
-                    closest_point = min(group, key=lambda p: abs(p['flow'] - avg_flow))
+                    avg_flow = sum(p['point_flow'] for p in group) / len(group)
+                    closest_point = min(group, key=lambda p: abs(p['point_flow'] - avg_flow))
                     current_close_point.append(closest_point)
                     final_filtered_points[eff] = current_close_point
 
@@ -1039,14 +1075,19 @@ class FactoryCurveController:
 
         # Step 3: Select the BEP point
         if len(bep_points) == 1:
-            cal_result["bep_point"] = bep_points[0]
+            cal_result["bep_point"] = {
+                "point_flow": bep_points[0]["point_flow"],
+                "point_head": bep_points[0]["point_head"],
+                "point_label": f"{bep_points[0]["eff"]} BEP", 
+                "eff" : bep_points[0]["eff"].strip('%LR ')
+            }
         elif len(bep_points) == 2:
             # Sort by flow
-            bep_points = sorted(bep_points, key=lambda p: p["flow"])
-            flow1 = bep_points[0]["flow"]
-            flow2 = bep_points[1]["flow"]
-            head1 = bep_points[0]["head"]
-            head2 = bep_points[1]["head"]
+            bep_points = sorted(bep_points, key=lambda p: p["point_flow"])
+            flow1 = bep_points[0]["point_flow"]
+            flow2 = bep_points[1]["point_flow"]
+            head1 = bep_points[0]["point_head"]
+            head2 = bep_points[1]["point_head"]
             center_flow = (flow1 + flow2) / 2
             center_head = (head1 + head2) / 2
 
@@ -1086,7 +1127,7 @@ class FactoryCurveController:
                 best_candidate["point_label"] = f"Bep. {bep_eff}%" 
                 cal_result["bep_point"] = best_candidate
 
-        #return JsonResponse( {"data" : cal_result["bep_point"]} ,status = 200)
+        #return JsonResponse( {"data" : cal_result} ,status = 200)
 
         min_flow = float(cal_result["bep_point"]["point_flow"]) * 0.3
         max_flow = float(cal_result["bep_point"]["point_flow"]) * 1.1
@@ -1101,20 +1142,25 @@ class FactoryCurveController:
         cal_result["max_flow_point"] = {"point_flow" : round(max_flow,2), "point_head" : round(max_head,2), "point_label" : "Max Flow", "eff" : "???"}
         cal_result["operation_point"] = {"point_flow" : round(operation_flow,2), "point_head" : round(operation_head,2), "point_label" : "Operation Point"}
 
+        #return JsonResponse( {"data" : cal_result} ,status = 200)
+    
         min_flow_eff = get_eff_data(cal_result["min_flow_point"]["point_flow"],cal_result["min_flow_point"]["point_head"],eff_key,eff_grouped,fitting_result_eff_curve,cal_result["min_flow_point"])
         max_flow_eff = get_eff_data(cal_result["max_flow_point"]["point_flow"],cal_result["max_flow_point"]["point_head"],eff_key,eff_grouped,fitting_result_eff_curve,cal_result["max_flow_point"])
         operation_eff = get_eff_data(cal_result["operation_point"]["point_flow"],cal_result["operation_point"]["point_head"],eff_key,eff_grouped,fitting_result_eff_curve,cal_result["operation_point"])
         
+
+        #cal_result["min_flow_point"]["eff"] = min_flow_eff
+        #cal_result["min_flow_point"]["point_label"] = f"Min flow {min_flow_eff}%"
         cal_result["max_flow_point"]["eff"] = max_flow_eff
         cal_result["max_flow_point"]["point_label"] = f"Max flow {max_flow_eff}%"
         cal_result["operation_point"]["eff"] = operation_eff
         cal_result["operation_point"]["point_label"] = f"Operation {operation_eff}%"
 
         #Find power
-        cal_result["hydraulic_power"] = (int(media_density) * 9.81 * float(cal_result["operation_point"]["point_flow"]) * float(cal_result["operation_point"]["point_head"]))/(1000 * 3600)
-        cal_result["power_min_flow"] = (int(media_density) * 9.81 * float(cal_result["min_flow_point"]["point_flow"]) * float(cal_result["min_flow_point"]["point_head"]))/(1000 * 3600 * (float(cal_result["min_flow_point"]["eff"])/100))
-        cal_result["power_max_flow"] = (int(media_density) * 9.81 * float(cal_result["max_flow_point"]["point_flow"]) * float(cal_result["max_flow_point"]["point_head"]))/(1000 * 3600 * (float(cal_result["max_flow_point"]["eff"])/100))
-        cal_result["power_bep"] = (int(media_density) * 9.81 * float(cal_result["bep_point"]["point_flow"]) * float(cal_result["bep_point"]["point_head"]))/(1000 * 3600 * (float(cal_result["bep_point"]["eff"])/100))
+        cal_result["hydraulic_power"] = (media_density * 9.81 * float(cal_result["operation_point"]["point_flow"]) * float(cal_result["operation_point"]["point_head"]))/(3600)
+        cal_result["power_min_flow"] = (media_density * 9.81 * float(cal_result["min_flow_point"]["point_flow"]) * float(cal_result["min_flow_point"]["point_head"]))/(3600 * (float(cal_result["min_flow_point"]["eff"])/100))
+        cal_result["power_max_flow"] = (media_density * 9.81 * float(cal_result["max_flow_point"]["point_flow"]) * float(cal_result["max_flow_point"]["point_head"]))/(3600 * (float(cal_result["max_flow_point"]["eff"])/100))
+        cal_result["power_bep"] = (media_density * 9.81 * float(cal_result["bep_point"]["point_flow"]) * float(cal_result["bep_point"]["point_head"]))/(3600 * (float(cal_result["bep_point"]["eff"])/100))
         cal_result["power_required_cal"] = cal_result["hydraulic_power"] * (float(cal_result["operation_point"]["eff"]) / 100)
         
         #Find Shut off head
@@ -1206,6 +1252,13 @@ class FactoryCurveController:
         coeffs = fitting_result_npshr_curve['best_coefficients']
         model_poly = np.poly1d(coeffs)
         cal_result["npshr"] = model_poly(float(cal_result["operation_point"]["point_flow"]))
+        cal_result["unit"] = {
+            "unit_flow": "m3/h",
+            "unit_power": "kW",
+            "unit_head": "m",
+            "unit_npshr": "m",
+            "unit_eff": "%",
+        }
         
         #return JsonResponse({"data": fitting_result_npshr_curve}, status = 200)
         #return JsonResponse({"data": cal_result["npshr_point"]}, status = 200)

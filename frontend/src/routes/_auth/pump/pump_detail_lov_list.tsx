@@ -260,7 +260,7 @@ const PumpLOV = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">List of Pump Data</h2>
         <div className="flex items-center space-x-2">
-          <Link to="/pump/motor_detail_lov_edit" search={{ id: null }}>
+          <Link to="/pump/pump_detail_lov_edit" search={{ id: null }}>
             <Button>Add Motor Data</Button>
           </Link>
         </div>

@@ -61,29 +61,6 @@ function MotorLOVEdit() {
     }
   };
 
-  const addData = {
-    motor_code_name: "",
-    motor_serial_no: "",
-    motor_brand: "",
-    motor_drive: "",
-    motor_standard: "",
-    motor_ie: "",
-    motor_model: "",
-    motor_speed: "",
-    motor_speed_unit: "",
-    motor_rated: "",
-    motor_rated_unit: "",
-    motor_factor: "",
-    motor_connection: "",
-    motor_phase: "",
-    motor_efficiency: "",
-    motor_efficiency_unit: "",
-    motor_rated_current: "",
-    motor_rated_current_unit: "",
-    updated_at: new Date().toISOString(),
-    updated_by: userData?.user.user_email,
-  };
-
   const { id } = useSearch({ from: "/_auth/pump/motor_lov_edit" });
   const { data: motorData } = useGetMotorDetailLOV(id);
 
@@ -134,6 +111,7 @@ function MotorLOVEdit() {
         "motor_rated_current_unit",
         motorData?.motor_rated_current_unit ?? ""
       );
+      motorLOVForm.setValue("coup_type", motorData?.coup_type ?? "");
     }
   }, [id, motorData]);
 
@@ -161,6 +139,7 @@ function MotorLOVEdit() {
       motor_efficiency_unit: values.motor_efficiency_unit,
       motor_rated_current: values.motor_rated_current,
       motor_rated_current_unit: values.motor_rated_current_unit,
+      coup_type: values.coup_type,
       updated_at: new Date().toISOString(),
       updated_by: userData?.user.user_email,
     };
@@ -232,6 +211,26 @@ function MotorLOVEdit() {
                             <FormControl>
                               <Input
                                 placeholder="Motor Code Name"
+                                {...field}
+                                className="h-7"
+                              />
+                            </FormControl>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={motorLOVForm.control}
+                      name="motor_model"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center">
+                            <FormLabel className="w-2/12 ">
+                              Motor Model
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="E.g. 1 or 10"
                                 {...field}
                                 className="h-7"
                               />
@@ -338,26 +337,6 @@ function MotorLOVEdit() {
                     />
                     <FormField
                       control={motorLOVForm.control}
-                      name="motor_model"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex items-center">
-                            <FormLabel className="w-2/12 ">
-                              Motor Model
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="E.g. 1 or 10"
-                                {...field}
-                                className="h-7"
-                              />
-                            </FormControl>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={motorLOVForm.control}
                       name="motor_speed_unit"
                       render={({ field: speedField }) => (
                         <FormItem>
@@ -388,8 +367,8 @@ function MotorLOVEdit() {
                                     ) || []
                                   } // Dropdown options
                                   label={
-                                    unitData?.speed_unit
-                                      ? unitData.speed_unit
+                                    motorData?.motor_speed_unit
+                                      ? motorData.motor_speed_unit
                                       : "Select"
                                   }
                                   onChange={(value) => {
@@ -430,13 +409,13 @@ function MotorLOVEdit() {
                                   className="min-w-[86px]"
                                   items={
                                     handleLOVDataFilter(
-                                      "unit_rated",
+                                      "unit_power",
                                       "pump_unit"
                                     ) || []
                                   } // Dropdown options
                                   label={
-                                    unitData?.rated_unit
-                                      ? unitData.rated_unit
+                                    motorData?.motor_rated_unit
+                                      ? motorData.motor_rated_unit
                                       : "Select"
                                   }
                                   onChange={(value) => {
@@ -447,6 +426,26 @@ function MotorLOVEdit() {
                             </div>
                           </div>
                           <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={motorLOVForm.control}
+                      name="motor_factor"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center">
+                            <FormLabel className="w-2/12 ">
+                              Motor Factor
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Motor Factor"
+                                {...field}
+                                className="h-7"
+                              />
+                            </FormControl>
+                          </div>
                         </FormItem>
                       )}
                     />
@@ -492,21 +491,48 @@ function MotorLOVEdit() {
                     />
                     <FormField
                       control={motorLOVForm.control}
-                      name="motor_efficiency"
-                      render={({ field }) => (
+                      name="motor_efficiency_unit"
+                      render={({ field: ratedField }) => (
                         <FormItem>
-                          <div className="flex items-center">
-                            <FormLabel className="w-2/12 ">
-                              Motor Efficiency (%)
+                          <div className="w-full flex items-center">
+                            <FormLabel className="w-32 lg:w-44">
+                              Motor Efficiency
                             </FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Motor Efficiency (%)"
-                                {...field}
-                                className="h-7"
+                            <div className="w-full flex gap-2">
+                              <FormField
+                                control={motorLOVForm.control}
+                                name="motor_efficiency"
+                                render={({ field: ratedField }) => (
+                                  <FormControl className="w-full">
+                                    <Input
+                                      placeholder="Motor Efficiency"
+                                      {...ratedField}
+                                    />
+                                  </FormControl>
+                                )}
                               />
-                            </FormControl>
+                              <FormControl className="md:max-w-[500px]">
+                                <Combobox
+                                  className="min-w-[86px]"
+                                  items={
+                                    handleLOVDataFilter(
+                                      "unit_efficiency",
+                                      "pump_unit"
+                                    ) || []
+                                  } // Dropdown options
+                                  label={
+                                    motorData?.motor_efficiency_unit
+                                      ? motorData.motor_efficiency_unit
+                                      : "Select"
+                                  }
+                                  onChange={(value) => {
+                                    ratedField.onChange(value); // Update form state
+                                  }}
+                                />
+                              </FormControl>
+                            </div>
                           </div>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -537,13 +563,13 @@ function MotorLOVEdit() {
                                   className="min-w-[86px]"
                                   items={
                                     handleLOVDataFilter(
-                                      "unit_rated",
+                                      "unit_power",
                                       "pump_unit"
                                     ) || []
                                   } // Dropdown options
                                   label={
-                                    unitData?.rated_unit
-                                      ? unitData.rated_unit
+                                    motorData?.motor_rated_current_unit
+                                      ? motorData.motor_rated_current_unit
                                       : "Select"
                                   }
                                   onChange={(value) => {
@@ -554,6 +580,26 @@ function MotorLOVEdit() {
                             </div>
                           </div>
                           <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={motorLOVForm.control}
+                      name="coup_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center">
+                            <FormLabel className="w-2/12 ">
+                              Coupling Type
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Coupling Type"
+                                {...field}
+                                className="h-7"
+                              />
+                            </FormControl>
+                          </div>
                         </FormItem>
                       )}
                     />

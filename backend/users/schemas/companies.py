@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 class Companies_Schema(Schema):
-    customer_id: Optional[UUID] = Field(default_factory=uuid4)
+    company_id: Optional[UUID] = Field(default_factory=uuid4)
     customer_code : str
     customer_industry_id : Optional[str] = None
     customer_industry_group : Optional[str] = None
@@ -16,10 +16,10 @@ class Companies_Schema(Schema):
     map : Optional[str] = None  
     province: str
     sales_area : str
-    created_by : str
-    created_at : datetime
-    updated_by : str
-    updated_at : datetime
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+    updated_at: datetime
+    updated_by: Optional[str] = None
 
 class ContactsPerson_Schema(Schema):
     contact_person_id : UUID

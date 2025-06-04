@@ -1,5 +1,7 @@
 import { z } from "zod";
+
 export const PumpDetailFormSchema = z.object({
+  company_id : z.string().optional(),
   company_code : z.string().optional(),
   pump_code_name : z.string().optional(),
   doc_customer : z.string().optional(),
@@ -7,7 +9,7 @@ export const PumpDetailFormSchema = z.object({
   doc_date : z.string().optional(),
   tag_no : z.string().optional(),
   serial_no : z.string().optional(),
-  pump_model_id : z.string().optional(),
+  pump_lov_id : z.string().optional(),
   brand : z.string().optional(),
   model_short : z.string().optional(),
   model : z.string().optional(),
@@ -69,6 +71,7 @@ export const PumpDetailFormSchema = z.object({
   power_bep_flow : z.string().optional(),
   power_bep_flow_unit : z.string().optional(),
 /* Pump Application Data */
+  media_lov_id : z.string().optional(),
   media : z.string().optional(),
   oper_temp : z.string().optional(),
   solid_type : z.string().optional(),
@@ -84,11 +87,11 @@ export const PumpDetailFormSchema = z.object({
   tank_pressure : z.string().optional(),
   suction_head : z.string().optional(),
   concentration : z.string().optional(),
-solid_percentage : z.string().optional(),
+  solid_percentage : z.string().optional(),
 })
 
 export const MotorAndCouplingDetailFormSchema = z.object({
-  motor_id : z.string().optional(),
+  motor_lov_id : z.string().optional(),
   motor_code_name : z.string().optional(),
   motor_model : z.string().optional(),
   motor_serial_no : z.string().optional(),
@@ -107,15 +110,12 @@ export const MotorAndCouplingDetailFormSchema = z.object({
   motor_efficiency_unit : z.string().optional(),
   motor_rated_current : z.string().optional(),
   motor_rated_current_unit : z.string().optional(),
-  created_at : z.string().optional(),
-  created_by : z.string().optional(),
-  updated_at : z.string().optional(),
-  updated_by : z.string().optional(),
+  coup_type : z.string().optional(),
 })
 
 export const MaterialAndImpellerDetailFormSchema = z.object({
   /* Material and Impeller Details */
-  pump_mat_id : z.string().optional(),
+  mat_lov_id : z.string().optional(),
   mat_code_name : z.string().optional(),
   casing_mat : z.string().optional(),
   casing_cover_mat : z.string().optional(),
@@ -132,13 +132,18 @@ export const MaterialAndImpellerDetailFormSchema = z.object({
 
 export const MechanicalSealDetailFormSchema = z.object({
   /* Mechanical Seal Details */
-  shaft_seal_id : z.string().optional(),
+  shaft_seal_lov_id : z.string().optional(),
   shaft_seal_code_name : z.string().optional(), 
   shaft_seal_design : z.string().optional(),
   shaft_seal_brand : z.string().optional(),
   shaft_seal_model : z.string().optional(),
   shaft_seal_material : z.string().optional(),
   mechanical_seal_api_plan : z.string().optional(),
+  mech_main_pre : z.string().optional(),
+  mech_main_pre_unit : z.string().optional(),
+  mech_main_temp : z.string().optional(),
+  mech_size : z.string().optional(),
+  mech_size_unit : z.string().optional(),
   created_at : z.string().optional(),
   created_by : z.string().optional(),
   updated_at : z.string().optional(),
@@ -146,40 +151,26 @@ export const MechanicalSealDetailFormSchema = z.object({
 })
 export const FlangeAndBearingDetailFormSchema = z.object({
   /* Bearing Detail */
-bearing_nde_one_id : z.string().optional(),
-bearing_nde_one : z.string().optional(),
-bearing_nde_two_id : z.string().optional(),
-bearing_nde_two : z.string().optional(),
+  bearing_nde_one : z.string().optional(),
+  bearing_de_one : z.string().optional(),
+  bearing_nde_two : z.string().optional(),
+  bearing_de_two : z.string().optional(),
   bearing_lubric_type : z.string().optional(),
   bearing_lubric_brand : z.string().optional(),
   bearing_lubric_no : z.string().optional(),
+  oil_seal : z.string().optional(),
   rotation_de : z.string().optional(),
-bearing_de_one_id : z.string().optional(),
-bearing_de_one : z.string().optional(),
-bearing_de_two_id : z.string().optional(),
-bearing_de_two : z.string().optional(),
-bearing_last_chg_dt : z.string().optional(),
+  bearing_last_chg_dt : z.string().optional(),
   /* Flange Details */
-flang_con_std : z.string().optional(),
-  pump_suction_size_id : z.string().optional(),
-  pump_suction_size_id_unit : z.string().optional(),
+  flang_con_std : z.string().optional(),
   pump_suction_rating: z.string().optional(),
-  pump_discharge_size_id : z.string().optional(),
-  pump_discharge_size_id_unit : z.string().optional(),
-  pump_discharge_rating : z.string().optional(),
-suction_pipe_data_id : z.string().optional(),
-  suction_pipe_size : z.string().optional(),
+  pump_suction_size: z.string().optional(),
   suction_pipe_sch : z.string().optional(),
-discharge_pipe_data_id : z.string().optional(),
-  discharge_pipe_size : z.string().optional(),
-  discharge_pipe_sch : z.string().optional(),
-  suction_pipe_length : z.string().optional(),
-  discharge_pipe_length_h : z.string().optional(),
-  discharge_pipe_length_v : z.string().optional(),
+  suction_pipe_size : z.string().optional(),
   suction_pipe_id : z.string().optional(),
   suction_pipe_id_unit : z.string().optional(),
-  discharge_pipe_id : z.string().optional(),
-  discharge_pipe_id_unit : z.string().optional(),
+  suction_pipe_length : z.string().optional(),
+  suction_pipe_length_unit : z.string().optional(),
   suction_elbow : z.string().optional(),
   suction_tee : z.string().optional(),
   suction_reducer : z.string().optional(),
@@ -187,15 +178,31 @@ discharge_pipe_data_id : z.string().optional(),
   suction_y_strainer : z.string().optional(),
   suction_other : z.string().optional(),
   suction_equi_length : z.string().optional(),
-  discharge_equi_length : z.string().optional(),
+  suction_head : z.string().optional(),
+  suction_head_unit : z.string().optional(),
+  suction_velo : z.string().optional(),
+  suction_velo_unit : z.string().optional(),
+  pump_discharge_rating : z.string().optional(),
+  pump_discharge_size: z.string().optional(),
+  discharge_pipe_sch : z.string().optional(),
+  discharge_pipe_size : z.string().optional(),
+  discharge_pipe_id : z.string().optional(),
+  discharge_pipe_id_unit : z.string().optional(),
+  discharge_pipe_length_h : z.string().optional(),
+  discharge_pipe_length_h_unit : z.string().optional(),
+  discharge_pipe_length_v : z.string().optional(),
+  discharge_pipe_length_v_unit : z.string().optional(),
   discharge_elbow : z.string().optional(),
   discharge_tee : z.string().optional(),
   discharge_reducer : z.string().optional(),
   discharge_valve : z.string().optional(),
   discharge_y_strainer : z.string().optional(),
   discharge_other : z.string().optional(),
+  discharge_equi_length : z.string().optional(),
+  discharge_head : z.string().optional(),
+  discharge_velo : z.string().optional(),
+  discharge_velo_unit : z.string().optional(),
 })
-
 
 export const PumpDetailSchema = z.object({
   /* Related tables */
@@ -371,6 +378,7 @@ export const PumpDetailLOVSchema = z.object({
 });
 
 export const MotorDetailLOVSchema = z.object({
+  
   motor_code_name : z.string().optional(),
   motor_model : z.string().optional(),
   motor_serial_no : z.string().optional(),
@@ -389,6 +397,7 @@ export const MotorDetailLOVSchema = z.object({
   motor_efficiency_unit : z.string().optional(),
   motor_rated_current : z.string().optional(),
   motor_rated_current_unit : z.string().optional(),
+  coup_type : z.string().optional(),
 });
 
 export const ShaftSealLOVSchema = z.object({
@@ -443,10 +452,13 @@ export const AddingMediaLOVSchema = z.object({
   media_id : z.string().optional(),
   media_name : z.string(),
   media_density : z.string(),
+  media_density_unit : z.string(),
   media_viscosity : z.string(),
+  media_viscosity_unit : z.string(),
   media_concentration_percentage : z.string(),
   operating_temperature : z.string(),
   vapor_pressure : z.string(),
+  vapor_pressure_unit : z.string(),
   created_at : z.string().optional(),
   created_by : z.string().optional(),
   updated_at : z.string().optional(),

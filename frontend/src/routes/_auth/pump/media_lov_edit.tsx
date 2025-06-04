@@ -16,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Combobox, ComboboxItemProps } from "@/components/common/ComboBox";
 import { Input } from "@/components/ui/input";
 import { AddingMediaLOVSchema } from "@/validators/pump";
 import { useSettings } from "@/lib/settings";
@@ -23,8 +24,13 @@ import { FormBox } from "@/components/common/FormBox";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { useGetMediaLOVData, useUpdateMediaLOV, useCreateMediaLOV } from "@/hook/pump/pump";
+import { useEffect, useState } from "react";
+import {
+  useGetMediaLOVData,
+  useUpdateMediaLOV,
+  useCreateMediaLOV,
+  useGetAllUnitLOVData,
+} from "@/hook/pump/pump";
 import { create } from "domain";
 
 function MediaLOVEdit() {
@@ -34,15 +40,22 @@ function MediaLOVEdit() {
   const mediaLOVForm = useForm<z.infer<typeof AddingMediaLOVSchema>>({
     resolver: zodResolver(AddingMediaLOVSchema),
   });
+  const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();
+  const [pumpUnitLOVData, setPumpUnitLOVData] = useState<ComboboxItemProps[]>();
 
-  const addData = {
-    media_name: "",
-    media_density: "",
-    media_viscosity: "",
-    media_concentration_percentage: "",
-    operating_temperature: "",
-    vapor_pressure: "",
-  };
+  useEffect(() => {
+    if (pumpUnitLOVResponse) {
+      const newPumpUnitLOVData = pumpUnitLOVResponse.map((data) => {
+        return {
+          type_name: data.type_name,
+          product_name: data.product_name,
+          value: data.data_value,
+          label: data.data_value,
+        };
+      });
+      setPumpUnitLOVData(newPumpUnitLOVData);
+    }
+  }, []);
 
   const { id } = useSearch({ from: "/_auth/pump/media_lov_edit" });
   const { data } = useGetMediaLOVData(id);
@@ -51,12 +64,48 @@ function MediaLOVEdit() {
     if (id && data) {
       mediaLOVForm.setValue("media_name", data?.media_name ?? "");
       mediaLOVForm.setValue("media_density", data?.media_density ?? "");
+      mediaLOVForm.setValue(
+        "media_density_unit",
+        data?.media_density_unit ?? ""
+      );
       mediaLOVForm.setValue("media_viscosity", data?.media_viscosity ?? "");
-      mediaLOVForm.setValue("media_concentration_percentage", data?.media_concentration_percentage ?? "");
-      mediaLOVForm.setValue("operating_temperature", data?.operating_temperature ?? "");
+      mediaLOVForm.setValue(
+        "media_viscosity_unit",
+        data?.media_viscosity_unit ?? ""
+      );
+      mediaLOVForm.setValue(
+        "media_concentration_percentage",
+        data?.media_concentration_percentage ?? ""
+      );
+      mediaLOVForm.setValue(
+        "operating_temperature",
+        data?.operating_temperature ?? ""
+      );
       mediaLOVForm.setValue("vapor_pressure", data?.vapor_pressure ?? "");
+      mediaLOVForm.setValue(
+        "vapor_pressure_unit",
+        data?.vapor_pressure_unit ?? ""
+      );
     }
   }, [id, data]);
+
+  const handleLOVDataFilter = (name: string, type: string) => {
+    /* if (type === "pump_data") {
+      const filterData = pumpLOVData?.filter((data) => {
+        return data.product_name === name;
+      });
+      return filterData;
+    } */
+    if (type === "pump_unit") {
+      const filterData = pumpUnitLOVData?.filter((data) => {
+        return data.product_name == name;
+      });
+      return filterData;
+    }
+  };
+
+  const getFormData = (key: string) =>
+    JSON.parse(localStorage.getItem(key) || "{}");
 
   const { showDescriptions } = useSettings();
 
@@ -65,20 +114,30 @@ function MediaLOVEdit() {
   const updateMutation = useUpdateMediaLOV();
 
   const handleUnitSubmit = (values: z.infer<typeof AddingMediaLOVSchema>) => {
+    const addData = {
+      media_name: values.media_name,
+      media_density: values.media_density,
+      media_density_unit: values.media_density_unit,
+      media_viscosity: values.media_viscosity,
+      media_viscosity_unit: values.media_viscosity_unit,
+      media_concentration_percentage: values.media_concentration_percentage,
+      operating_temperature: values.operating_temperature,
+      vapor_pressure: values.vapor_pressure,
+      vapor_pressure_unit: values.vapor_pressure_unit,
+      updated_at: new Date().toISOString(),
+      updated_by: userData?.user.user_email,
+    };
     if (!id) {
-      createMutation.mutate(values);
+      createMutation.mutate({
+        ...values,
+        created_at: new Date().toISOString(),
+        created_by: userData?.user.user_email,
+      });
     } else {
-      updateMutation.mutate({id, data: {
-        ...addData,
-        media_name: values.media_name,
-        media_density: values.media_density,
-        media_viscosity: values.media_viscosity,
-        media_concentration_percentage: values.media_concentration_percentage,
-        operating_temperature: values.operating_temperature,
-        vapor_pressure: values.vapor_pressure,
-        updated_at: new Date().toISOString(),
-        updated_by: userData?.user.user_email,
-      }});
+      updateMutation.mutate({
+        id,
+        data: addData,
+      });
     }
   };
 
@@ -94,10 +153,18 @@ function MediaLOVEdit() {
       <Card className="w-full mt-5">
         <CardContent>
           <Form {...mediaLOVForm}>
-            <form onSubmit={mediaLOVForm.handleSubmit(handleUnitSubmit, (errors) => {
-                console.log("Validation Errors:", [errors, mediaLOVForm.getValues()]);
-                toast.error("Validation Errors");
-              } )}>
+            <form
+              onSubmit={mediaLOVForm.handleSubmit(
+                handleUnitSubmit,
+                (errors) => {
+                  console.log("Validation Errors:", [
+                    errors,
+                    mediaLOVForm.getValues(),
+                  ]);
+                  toast.error("Validation Errors");
+                }
+              )}
+            >
               <div className="text-foreground dark:text-foreground grow flex-1">
                 <FormBox field="Media Information">
                   <div className="space-y-2">
@@ -127,53 +194,102 @@ function MediaLOVEdit() {
                     />
                     <FormField
                       control={mediaLOVForm.control}
-                      name="media_density"
-                      render={({ field }) => (
+                      name="media_density_unit"
+                      render={({ field: Field }) => (
                         <FormItem>
-                          <div className="flex items-center">
-                            <FormLabel className="w-2/12 ">
-                              Density (g/cm³)
-                              
+                          <div className="w-full flex items-center">
+                            <FormLabel className="w-32 lg:w-44">
+                              Media Density
                             </FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="E.g. 1 or 0.98"
-                                {...field}
-                                className="h-7"
+                            <div className="w-full flex gap-2">
+                              <FormField
+                                control={mediaLOVForm.control}
+                                name="media_density"
+                                render={({ field: Field }) => (
+                                  <FormControl className="w-full">
+                                    <Input
+                                      placeholder="Media Density"
+                                      {...Field}
+                                    />
+                                  </FormControl>
+                                )}
                               />
-                            </FormControl>
+                              <FormControl className="md:max-w-[500px]">
+                                <Combobox
+                                  className="min-w-[86px]"
+                                  items={
+                                    handleLOVDataFilter(
+                                      "unit_density",
+                                      "pump_unit"
+                                    ) || []
+                                  } // Dropdown options
+                                  label={
+                                    mediaLOVForm.getValues("media_density_unit")
+                                      ? mediaLOVForm.getValues(
+                                          "media_density_unit"
+                                        )
+                                      : "Select"
+                                  }
+                                  onChange={(value) => {
+                                    Field.onChange(value); // Update form state
+                                  }}
+                                />
+                              </FormControl>
+                            </div>
                           </div>
-                          {showDescriptions && (
-                            <FormDescription>
-                              This is the Shaft.
-                            </FormDescription>
-                          )}
+
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={mediaLOVForm.control}
-                      name="media_viscosity"
-                      render={({ field }) => (
+                      name="media_viscosity_unit"
+                      render={({ field: Field }) => (
                         <FormItem>
-                          <div className="flex items-center">
-                            <FormLabel className="w-2/12 ">
-                              Viscosity (mm²/s)
+                          <div className="w-full flex items-center">
+                            <FormLabel className="w-32 lg:w-44">
+                              Media Viscosity
                             </FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="E.g. 1 or 0.98"
-                                {...field}
-                                className="h-7"
+                            <div className="w-full flex gap-2">
+                              <FormField
+                                control={mediaLOVForm.control}
+                                name="media_viscosity"
+                                render={({ field: Field }) => (
+                                  <FormControl className="w-full">
+                                    <Input
+                                      placeholder="Media Viscosity"
+                                      {...Field}
+                                    />
+                                  </FormControl>
+                                )}
                               />
-                            </FormControl>
+                              <FormControl className="md:max-w-[500px]">
+                                <Combobox
+                                  className="min-w-[86px]"
+                                  items={
+                                    handleLOVDataFilter(
+                                      "unit_viscosity",
+                                      "pump_unit"
+                                    ) || []
+                                  } // Dropdown options
+                                  label={
+                                    mediaLOVForm.getValues(
+                                      "media_viscosity_unit"
+                                    )
+                                      ? mediaLOVForm.getValues(
+                                          "media_viscosity_unit"
+                                        )
+                                      : "Select"
+                                  }
+                                  onChange={(value) => {
+                                    Field.onChange(value); // Update form state
+                                  }}
+                                />
+                              </FormControl>
+                            </div>
                           </div>
-                          {showDescriptions && (
-                            <FormDescription>
-                              This is the Shaft.
-                            </FormDescription>
-                          )}
+
                           <FormMessage />
                         </FormItem>
                       )}
@@ -232,26 +348,52 @@ function MediaLOVEdit() {
                     />
                     <FormField
                       control={mediaLOVForm.control}
-                      name="vapor_pressure"
-                      render={({ field }) => (
+                      name="vapor_pressure_unit"
+                      render={({ field: Field }) => (
                         <FormItem>
-                          <div className="flex items-center">
-                            <FormLabel className="w-2/12 ">
-                              Vapor Pressure (g/mL)
+                          <div className="w-full flex items-center">
+                            <FormLabel className="w-32 lg:w-44">
+                              Vapor Pressure
                             </FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="E.g. 1 or 10"
-                                {...field}
-                                className="h-7"
+                            <div className="w-full flex gap-2">
+                              <FormField
+                                control={mediaLOVForm.control}
+                                name="vapor_pressure"
+                                render={({ field: Field }) => (
+                                  <FormControl className="w-full">
+                                    <Input
+                                      placeholder="Vapor Pressure"
+                                      {...Field}
+                                    />
+                                  </FormControl>
+                                )}
                               />
-                            </FormControl>
+                              <FormControl className="md:max-w-[500px]">
+                                <Combobox
+                                  className="min-w-[86px]"
+                                  items={
+                                    handleLOVDataFilter(
+                                      "unit_pressure",
+                                      "pump_unit"
+                                    ) || []
+                                  } // Dropdown options
+                                  label={
+                                    mediaLOVForm.getValues(
+                                      "vapor_pressure_unit"
+                                    )
+                                      ? mediaLOVForm.getValues(
+                                          "vapor_pressure_unit"
+                                        )
+                                      : "Select"
+                                  }
+                                  onChange={(value) => {
+                                    Field.onChange(value); // Update form state
+                                  }}
+                                />
+                              </FormControl>
+                            </div>
                           </div>
-                          {showDescriptions && (
-                            <FormDescription>
-                              This is the Shaft.
-                            </FormDescription>
-                          )}
+
                           <FormMessage />
                         </FormItem>
                       )}
@@ -275,7 +417,7 @@ function MediaLOVEdit() {
 
 export const Route = createFileRoute("/_auth/pump/media_lov_edit")({
   component: MediaLOVEdit,
-  validateSearch: (search : { id : string}) => {
-    return { id: search.id || null};
+  validateSearch: (search: { id: string }) => {
+    return { id: search.id || null };
   },
 });

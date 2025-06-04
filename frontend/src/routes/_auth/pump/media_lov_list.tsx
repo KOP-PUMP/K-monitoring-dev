@@ -60,11 +60,27 @@ const MediaTable = () => {
       ),
     },
     {
+      accessorKey: "media_density_unit",
+      header: "Unit",
+      label: "Unit",
+      cell: ({ row }) => (
+        <div className="min-w-[50px]">{row.getValue("media_density_unit")}</div>
+      ),
+    },
+    {
       accessorKey: "media_viscosity",
       header: "Viscosity",
       label: "Viscosity",
       cell: ({ row }) => (
         <div className="min-w-[50px]">{row.getValue("media_viscosity")}</div>
+      ),
+    },
+    {
+      accessorKey: "media_viscosity_unit",
+      header: "Unit",
+      label: "Unit",
+      cell: ({ row }) => (
+        <div className="min-w-[50px]">{row.getValue("media_viscosity_unit")}</div>
       ),
     },
     {
@@ -93,6 +109,14 @@ const MediaTable = () => {
       label: "Vapor Pressure",
       cell: ({ row }) => (
         <div className="min-w-[70px]">{row.getValue("vapor_pressure")}</div>
+      ),
+    },
+    {
+      accessorKey: "vapor_pressure_unit",
+      header: "Unit",
+      label: "Unit",
+      cell: ({ row }) => (
+        <div className="min-w-[70px]">{row.getValue("vapor_pressure_unit")}</div>
       ),
     },
     {
