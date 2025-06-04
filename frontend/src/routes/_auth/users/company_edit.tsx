@@ -1,7 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-import { set, string, z } from "zod";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearch } from "@tanstack/react-router";
@@ -57,11 +54,9 @@ import {
 } from "@/types/users/company";
 
 function CompanyEdit() {
-  const [pecCompanyData, setPecCompanyData] =
-    useState<CompaniesResponse | null>(null);
-  const [pecContactData, setPecContactData] =
-    useState<ContactPersonResponse | null>(null);
-  const [companyCode, setCompanyCode] = useState<string | null>(null);
+  const [pecCompanyData, setPecCompanyData] = useState<CompaniesResponse>();
+  const [pecContactData, setPecContactData] = useState<ContactPersonResponse>();
+  const [companyCode, setCompanyCode] = useState<string>("");
   const [isCLearClick, setClearClick] = useState<boolean>(false);
   const [provinceData, setProvinceData] = useState<ComboboxItemProps[]>([]);
   const { code } = useSearch({ from: "/_auth/users/company_edit" });
@@ -69,11 +64,11 @@ function CompanyEdit() {
   const { data: contactData } = useGetPECContactDetail(
     companyCode || code || ""
   );
-  const { data: companyData } = useGetPECCompanyDetail(companyCode || "");
+  const { data: companyData } = useGetPECCompanyDetail(companyCode);
   const { data: companyDetail } = useGetCompanyDetailByCode(code || "");
   const { showDescriptions } = useSettings();
   const localstorage = window.localStorage.getItem("user");
-  const userData = localstorage ? JSON.parse(localstorage) : null;
+  const userData = localstorage ? JSON.parse(localstorage).user : null;
   const geographic: { [key: string]: { th: string; en: string } } = {
     "1": { th: "ภาคเหนือ", en: "Northern" },
     "2": { th: "ภาคกลาง", en: "Central" },
@@ -119,14 +114,15 @@ function CompanyEdit() {
         province: "",
         sales_area: "",
       });
-      setCompanyCode(null);
-      setPecCompanyData(null);
-      setPecContactData(null);
+      setCompanyCode("");
+      setPecCompanyData("");
+      setPecContactData("");
     }
   }, [pecCompanyData, CompanyForm, isCLearClick]);
 
   useEffect(() => {
     if (code) {
+      setPecContactData(contactData);
       CompanyForm.reset({
         customer_code: companyDetail?.customer_code,
         company_name_en: companyDetail?.company_name_en,
@@ -161,12 +157,11 @@ function CompanyEdit() {
       customer_industry_id: "",
       customer_industry_group: "",
       map: "",
-      created_by: pecCompanyData?.created_by || userData.email,
+      created_by: pecCompanyData?.created_by || userData.user_email,
       created_at: pecCompanyData?.created_at || date,
-      updated_by: userData.email,
+      updated_by: userData.user_email,
       updated_at: date,
     };
-
     if (!code) {
       createMutation.mutate(formData);
     } else {

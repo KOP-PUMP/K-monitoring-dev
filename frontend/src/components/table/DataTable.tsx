@@ -14,6 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -77,19 +78,40 @@ export function DataTable({
       columnVisibility,
       rowSelection,
     },
+    initialState: {
+      pagination: {
+        pageSize: 5,
+      },
+    },
   });
 
   return (
-    <div className="max-w-full">
-      <div className="flex items-center py-4">
-        <Input
-          placeholder={`Filter ${search}...`}
-          value={(table.getColumn(search)?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn(search)?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+    <div className="w-full">
+      <div className="flex items-center py-4 gap-4">
+        {typeof search === "object" ? (
+          search.map((search: any, index: number) => (
+            <Input
+              key={index}
+              placeholder={`Filter ${search}...`}
+              value={
+                (table.getColumn(search)?.getFilterValue() as string) ?? ""
+              }
+              onChange={(event) =>
+                table.getColumn(search)?.setFilterValue(event.target.value)
+              }
+              className="max-w-[200px] "
+            />
+          ))
+        ) : (
+          <Input
+            placeholder={`Filter ${search}...`}
+            value={(table.getColumn(search)?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn(search)?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+          />
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -142,7 +164,7 @@ export function DataTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row, index) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -153,6 +175,35 @@ export function DataTable({
                         cell.column.columnDef.cell,
                         cell.getContext()
                       )}
+                      {/* {cell.column.id === "image" ? (
+                        <img
+                          src={cell.getValue<string>()}
+                          alt="image"
+                          className="h-[85px] w-[165px] max-w-[165px] object-cover"
+                        />
+                      ) : cell.column.id === "action" ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <Link
+                              to={`/pump/pump_detail?code=${data[index].company_code}&name=${data[index].name}&status=${data[index].status}`}
+                            >
+                              <DropdownMenuItem>View</DropdownMenuItem>
+                            </Link>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )
+                      )} */}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -172,8 +223,7 @@ export function DataTable({
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} total row(s).
+          {table.getFilteredRowModel().rows.length} Found.
         </div>
         <div className="space-x-2">
           <Button

@@ -1,5 +1,5 @@
 export interface LoginRequest {
-  email: string;
+  user_email: string;
   password: string;
 }
 
@@ -21,5 +21,6 @@ export interface CollapsibleState {
   pumps: boolean;
   pump_data: boolean;
   user_manage : boolean;
+  analytics: boolean;
 };
 

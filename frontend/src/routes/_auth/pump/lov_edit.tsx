@@ -59,10 +59,6 @@ export function LOVEdit() {
     data_value2: "",
     data_value3: "",
     data_value4: "",
-    created_at: new Date().toISOString(),
-    created_by: userData?.email,
-    updated_at: new Date().toISOString(),
-    updated_by: userData?.email,
   };
   // Submission handlers
 
@@ -79,6 +75,10 @@ export function LOVEdit() {
         data_value2: values.additional_1,
         data_value3: values.additional_2,
         data_value4: values.additional_3,
+        created_at: new Date().toISOString(),
+        created_by: userData?.user.user_email,
+        updated_at: new Date().toISOString(),
+        updated_by: userData?.user.user_email,
       });
     } else {
       updateMutation.mutate({
@@ -91,6 +91,8 @@ export function LOVEdit() {
           data_value2: values.additional_1,
           data_value3: values.additional_2,
           data_value4: values.additional_3,
+          updated_at: new Date().toISOString(),
+          updated_by: userData?.user.user_email,
         },
       });
     }

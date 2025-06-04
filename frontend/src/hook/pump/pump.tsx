@@ -5,10 +5,58 @@ import {
   createLOV,
   updateLOV,
   deleteLOV,
-  getAllPumpLOV
+  getAllPumpLOV,
+  getPumpDetailLOV,
+  createPumpDetailLOV,
+  deletePumpDetailLOV,
+  updatePumpDetailLOV,
+  getShaftSealDetailLOV,
+  createShaftSealLOV,
+  updateShaftSeaLOV,
+  deleteShaftSeaLOV,
+  getMaterialDetailLOV,
+  createMaterialLOV,
+  updateMaterialLOV,
+  deleteMaterialLOV,
+  getMotorDetailLOV,
+  createMotorLOV,
+  updateMotorLOV,
+  deleteMotorLOV,
+  getMediaLOV,
+  createMediaLOV,
+  deleteMediaLOV,
+  updateMediaLOV,
+  createPumpDetail
 } from "@/api/pump/pump";
 import { LOVData } from "@/types/table";
+import {
+  PumpDetailLOVResponse,
+  MotorDetailLOVResponse,
+  PumpMatLOVResponse,
+  PumpShaftSealLOVResponse,
+  MediaLOVResponse,
+} from "@/types/pump/pumps";
 import toast from "react-hot-toast";
+import { get } from "http";
+import { create } from "domain";
+
+export const useCreatePumpDetail = () => {
+  return useMutation({
+    mutationFn: createPumpDetail,
+    onSuccess: () => {
+      toast.success("Pump Detail created successfully");
+      setTimeout(() => {
+        for (let n = 1; n <= 5; n++) {
+          window.localStorage.removeItem(`formData${n}`);
+        }
+        window.location.reload();
+      }, 2000);
+    },
+    onError: () => {
+      toast.error("Error creating pump detail");
+    },
+  });
+};
 
 export const useGetAllUnitLOVData = () => {
   return useQuery<LOVData[]>({
@@ -18,11 +66,11 @@ export const useGetAllUnitLOVData = () => {
 };
 
 export const useGetAllPumpLOVData = () => {
-    return useQuery<LOVData[]>({
-      queryKey: ["pump", "lov_list"],
-      queryFn: getAllPumpLOV,
-    });
-  };
+  return useQuery<LOVData[]>({
+    queryKey: ["pump", "lov_list"],
+    queryFn: getAllPumpLOV,
+  });
+};
 
 export const useGetLOVById = (id: string | null) => {
   return useQuery<LOVData>({
@@ -55,25 +103,25 @@ export const useGetLOVById = (id: string | null) => {
 }; */
 
 export const useDeleteLOVById = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-      mutationFn: ({ id }: { id: string }) => deleteLOV(id),
-      onSuccess: (data, variables: { id: string; isUnit: boolean }) => {
-        const { isUnit } = variables;
-  
-        if (isUnit) {
-          queryClient.invalidateQueries({ queryKey: ["pump", "unit_lov"] });
-        } else {
-          queryClient.invalidateQueries({ queryKey: ["pump", "lov_list"] });
-        }
-  
-        toast.success("LOV deleted successfully");
-      },
-      onError: () => {
-        toast.error("Error deleting LOV");
-      },
-    });
-  };
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id }: { id: string }) => deleteLOV(id),
+    onSuccess: (data, variables: { id: string; isUnit: boolean }) => {
+      const { isUnit } = variables;
+
+      if (isUnit) {
+        queryClient.invalidateQueries({ queryKey: ["pump", "unit_lov"] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["pump", "lov_list"] });
+      }
+
+      toast.success("LOV deleted successfully");
+    },
+    onError: () => {
+      toast.error("Error deleting LOV");
+    },
+  });
+};
 
 export const useCreateLOV = () => {
   return useMutation({
@@ -112,5 +160,264 @@ export const useUpdateLOV = () => {
   });
 };
 
+/* Pump detail LOV Hook */ 
 
+export const useGetPumpDetailLOV = (id: string | null) => {
+  return useQuery<PumpDetailLOVResponse[]>({
+    queryKey: ["pump", "pump-detail-lov", id],
+    queryFn: () => getPumpDetailLOV(id),
+  });
+};
 
+export const useCreatePumpDetailLOV = () => {
+  return useMutation({
+    mutationFn: createPumpDetailLOV,
+
+    onSuccess: () => {
+      toast.success("Pump detail LOV created successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: () => {
+      toast.error("Error creating pump detail LOV");
+    },
+  });
+};
+
+export const useDeletePumpDetailLOVById = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id : string) => deletePumpDetailLOV(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pump", "pump-detail-lov"] });
+      toast.success("Pump detail LOV deleted successfully")
+    },
+    onError: () => toast.error("Error deleting pump detail LOV"),
+  });
+};
+
+export const useUpdatePumpDetailLOV = () => {
+  return useMutation({
+    mutationFn: ({ id, data } : { id: string; data: PumpDetailLOVResponse }) => updatePumpDetailLOV({ id, data }),
+    onSuccess: () => {
+      toast.success("Pump detail LOV updated successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: (error) => {
+      toast.error("Error updating pump detail LOV");
+      console.error("Update Error:", error);
+    },
+  });
+};
+
+/* Motor detail LOV Hook */ 
+
+export const useGetMotorDetailLOV = (id: string | null) => {
+  return useQuery<MotorDetailLOVResponse[]>({
+    queryKey: ["motor", "motor_lov", id],
+    queryFn: () => getMotorDetailLOV(id),
+  });
+};
+
+export const useCreateMotorLOV = () => {
+  return useMutation({
+    mutationFn: createMotorLOV,
+    onSuccess: () => {
+      toast.success("Motor LOV created successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: () => {
+      toast.error("Error creating motor LOV");
+    },
+  });
+};
+
+export const useDeleteMotorLOVById = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id : string) => deleteMotorLOV(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["motor", "motor_lov"]});
+      toast.success("Motor LOV deleted successfully")
+    },
+    onError: () => toast.error("Error deleting motor LOV"),
+  });
+};
+
+export const useUpdateMotorLOV = () => {
+  return useMutation({
+    mutationFn: ({ id, data } : { id: string; data: MotorDetailLOVResponse }) => updateMotorLOV({ id, data }),
+    onSuccess: () => {
+      toast.success("Motor LOV updated successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: (error) => {
+      toast.error("Error updating motor LOV");
+      console.error("Update Error:", error);
+    },
+  });
+};
+
+/* Material detail LOV API */
+
+export const useGetMaterialDetailLOV = (id: string | null) => {
+  return useQuery<PumpMatLOVResponse[]>({
+    queryKey: ["material", "material_lov", id],
+    queryFn: () => getMaterialDetailLOV(id),
+  });
+};
+
+export const useCreateMaterialLOV = () => {
+  return useMutation({
+    mutationFn: createMaterialLOV,
+    onSuccess: () => {
+      toast.success("Material LOV created successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: () => {
+      toast.error("Error creating material LOV");
+    },
+  });
+};
+
+export const useDeleteMaterialLOVById = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id : string) => deleteMaterialLOV(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["material", "material_lov"]});
+      toast.success("Material LOV deleted successfully")
+    },
+    onError: () => toast.error("Error deleting material LOV"),
+  });
+};
+
+export const useUpdateMaterialLOV = () => {
+  return useMutation({
+    mutationFn: ({ id, data } : { id: string; data: PumpMatLOVResponse }) => updateMaterialLOV({ id, data }),
+    onSuccess: () => {
+      toast.success("Material LOV updated successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: (error) => {
+      toast.error("Error updating material LOV");
+      console.error("Update Error:", error);
+    },
+  });
+};
+
+/* Shaft/Seal detail LOV API */
+
+export const useGetShaftSealDetailLOV = (id: string | null) => {
+  return useQuery<PumpShaftSealLOVResponse[]>({
+    queryKey: ["shaft_seal", "shaft_seal_lov", id],
+    queryFn: () => getShaftSealDetailLOV(id),
+  });
+};
+
+export const useCreateShaftSealLOV = () => {
+  return useMutation({
+    mutationFn: createShaftSealLOV,
+    onSuccess: () => {
+      toast.success("Shaft/Seal LOV created successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: () => {
+      toast.error("Error creating motor LOV");
+    },
+  });
+};
+
+export const useDeleteShaftSealLOVById = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id : string) => deleteShaftSeaLOV(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shaft_seal", "shaft_seal_lov"]});
+      toast.success("Shaft/Seal LOV deleted successfully")
+    },
+    onError: () => toast.error("Error deleting shaft/seal LOV"),
+  });
+};
+
+export const useUpdateShaftSealLOV = () => {
+  return useMutation({
+    mutationFn: ({ id, data } : { id: string; data: PumpShaftSealLOVResponse }) => updateShaftSeaLOV({ id, data }),
+    onSuccess: () => {
+      toast.success("Shaft/Seal LOV updated successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: (error) => {
+      toast.error("Error updating shaft/seal LOV");
+      console.error("Update Error:", error);
+    },
+  });
+};
+
+/* Media detail LOV API */
+
+export const useGetMediaLOVData = (id: string | null) => {
+  return useQuery<MediaLOVResponse[]>({
+    queryKey: ["pump", "media_list", id],
+    queryFn: () => getMediaLOV(id),
+  });
+};
+
+export const useCreateMediaLOV = () => {
+  return useMutation({
+    mutationFn: createMediaLOV,
+
+    onSuccess: () => {
+      toast.success("media LOV created successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: () => {
+      toast.error("Error creating media LOV");
+    },
+  });
+};
+
+export const useDeleteMediaLOVById = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id : string) => deleteMediaLOV(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pump", "media_list"] });
+      toast.success("LOV deleted successfully")
+    },
+    onError: () => toast.error("Error deleting LOV"),
+  });
+};
+
+export const useUpdateMediaLOV = () => {
+  return useMutation({
+    mutationFn: ({ id, data } : { id: string; data: PumpMatLOVResponse }) => updateMediaLOV({ id, data }),
+    onSuccess: () => {
+      toast.success("Media LOV updated successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    },
+    onError: (error) => {
+      toast.error("Error updating media LOV");
+      console.error("Update Error:", error);
+    },
+  });
+};

@@ -1,4 +1,5 @@
 from django.db import models
+from users.models import CompaniesDetail
 import uuid
 
 # Create your models here.
@@ -23,94 +24,345 @@ class KMonitoringLOV(models.Model):
     def __str__(self):
         return self.type_name
     
-    # class Meta:
-    #    db_table = 'tbl_k_monitoring_lov'
-    
+    class Meta:
+       db_table = 'tbl_k_monitoring_lov'
+
 class PumpDetailLOV(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4) 
-    pump_design = models.CharField(max_length=100 , blank=False, null=False)
-    pump_type = models.CharField(max_length=100 , blank=False, null=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    pump_lov_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    pump_code_name = models.TextField(max_length=100,blank=True, null=True)
+    pump_brand = models.TextField(max_length=100,blank=True, null=True)
+    pump_model = models.TextField(max_length=100,blank=True, null=True)
+    model_size = models.TextField(max_length=100,blank=True, null=True)
+    pump_design = models.TextField(max_length=100,blank=True, null=True)
+    pump_standard = models.TextField(max_length=100,blank=True, null=True)
+    pump_standard_no = models.TextField(max_length=100,blank=True, null=True)
+    pump_impeller_type = models.TextField(max_length=100,blank=True, null=True)
+    pump_flange_con_std = models.TextField(max_length=100,blank=True, null=True)
+    pump_type = models.TextField(max_length=100,blank=True, null=True)
+    pump_stage = models.TextField(max_length=100,blank=True, null=True)
+    pump_seal_chamber = models.TextField(max_length=100,blank=True, null=True)
+    pump_oil_seal = models.TextField(max_length=100,blank=True, null=True)
+    pump_max_temp = models.TextField(max_length=100,blank=True, null=True)
+    pump_suction_size_id = models.TextField(max_length=100,blank=True, null=True)
+    pump_suction_size = models.TextField(max_length=100,blank=True, null=True)
+    pump_suction_rating = models.TextField(max_length=100,blank=True, null=True)
+    pump_discharge_size_id = models.TextField(max_length=100,blank=True, null=True)
+    pump_discharge_size = models.TextField(max_length=100,blank=True, null=True)
+    pump_discharge_rating = models.TextField(max_length=100,blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     created_by = models.CharField(max_length=100,blank=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_by = models.CharField(max_length=100,blank=True, null=True)
 
-    def __str__(self):
-        return self.pump_design
-    
-    # class Meta:
-    #    db_table = 'tbl_pump_detail_lov'
-    
-class PumpStandardLOV(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4) 
-    standard_name = models.CharField(max_length=100 , blank=False, null=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.CharField(max_length=100,blank=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    updated_by = models.CharField(max_length=100,blank=True, null=True)
+    class Meta:
+        db_table = 'tbl_pump_detail_lov'
 
     def __str__(self):
-        return self.standard_name
+        return f"{self.pump_model} {self.pump_brand}"
     
-    # class Meta:
-    #    db_table = 'tbl_pump_standard_lov' 
-
 class MotorDetailLOV(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4) 
-    ie_class = models.CharField(max_length=100 , blank=False, null=False)
-    standard = models.CharField(max_length=100 , blank=False, null=False)
+    motor_lov_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    motor_code_name = models.TextField(max_length=100,blank=True, null=True)
+    motor_model = models.TextField(max_length=100,blank=True, null=True)
+    motor_serial_no = models.TextField(max_length=100,blank=True, null=True)
+    motor_brand = models.TextField(max_length=100,blank=True, null=True)
+    motor_drive = models.TextField(max_length=100,blank=True, null=True)
+    motor_standard = models.TextField(max_length=100,blank=True, null=True)
+    motor_ie = models.TextField(max_length=100,blank=True, null=True)
+    motor_speed = models.TextField(max_length=100,blank=True, null=True)
+    motor_speed_unit = models.TextField(max_length=100,blank=True, null=True)
+    motor_rated = models.TextField(max_length=100,blank=True, null=True)
+    motor_rated_unit = models.TextField(max_length=100,blank=True, null=True)
+    motor_factor = models.TextField(max_length=100,blank=True, null=True)
+    motor_connection = models.TextField(max_length=100,blank=True, null=True)
+    motor_phase = models.TextField(max_length=100,blank=True, null=True)
+    motor_efficiency = models.TextField(max_length=100,blank=True, null=True)
+    motor_efficiency_unit = models.TextField(max_length=100,blank=True, null=True)
+    motor_rated_current = models.TextField(max_length=100,blank=True, null=True)
+    motor_rated_current_unit = models.TextField(max_length=100,blank=True, null=True)
+    coup_type = models.TextField(max_length=100,blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.CharField(max_length=100,blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_by = models.CharField(max_length=100,blank=True, null=True)
+
+    class Meta:
+        db_table = 'tbl_motor_detail_lov'
+
+    def __str__(self):
+        return f"{self.motor_model} {self.motor_brand}"
+
+class ShaftSealLOV(models.Model):
+    shaft_seal_lov_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    shaft_seal_code_name = models.TextField(max_length=100,blank=True, null=True)
+    shaft_seal_design = models.TextField(max_length=100,blank=True, null=True)
+    shaft_seal_brand = models.TextField(max_length=100,blank=True, null=True)
+    shaft_seal_model = models.TextField(max_length=100,blank=True, null=True)
+    shaft_seal_material = models.TextField(max_length=100,blank=True, null=True)
+    mechanical_seal_api_plan = models.TextField(max_length=100,blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.CharField(max_length=100,blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_by = models.CharField(max_length=100,blank=True, null=True)
+
+    class Meta:
+        db_table = 'tbl_shaft_seal_lov'
+
+    def __str__(self):
+        return f"{self.shaft_seal_model} {self.shaft_seal_brand}"
+
+class PumpMaterialLOV(models.Model):
+    material_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    mat_code_name = models.TextField(max_length=100,blank=True, null=True)
+    pump_type_mat = models.TextField(max_length=100,blank=True, null=True)
+    pump_mat_code = models.TextField(max_length=100,blank=True, null=True)
+    casing_mat = models.TextField(max_length=100,blank=True, null=True)
+    casing_cover_mat = models.TextField(max_length=100,blank=True, null=True)
+    impeller_mat = models.TextField(max_length=100,blank=True, null=True)
+    liner_mat = models.TextField(max_length=100,blank=True, null=True)
+    base_mat = models.TextField(max_length=100,blank=True, null=True)
+    pump_head_mat = models.TextField(max_length=100,blank=True, null=True)
+    pump_head_cover_mat = models.TextField(max_length=100,blank=True, null=True)
+    stage_casing_diffuser_mat = models.TextField(max_length=100,blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.CharField(max_length=100,blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_by = models.CharField(max_length=100,blank=True, null=True)
+
+    class Meta:
+        db_table = 'tbl_pump_material_lov'
+
+    def __str__(self):
+        return f"{self.pump_type_mat}"
+
+class MediaLOV(models.Model):
+    media_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
+    media_name = models.TextField(max_length=100,blank=True, null=True)
+    media_density = models.TextField(max_length=100,blank=True, null=True)
+    media_density_unit = models.TextField(max_length=100,blank=True, null=True)
+    media_viscosity = models.TextField(max_length=100,blank=True, null=True)
+    media_viscosity_unit = models.TextField(max_length=100,blank=True, null=True)
+    media_concentration_percentage = models.TextField(max_length=100,blank=True, null=True)
+    operating_temperature = models.TextField(max_length=100,blank=True, null=True)
+    vapor_pressure = models.TextField(max_length=100,blank=True, null=True)
+    vapor_pressure_unit = models.TextField(max_length=100,blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=100,blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.CharField(max_length=100,blank=True, null=True)
 
-    def __str__(self):
-        return self.ie_class
-    
-    # class Meta:
-    #    db_table = 'tbl_motor_detail_lov'
-
-class VibrationLOV(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4) 
-    voltage = models.CharField(max_length=100 , blank=False, null=False)
-    acceptable = models.CharField(max_length=100 , blank=False, null=False)
-    unsatisfied = models.CharField(max_length=100 , blank=False, null=False)
-    unacceptable = models.CharField(max_length=100 , blank=False, null=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.CharField(max_length=100,blank=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    updated_by = models.CharField(max_length=100,blank=True, null=True)
+    class Meta:
+        db_table = 'tbl_media_lov'
 
     def __str__(self):
-        return self.voltage
-        
-    # class Meta:
-    #    db_table = 'tbl_vibration_lov'
+        return f"{self.media_name}"
 
-#This is section of LOV data model include unit and pump lov
 class PumpDetail(models.Model):
-    #key is UUID
+    #Related tables
     pump_id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
-    #1.Pump general detail group. Cell color "Yellow"
-    location = models.TextField(max_length=100,blank=True, null=True)
-    brand = models.TextField(max_length=100,blank=True, null=True)
-    model = models.TextField(max_length=100,blank=True, null=True)
+    company_id = models.UUIDField(blank=True, null=True)
+    pump_lov_id = models.UUIDField(blank=True, null=True)
+    media_lov_id = models.UUIDField(blank=True, null=True)
+    mat_lov_id = models.UUIDField(blank=True, null=True)
+    motor_lov_id = models.UUIDField(blank=True, null=True)
+    shaft_seal_lov_id = models.UUIDField(blank=True, null=True)
+
+    #Pump General details
+    company_code = models.TextField(max_length=100,blank=True, null=True)
+    pump_code_name = models.TextField(max_length=100,blank=True, null=True)
+    doc_customer = models.TextField(max_length=100,blank=True, null=True)
+    doc_no = models.TextField(max_length=100,blank=True, null=True)
+    doc_date = models.TextField(max_length=100,blank=True, null=True)
     tag_no = models.TextField(max_length=100,blank=True, null=True)
     serial_no = models.TextField(max_length=100,blank=True, null=True)
-    pump_standard_id = models.ForeignKey(PumpDetailLOV, on_delete=models.SET_NULL, null=True, blank=True, related_name='pump_standard_id')
-        #missing standard name from lov data that have value (DIN,ANSI,ISO,API)
-    #standard_name = models.TextField(max_length=100,blank=True, null=True)
+    brand = models.TextField(max_length=100,blank=True, null=True)
+    model_short = models.TextField(max_length=100,blank=True, null=True)
+    model = models.TextField(max_length=100,blank=True, null=True)
+    pump_model_size = models.TextField(max_length=100,blank=True, null=True)
+    pump_design = models.TextField(max_length=100,blank=True, null=True)
+    pump_type_name = models.TextField(max_length=100,blank=True, null=True)
     pump_standard = models.TextField(max_length=100,blank=True, null=True)
-    pump_type_id = models.ForeignKey(PumpDetailLOV, on_delete=models.SET_NULL, null=True, blank=True, related_name='pump_type_id')
-    pump_type_name = models.CharField(max_length=50)
-    pump_design = models.TextField(max_length=100,blank=True, null=True)   
+    pump_standard_no = models.TextField(max_length=100,blank=True, null=True)
+    impeller_max = models.TextField(max_length=100,blank=True, null=True)
     stage = models.TextField(max_length=100,blank=True, null=True)
-    #2. Pump technical detail group. cell color "Red"
-    #3. Motor General Details group. cell color "Green" 
-    #4. Impeller Details group. cell color "Orange"
-    #5. Motor General Details group. cell color "Blue"
-    #6. Coupling Details group. cell color "Purple"
-    #7. Mechanical Seal Details group. color "Gray"
-    #8. Mechanical Seal group. color "Brown"
-    #9. Flange Details group. color "Pink"
-    #10. Bearing Details group. color "Turquoise"
+    impeller_type = models.TextField(max_length=100,blank=True, null=True)
+    base_plate = models.TextField(max_length=100,blank=True, null=True)
+    location = models.TextField(max_length=100,blank=True, null=True)
+    pump_status = models.TextField(max_length=100,blank=True, null=True)
+
+    #Pump Technical details
+    design_impeller_dia = models.TextField(max_length=100,blank=True, null=True)
+    max_temp = models.TextField(max_length=100,blank=True, null=True)
+    max_flow = models.TextField(max_length=100,blank=True, null=True)
+    max_flow_unit = models.TextField(max_length=100,blank=True, null=True)
+    min_flow = models.TextField(max_length=100,blank=True, null=True)
+    min_flow_unit = models.TextField(max_length=100,blank=True, null=True)
+    pump_speed = models.TextField(max_length=100,blank=True, null=True)
+    pump_speed_unit = models.TextField(max_length=100,blank=True, null=True)
+    operating_flow = models.TextField(max_length=100,blank=True, null=True)
+    operating_flow_unit = models.TextField(max_length=100,blank=True, null=True)
+    operating_head = models.TextField(max_length=100,blank=True, null=True)
+    operating_head_unit = models.TextField(max_length=100,blank=True, null=True)
+    design_flow = models.TextField(max_length=100,blank=True, null=True)
+    design_flow_unit = models.TextField(max_length=100,blank=True, null=True)
+    design_head = models.TextField(max_length=100,blank=True, null=True)
+    design_head_unit = models.TextField(max_length=100,blank=True, null=True)
+    shut_off_head = models.TextField(max_length=100,blank=True, null=True)
+    shut_off_head_unit = models.TextField(max_length=100,blank=True, null=True)
+    min_head = models.TextField(max_length=100,blank=True, null=True)
+    min_head_unit = models.TextField(max_length=100,blank=True, null=True)
+    max_head = models.TextField(max_length=100,blank=True, null=True)
+    max_head_unit = models.TextField(max_length=100,blank=True, null=True)
+    suction_velo = models.TextField(max_length=100,blank=True, null=True)
+    suction_velo_unit = models.TextField(max_length=100,blank=True, null=True)
+    discharge_velo = models.TextField(max_length=100,blank=True, null=True)
+    discharge_velo_unit = models.TextField(max_length=100,blank=True, null=True)
+    bep_head = models.TextField(max_length=100,blank=True, null=True)
+    bep_head_unit = models.TextField(max_length=100,blank=True, null=True)
+    bep_flow = models.TextField(max_length=100,blank=True, null=True)
+    bep_flow_unit = models.TextField(max_length=100,blank=True, null=True)
+    npshr = models.TextField(max_length=100,blank=True, null=True)
+    npshr_unit = models.TextField(max_length=100,blank=True, null=True)
+    pump_efficiency = models.TextField(max_length=100,blank=True, null=True)
+    pump_efficiency_unit = models.TextField(max_length=100,blank=True, null=True)
+    hyd_power = models.TextField(max_length=100,blank=True, null=True)
+    hyd_power_unit = models.TextField(max_length=100,blank=True, null=True)
+    power_required_cal = models.TextField(max_length=100,blank=True, null=True)
+    power_required_cal_unit = models.TextField(max_length=100,blank=True, null=True)
+    power_min_flow = models.TextField(max_length=100,blank=True, null=True)
+    power_min_flow_unit = models.TextField(max_length=100,blank=True, null=True)
+    power_max_flow = models.TextField(max_length=100,blank=True, null=True)
+    power_max_flow_unit = models.TextField(max_length=100,blank=True, null=True)
+    power_bep_flow = models.TextField(max_length=100,blank=True, null=True)
+    power_bep_flow_unit = models.TextField(max_length=100,blank=True, null=True)
+
+    #Pump Application Data
+    media = models.TextField(max_length=100, blank=True, null=True)
+    oper_temp = models.TextField(max_length=100, blank=True, null=True)
+    solid_type = models.TextField(max_length=100, blank=True, null=True)
+    solid_diameter = models.TextField(max_length=100, blank=True, null=True)
+    density = models.TextField(max_length=100, blank=True, null=True)
+    density_unit = models.TextField(max_length=100, blank=True, null=True)
+    viscosity = models.TextField(max_length=100, blank=True, null=True)
+    viscosity_unit = models.TextField(max_length=100, blank=True, null=True)
+    vapor_pressure = models.TextField(max_length=100, blank=True, null=True)
+    vapor_pressure_unit = models.TextField(max_length=100, blank=True, null=True)
+    tank_position = models.TextField(max_length=100, blank=True, null=True)
+    tank_design = models.TextField(max_length=100, blank=True, null=True)
+    tank_pressure = models.TextField(max_length=100, blank=True, null=True)
+    suction_head = models.TextField(max_length=100, blank=True, null=True)
+    concentration = models.TextField(max_length=100, blank=True, null=True)
+    solid_percentage = models.TextField(max_length=100, blank=True, null=True)
+
+    #Motor General Details
+    motor_code_name = models.TextField(max_length=100, blank=True, null=True) 
+    motor_model = models.TextField(max_length=100, blank=True, null=True) 
+    motor_serial_no = models.TextField(max_length=100, blank=True, null=True) 
+    motor_brand = models.TextField(max_length=100, blank=True, null=True) 
+    motor_drive = models.TextField(max_length=100, blank=True, null=True) 
+    motor_standard = models.TextField(max_length=100, blank=True, null=True) 
+    motor_ie = models.TextField(max_length=100, blank=True, null=True) 
+    motor_speed = models.TextField(max_length=100, blank=True, null=True) 
+    motor_speed_unit = models.TextField(max_length=100, blank=True, null=True) 
+    motor_rated = models.TextField(max_length=100, blank=True, null=True) 
+    motor_rated_unit = models.TextField(max_length=100, blank=True, null=True) 
+    motor_factor = models.TextField(max_length=100, blank=True, null=True) 
+    motor_connection = models.TextField(max_length=100, blank=True, null=True) 
+    motor_phase = models.TextField(max_length=100, blank=True, null=True) 
+    motor_efficiency = models.TextField(max_length=100, blank=True, null=True) 
+    motor_efficiency_unit = models.TextField(max_length=100, blank=True, null=True) 
+    motor_rated_current = models.TextField(max_length=100, blank=True, null=True) 
+    motor_rated_current_unit = models.TextField(max_length=100, blank=True, null=True) 
+    coup_type = models.TextField(max_length=100, blank=True, null=True) 
+
+    #Material and Impeller Details
+    mat_code_name = models.TextField(max_length=100, blank=True, null=True) 
+    casing_mat = models.TextField(max_length=100, blank=True, null=True) 
+    casing_cover_mat = models.TextField(max_length=100, blank=True, null=True) 
+    diffuser_mat = models.TextField(max_length=100, blank=True, null=True) 
+    pump_base_mat = models.TextField(max_length=100, blank=True, null=True) 
+    pump_head_mat = models.TextField(max_length=100, blank=True, null=True) 
+    pump_head_cover_mat = models.TextField(max_length=100, blank=True, null=True) 
+    design_impeller_dia = models.TextField(max_length=100, blank=True, null=True) 
+    impeller_max = models.TextField(max_length=100, blank=True, null=True) 
+    impeller_type = models.TextField(max_length=100, blank=True, null=True) 
+    impeller_mat = models.TextField(max_length=100, blank=True, null=True) 
+    pump_lining_mat = models.TextField(max_length=100, blank=True, null=True) 
+
+    #Mechanical Seal Details
+    shaft_seal_code_name = models.TextField(max_length=100, blank=True, null=True) 
+    shaft_seal_design = models.TextField(max_length=100, blank=True, null=True) 
+    shaft_seal_brand = models.TextField(max_length=100, blank=True, null=True) 
+    shaft_seal_model = models.TextField(max_length=100, blank=True, null=True) 
+    shaft_seal_material = models.TextField(max_length=100, blank=True, null=True) 
+    mechanical_seal_api_plan = models.TextField(max_length=100, blank=True, null=True) 
+    mech_main_pre = models.TextField(max_length=100, blank=True, null=True) 
+    mech_main_pre_unit = models.TextField(max_length=100, blank=True, null=True) 
+    mech_main_temp = models.TextField(max_length=100, blank=True, null=True) 
+    mech_size = models.TextField(max_length=100, blank=True, null=True) 
+    mech_size_unit = models.TextField(max_length=100, blank=True, null=True) 
+
+    #Flange and Bearing Details
+    flang_con_std = models.TextField(max_length=100, blank=True, null=True) 
+    pump_suction_rating = models.TextField(max_length=100, blank=True, null=True) 
+    pump_suction_size = models.TextField(max_length=100, blank=True, null=True) 
+    suction_pipe_sch = models.TextField(max_length=100, blank=True, null=True) 
+    suction_pipe_size = models.TextField(max_length=100, blank=True, null=True) 
+    suction_pipe_id = models.TextField(max_length=100, blank=True, null=True) 
+    suction_pipe_id_unit = models.TextField(max_length=100, blank=True, null=True) 
+    suction_pipe_length = models.TextField(max_length=100, blank=True, null=True) 
+    suction_pipe_length_unit = models.TextField(max_length=100, blank=True, null=True) 
+    suction_elbow = models.TextField(max_length=100, blank=True, null=True) 
+    suction_tee = models.TextField(max_length=100, blank=True, null=True) 
+    suction_reducer = models.TextField(max_length=100, blank=True, null=True) 
+    suction_valve = models.TextField(max_length=100, blank=True, null=True) 
+    suction_y_strainer = models.TextField(max_length=100, blank=True, null=True) 
+    suction_other = models.TextField(max_length=100, blank=True, null=True) 
+    suction_equi_length = models.TextField(max_length=100, blank=True, null=True) 
+    suction_head = models.TextField(max_length=100, blank=True, null=True) 
+    suction_head_unit = models.TextField(max_length=100, blank=True, null=True) 
+    suction_velo = models.TextField(max_length=100, blank=True, null=True) 
+    suction_velo_unit = models.TextField(max_length=100, blank=True, null=True) 
+    pump_discharge_rating = models.TextField(max_length=100, blank=True, null=True) 
+    pump_discharge_size = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_pipe_sch = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_pipe_size = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_pipe_id = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_pipe_id_unit = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_pipe_length_h = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_pipe_length_h_unit = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_pipe_length_v = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_pipe_length_v_unit = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_elbow = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_tee = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_reducer = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_valve = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_y_strainer = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_other = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_equi_length = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_head = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_velo = models.TextField(max_length=100, blank=True, null=True) 
+    discharge_velo_unit = models.TextField(max_length=100, blank=True, null=True)
+
+    #Bearing Detail
+    bearing_nde_one = models.TextField(max_length=100, blank=True, null=True)
+    bearing_de_one = models.TextField(max_length=100, blank=True, null=True)
+    bearing_nde_two = models.TextField(max_length=100, blank=True, null=True)
+    bearing_de_two = models.TextField(max_length=100, blank=True, null=True)
+    bearing_lubric_type = models.TextField(max_length=100, blank=True, null=True)
+    bearing_lubric_brand = models.TextField(max_length=100, blank=True, null=True)
+    bearing_lubric_no = models.TextField(max_length=100, blank=True, null=True)
+    oil_seal = models.TextField(max_length=100, blank=True, null=True)
+    rotation_de = models.TextField(max_length=100, blank=True, null=True)
+    bearing_last_chg_dt = models.TextField(max_length=100, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=100,blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(max_length=100,blank=True, null=True) 
+
+    class Meta:
+        db_table = 'tbl_pump_detail'
+
+    def __str__(self):
+        return f"{self.model} {self.brand} {self.company_code} "

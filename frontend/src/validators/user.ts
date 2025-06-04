@@ -26,4 +26,33 @@ export const ContactOutSchema = z.object({
     tel: z.string(),
     mobile: z.string(),
     email: z.string(),
+
 });
+
+export const UserOutSchema = z.object({
+    user_email: z.string().email({ message: "Invalid email address"}),
+    user_username: z.string(),
+    user_password: z.string().min(8, {message: "Password must be at least 8 characters long"}),
+    user_password_re: z.string(),
+    user_name: z.string(),
+    user_company_code: z.string(),
+    user_role: z.string(),
+    show_name_th: z.string().optional(),
+    show_name_en: z.string().optional(),
+    show_department: z.string().optional(),
+    show_position: z.string().optional(),
+    mobile: z.string().optional(),
+    tel: z.string().optional(),
+    show_company_name_en: z.string().optional(),
+    show_company_name_th: z.string().optional(),
+    show_address_en: z.string().optional(),
+    show_address_th: z.string().optional(),
+    show_province: z.string().optional(),
+    show_sales_area: z.string().optional(),
+    created_by: z.string(),
+    updated_by: z.string()
+}).refine((data)=> data.user_password === data.user_password_re , {
+    message : "Passwords do not match", 
+    path : ["user_password_re"]
+});
+

@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Link, Outlet } from "@tanstack/react-router";
 import { useState } from "react";
 import { CollapsibleState } from "@/types";
+import logo from "../../public/K-MONITORING-LOGO-WEB.png";
 
 import {
   Bell,
@@ -81,6 +82,7 @@ function Dashboard() {
     pumps: false,
     pump_data: false,
     user_manage: false,
+    analytics: false,
   });
 
   const toggleClick = (tab: keyof CollapsibleState) => {
@@ -91,18 +93,24 @@ function Dashboard() {
   };
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] bg-background text-primary">
-      <div className="hidden border-r border-border bg-muted/40 md:block">
+    <div className="flex min-h-screen w-full bg-background text-primary">
+      <div className="hidden w-[300px] border-r border-border bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b border-border px-4 lg:h-[60px] lg:px-6">
-            <Link to="/" className="flex items-center gap-2 font-bold">
-              <Package2 className="h-6 w-6" />
-              <span className="">K-Monitoring</span>
-            </Link>
-            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Toggle notifications</span>
-            </Button>
+            <div className="h-full w-full flex justify-center items-center">
+              <Link to="/" className="flex items-center gap-2 font-bold">
+                <img src={logo} alt="logo" className="h-10 w-10" />
+                <span className="">K-Monitoring</span>
+              </Link>
+              <Button
+                variant="outline"
+                size="icon"
+                className="ml-auto h-6 w-6"
+              >
+                <Bell className="h-4 w-4" />
+                <span className="sr-only">Toggle notifications</span>
+              </Button>
+            </div>
           </div>
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -135,15 +143,14 @@ function Dashboard() {
                     className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
                     activeProps={activeProps}
                   >
-                    Total Pumps
-                    {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                    Total Pump
                   </Link>
                   <Collapsible>
                     <CollapsibleTrigger
                       className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
                       onClick={() => toggleClick("pump_data")}
                     >
-                      <div className="flex gap-3 items-center">Pump Data</div>
+                      <div className="flex gap-3 items-center">Data Table</div>
                       {isOpen.pump_data ? (
                         <ChevronUp className="h-4 w-4" />
                       ) : (
@@ -152,53 +159,78 @@ function Dashboard() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <Link
-                        to="/pump/pump_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Pumps
-                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
-                      </Link>
-                      <Link
-                        to="/pump/mech_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Mechanical Seals
-                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
-                      </Link>
-                      <Link
-                        to="/pump/bearing_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Bearings
-                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
-                      </Link>
-                      <Link
-                        to="/pump/motor_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Motors
-                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
-                      </Link>
-                      <Link
                         to="/pump/unit_list"
                         className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
                         activeProps={activeProps}
                       >
                         Units
-                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
                       </Link>
-                      <Link
+                      {/* <Link
                         to="/pump/lov_list"
                         className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
                         activeProps={activeProps}
                       >
                         List of Values
-                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
-                      </Link>
+                      </Link> */}
+                      <Collapsible>
+                        <CollapsibleTrigger
+                          className="flex w-full justify-between items-center rounded-lg pr-3 pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                          onClick={() => toggleClick("pump_data")}
+                        >
+                          <div className="flex gap-3 items-center">
+                            Pump Data
+                          </div>
+                          {isOpen.pump_data ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <Link
+                            to="/pump/lov_list"
+                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                            activeProps={activeProps}
+                          >
+                            List of Values
+                          </Link>
+                          <Link
+                            to="/pump/pump_detail_lov_list"
+                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                            activeProps={activeProps}
+                          >
+                            Pump Data
+                          </Link>
+                          <Link
+                            to="/pump/motor_lov_list"
+                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                            activeProps={activeProps}
+                          >
+                            Motor Data
+                          </Link>
+                          <Link
+                            to="/pump/material_lov_list"
+                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                            activeProps={activeProps}
+                          >
+                            Material Data
+                          </Link>
+                          <Link
+                            to="/pump/shaft_seal_lov_list"
+                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                            activeProps={activeProps}
+                          >
+                            Shaft/Seal Data
+                          </Link>
+                          <Link
+                            to="/pump/media_lov_list"
+                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                            activeProps={activeProps}
+                          >
+                            Media Data
+                          </Link>
+                        </CollapsibleContent>
+                      </Collapsible>
                     </CollapsibleContent>
                   </Collapsible>
                 </CollapsibleContent>
@@ -211,14 +243,38 @@ function Dashboard() {
                 <Users className="h-4 w-4" />
                 Customers
               </Link>
-              <Link
-                to="/analytic/"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                activeProps={activeProps}
-              >
-                <LineChart className="h-4 w-4" />
-                Analytics
-              </Link>
+              <Collapsible>
+                <CollapsibleTrigger
+                  className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                  onClick={() => toggleClick("analytics")}
+                >
+                  <div className="flex gap-3 items-center">
+                    <LineChart className="h-4 w-4" />
+                    Analytics
+                  </div>
+                  {isOpen.pumps ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Link
+                    to="/analytic/factory_curve"
+                    className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                    activeProps={activeProps}
+                  >
+                    Factory Curve
+                  </Link>
+                  <Link
+                    to="/analytic/report"
+                    className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                    activeProps={activeProps}
+                  >
+                    Service Report
+                  </Link>
+                </CollapsibleContent>
+              </Collapsible>
               <Collapsible>
                 <CollapsibleTrigger
                   className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
@@ -241,7 +297,6 @@ function Dashboard() {
                     activeProps={activeProps}
                   >
                     Companies
-                    {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
                   </Link>
                   <Collapsible>
                     <CollapsibleTrigger
@@ -257,12 +312,11 @@ function Dashboard() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <Link
-                        to="/users/user_list"
+                        to="/users/pec_user_list"
                         className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
                         activeProps={activeProps}
                       >
-                        Service Member
-                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                        PEC Members
                       </Link>
                       <Link
                         to="/users/customer_list"
@@ -270,15 +324,13 @@ function Dashboard() {
                         activeProps={activeProps}
                       >
                         Customer
-                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
                       </Link>
                       <Link
-                        to="/users/contact_list"
+                        to="/users/create_user"
                         className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
                         activeProps={activeProps}
                       >
-                        Contact person
-                        {/* <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">6</Badge> */}
+                        Create User
                       </Link>
                     </CollapsibleContent>
                   </Collapsible>
@@ -301,7 +353,7 @@ function Dashboard() {
           </div> */}
         </div>
       </div>
-      <div className="flex flex-col">
+      <div className="w-full max-w-full flex flex-col overflow-hidden">
         <header className="flex h-14 items-center gap-4 border-b border-border bg-muted/40 px-4 lg:h-[60px] lg:px-6">
           <Sheet>
             <SheetTrigger asChild>
@@ -424,7 +476,7 @@ function Dashboard() {
             </DropdownMenu>
           </div>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-white dark:bg-zinc-950">
+        <main className="w-full min-w-0 flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-white dark:bg-zinc-950">
           <Outlet />
         </main>
       </div>

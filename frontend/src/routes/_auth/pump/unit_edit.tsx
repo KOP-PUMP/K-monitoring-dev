@@ -48,7 +48,7 @@ function UnitEdit() {
   const localstorage = window.localStorage.getItem("user");
   const userData = localstorage !== null ? JSON.parse(localstorage) : null;
   const addData = {
-    type_name: "unit",
+    type_name: "pump_unit",
     product_name: "",
     data_value: "",
     data_value2: "",
@@ -116,7 +116,7 @@ function UnitEdit() {
                             <FormLabel className="w-2/12">Unit name</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="E.g. viscosity_unit or flow_unit"
+                                placeholder="E.g. unit_viscosity or unit_flow"
                                 {...field}
                                 className="h-7"
                               />

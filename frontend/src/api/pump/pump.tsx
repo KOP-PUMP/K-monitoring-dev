@@ -1,95 +1,17 @@
 import {
-  PumpDetailOut,
-  LOVOut,
-  ApiResponse,
-  FetchDataResponse,
+  MediaLOVResponse,
+  PumpDetailLOVResponse,
+  MotorDetailLOVResponse,
+  PumpMatLOVResponse,
+  PumpShaftSealLOVResponse,
+  PumpDetailResponse
 } from "@/types/index";
 import { axiosInstance } from "../utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
-
-const addPumpDetail = async (
-  pumpDetail
-): Promise<ApiResponse<PumpDetailOut>> => {
-  const response = await axiosInstance.post(
-    `${API_BASE_URL}/pumps`,
-    pumpDetail
-  );
-  return response.data;
-};
-
-const getPumpDetailById = async (
-  pumpId: number
-): Promise<ApiResponse<PumpDetailOut>> => {
-  const response = await axiosInstance.get(`${API_BASE_URL}/pumps/${pumpId}`);
-  return response.data;
-};
-
-const getAllPumpDetails = async (): Promise<
-  FetchDataResponse<PumpDetailOut>
-> => {
-  const response = await axiosInstance.get(`${API_BASE_URL}/pumps`);
-  return response.data;
-};
-
-const editPumpDetailById = async (
-  pumpId: number,
-  pumpDetail: PumpDetailIn
-): Promise<ApiResponse<PumpDetailOut>> => {
-  const response = await axiosInstance.put(
-    `${API_BASE_URL}/pumps/${pumpId}`,
-    pumpDetail
-  );
-  return response.data;
-};
-
-const deletePumpDetailById = async (
-  pumpId: number
-): Promise<ApiResponse<PumpDetailOut>> => {
-  const response = await axiosInstance.delete(
-    `${API_BASE_URL}/pumps/${pumpId}`
-  );
-  return response.data;
-};
-
-export const useGetPumpDetailById = (pumpId: number) => {
-  return useQuery({
-    queryKey: ["pump", pumpId],
-    queryFn: () => getPumpDetailById(pumpId),
-  });
-};
-
-export const useAddPumpDetail = () => {
-  return useMutation({
-    mutationFn: addPumpDetail,
-  });
-};
-
-export const AddPumpListData = async (
-  PumpDataForAdd: LOVOut
-): Promise<ApiResponse<LOVOut>> => {
-  const response = await axiosInstance.post(
-    `${API_BASE_URL}/pumps`,
-    PumpDataForAdd
-  );
-  return response.data;
-};
-
-export const AddUnitListData = async (
-  UnitDataForAdd: LOVOut
-): Promise<ApiResponse<LOVOut>> => {
-  const response = await axiosInstance.post(
-    `${API_BASE_URL}/pumps`,
-    UnitDataForAdd
-  );
-  return response.data;
-}; 
-
-/* New create by Kunakorn */
 export const getAllUnitLOV = async (): Promise<LOVOut[]> => {
   try {
-    const response = await axiosInstance.get("/pump-data/unit_lov");
+    const response = await axiosInstance.get("/pump-data/unit-lov");
     return response.data;
   } catch (error) {
     console.error("Error fetching unit LOV data:", error);
@@ -99,13 +21,19 @@ export const getAllUnitLOV = async (): Promise<LOVOut[]> => {
 
 export const getAllPumpLOV = async (): Promise<LOVOut[]> => {
   try {
-    const response = await axiosInstance.get("/pump-data/pump_lov");
+    const response = await axiosInstance.get("/pump-data/pump-lov");
     return response.data;
   } catch (error) {
     console.error("Error fetching pump LOV data:", error);
     throw new Error("Failed to fetch pump LOV data");
   }
 };
+
+export const createPumpDetail = async (data: PumpDetailResponse) => {
+  console.log(data)
+  const response = await axiosInstance.post("/pump-data/pump-detail", data);
+  return response.data;
+}
 
 export const getLOVById = async (id: string) => {
   const response = await axiosInstance.get(`/pump-data/lov/${id}`);
@@ -124,5 +52,189 @@ export const deleteLOV = async (id: string) => {
 
 export const updateLOV = async ({ id, data }: { id: string; data: LOVOut }) => {
   const response = await axiosInstance.put(`/pump-data/lov/${id}`, data);
+  return response.data;
+};
+
+export const getPumpDetailLOV = async (id: string | null) => {
+  if (!id || id === "") {
+    const response = await axiosInstance.get("/pump-data/pump-detail-lov");
+    return response.data.data;
+  } else {
+    const response = await axiosInstance.get(
+      `/pump-data/pump-detail-lov?id=${id}`
+    );
+    return response.data;
+  }
+};
+
+export const createPumpDetailLOV = async (data: PumpDetailLOVResponse) => {
+  const response = await axiosInstance.post("/pump-data/pump-detail-lov", data);
+  return response.data;
+};
+
+export const updatePumpDetailLOV = async ({
+  id,
+  data,
+}: {
+  id: string;
+  data: PumpDetailLOVResponse;
+}) => {
+  const response = await axiosInstance.put(
+    `/pump-data/pump-detail-lov/${id}`,
+    data
+  );
+  return response.data;
+};
+
+export const deletePumpDetailLOV = async (id: string) => {
+  const response = await axiosInstance.delete(
+    `/pump-data/pump-detail-lov/${id}`
+  );
+  return response.data;
+};
+
+/* Motor Detail LOV API */
+
+export const getMotorDetailLOV = async (id: string | null) => {
+  if (!id || id === "") {
+    const response = await axiosInstance.get("/pump-data/motor-lov");
+    return response.data.data;
+  } else {
+    const response = await axiosInstance.get(`/pump-data/motor-lov?id=${id}`);
+    return response.data.data;
+  }
+};
+
+export const createMotorLOV = async (data: MotorDetailLOVResponse) => {
+  const response = await axiosInstance.post("/pump-data/motor-lov", data);
+  return response.data;
+};
+
+export const updateMotorLOV = async ({
+  id,
+  data,
+}: {
+  id: string;
+  data: MotorDetailLOVResponse;
+}) => {
+  const response = await axiosInstance.put(`/pump-data/motor-lov/${id}`, data);
+  return response.data;
+};
+
+export const deleteMotorLOV = async (id: string) => {
+  const response = await axiosInstance.delete(`/pump-data/motor-lov/${id}`);
+  return response.data;
+};
+
+/* Shaft/Seal Detail LOV API */
+
+export const getShaftSealDetailLOV = async (id: string | null) => {
+  if (!id || id === "") {
+    const response = await axiosInstance.get("/pump-data/shaft-seal-lov");
+    return response.data.data;
+  } else {
+    const response = await axiosInstance.get(
+      `/pump-data/shaft-seal-lov?id=${id}`
+    );
+    return response.data.data;
+  }
+};
+
+export const createShaftSealLOV = async (data: PumpShaftSealLOVResponse) => {
+  const response = await axiosInstance.post("/pump-data/shaft-seal-lov", data);
+  return response.data;
+};
+
+export const updateShaftSeaLOV = async ({
+  id,
+  data,
+}: {
+  id: string;
+  data: PumpShaftSealLOVResponse;
+}) => {
+  const response = await axiosInstance.put(
+    `/pump-data/shaft-seal-lov/${id}`,
+    data
+  );
+  return response.data;
+};
+
+export const deleteShaftSeaLOV = async (id: string) => {
+  const response = await axiosInstance.delete(`/pump-data/shaft-seal-lov/${id}`);
+  return response.data;
+};
+
+/* Material Detail LOV API */
+export const getMaterialDetailLOV = async (id: string | null) => {
+  if (!id || id === "") {
+    const response = await axiosInstance.get("/pump-data/material-lov");
+    return response.data.data;
+  } else {
+    const response = await axiosInstance.get(
+      `/pump-data/material-lov?id=${id}`
+    );
+    return response.data.data;
+  }
+};
+
+export const createMaterialLOV = async (data: PumpMatLOVResponse) => {
+  const response = await axiosInstance.post("/pump-data/material-lov", data);
+  return response.data;
+};
+
+export const updateMaterialLOV = async ({
+  id,
+  data,
+}: {
+  id: string;
+  data: PumpMatLOVResponse;
+}) => {
+  const response = await axiosInstance.put(
+    `/pump-data/material-lov/${id}`,
+    data
+  );
+  return response.data;
+};
+
+export const deleteMaterialLOV = async (id: string) => {
+  const response = await axiosInstance.delete(`/pump-data/material-lov/${id}`);
+  return response.data;
+};
+
+/* Media Detail LOV API */
+
+export const getMediaLOV = async (id: string | null) => {
+  try {
+    if (!id || id === "") {
+      const response = await axiosInstance.get("/pump-data/media-lov");
+      return response.data.data;
+    } else {
+      const response = await axiosInstance.get(`/pump-data/media-lov?id=${id}`);
+      return response.data;
+    }
+  } catch (error) {
+    console.error("Error fetching pump LOV data:", error);
+    throw new Error("Failed to fetch pump LOV data");
+  }
+};
+
+export const createMediaLOV = async (data: MediaLOVResponse) => {
+  const response = await axiosInstance.post("/pump-data/media-lov", data);
+  return response.data;
+};
+
+export const updateMediaLOV = async ({
+  id,
+  data,
+}: {
+  id: string;
+  data: MediaLOVResponse;
+}) => {
+  const response = await axiosInstance.put(`/pump-data/media-lov/${id}`, data);
+  return response.data;
+};
+
+export const deleteMediaLOV = async (id: string) => {
+  const response = await axiosInstance.delete(`/pump-data/media-lov/${id}`);
   return response.data;
 };

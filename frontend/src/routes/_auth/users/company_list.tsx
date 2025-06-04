@@ -16,7 +16,7 @@ import {
   CompaniesResponse,
   ContactPersonResponse,
 } from "@/types/users/company";
-import { useGetAllCompaniesData, useDeleteCompany } from "@/hook/users/company";
+import { useGetAllCompaniesDetail, useDeleteCompany } from "@/hook/users/company";
 import { Card } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 
@@ -28,7 +28,7 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
 };
 
 const CompanyTable = () => {
-  const { data: units, isLoading, isError } = useGetAllCompaniesData();
+  const { data: companies, isLoading, isError } = useGetAllCompaniesDetail();
 
   const deleteMutation = useDeleteCompany();
   const handleDeleteData = (code: string) => {
@@ -251,8 +251,8 @@ const CompanyTable = () => {
         </div>
       </div>
       <Card className="px-6 w-full max-w-full overflow-x-hidden">
-        {units ? (
-          <DataTable data={units} columns={columns} search={"customer_code"} />
+        {companies ? (
+          <DataTable data={companies} columns={columns} search={"customer_code"} />
         ) : (
           <div>Error</div>
         )}
