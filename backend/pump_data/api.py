@@ -12,11 +12,38 @@ from django.http import JsonResponse
 @api_controller('/pump-data/', tags=['pump-data'])
 class ListOfValuesController:
 
+    # Pump Detail API
     @http_post('/pump-detail')
     def create_pump_detail(self, request, payload: PumpDetail_schema):
         PumpDetail.objects.create(**payload.dict())
         return JsonResponse({"success": True, "message": f"Pump detail created successfully"}, status=200)
 
+    @http_get('/pump-detail')
+    def get_pump_detail(self, request):
+        pump_id = request.GET.get('id')
+        if pump_id:
+            try:
+                uuid_id = UUID(pump_id)
+                data = get_object_or_404(PumpDetail, pk=uuid_id)
+                data = model_to_dict(data)
+                return JsonResponse(data, status=200)
+            except PumpDetail.DoesNotExist:
+                return JsonResponse({"error": "Pump detail not found"}, status=404)
+        else:
+            pump_detail = list(PumpDetail.objects.all().values())
+            return JsonResponse({"data": pump_detail}, status=200)
+    
+    @http_delete('/pump-detail/{id}')
+    def delete_pump_detail(self, request, id: str):
+        try:
+            uuid_id = UUID(id)
+            data = get_object_or_404(PumpDetail, pk=uuid_id)
+            data.delete()
+            return JsonResponse({"success": True, "message": "Pump detail deleted successfully"}, status=200)
+        except ValueError:
+            return JsonResponse({"error": "Invalid ID format"}, status=400)
+
+    #K-monitoring LOV
     @http_get('/data-lov', response=list[KMonitoringLOV_schema])
     def get_select_option(self, request, name : str = None,type: str = None):
         query = KMonitoringLOV.objects.all()
@@ -63,7 +90,6 @@ class ListOfValuesController:
         return lov
     
 
-
     @http_post('/pump-lov')
     def create_pump_lov(self, request, payload: PumpDetailLOV_schema):
         PumpDetailLOV.objects.create(**payload.dict())
@@ -71,7 +97,6 @@ class ListOfValuesController:
     
     
     # Pump Detail LOV API
-
     @http_get('/pump-detail-lov')
     def get_pump_detail_lov(self, request):
         pump_lov_id = request.GET.get('id')
@@ -86,11 +111,6 @@ class ListOfValuesController:
         else:
             pump_lovs = list(PumpDetailLOV.objects.all().values())
             return JsonResponse({"data": pump_lovs}, status=200)
-        
-    @http_post('/pump-detail')
-    def create_pump_detail(self, request, payload: PumpDetail_schema):
-        PumpDetail.objects.create(**payload.dict())
-        return JsonResponse({"success": True, "message": "Pump detail created successfully"}, status=200)
         
     @http_post('/pump-detail-lov')
     def create_pump_detail_lov(self, request, payload: PumpDetailLOV_schema):
@@ -157,32 +177,7 @@ class ListOfValuesController:
         except ValueError:
             return JsonResponse({"error": "Invalid ID format"}, status=400)
         
-    # Pump Detail API
-    
-    @http_get('/pump-detail/{id}', response=list[PumpDetail_schema])
-    def get_pump_detail(self, request, id: str):
-        if id:
-            try:
-                pump_detail = PumpDetail.objects.get(pump_id=id)
-                return JsonResponse({"data": model_to_dict(pump_detail)}, status=200)
-            except PumpDetail.DoesNotExist:
-                return JsonResponse({"error": "Pump detail not found"}, status=404)
-        else:
-            pump_details = list(PumpDetail.objects.all().values())  # Converts QuerySet to list of dictionaries
-            return JsonResponse({"data": pump_details}, status=200)
-
-    @http_delete('/pump-detail/{id}')
-    def delete_pump_detail(self, request, id: str):
-        try:
-            uuid_id = UUID(id)
-            data = get_object_or_404(PumpDetail, pk=uuid_id)
-            data.delete()
-            return JsonResponse({"success": True, "message": "Pump detail deleted successfully"}, status=200)
-        except ValueError:
-            return JsonResponse({"error": "Invalid ID format"}, status=400)
-        
     # Motor Detail LOV API
-    
     @http_get('/motor-lov')
     def get_motor_lov(self, request):
         motor_lov_id = request.GET.get('id')

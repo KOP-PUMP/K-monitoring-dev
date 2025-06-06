@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "users",
     "pump_data",
     "factory_curve",
+    "engineer"
 ]
 
 MIDDLEWARE = [
