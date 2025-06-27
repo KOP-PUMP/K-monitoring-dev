@@ -43,22 +43,28 @@ export function DataTable({
   data,
   columns,
   search,
+  visible,
 }: {
   data: any;
   columns: any;
   search: any;
+  visible?: any;
 }) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({
-      updated_by: false,
-      updated_at: false,
-      created_by: false,
-      created_at: false,
-    });
+    React.useState<VisibilityState>(
+      visible == ""
+        ? {}
+        : {
+            updated_by: false,
+            updated_at: false,
+            created_by: false,
+            created_at: false,
+          }
+    );
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({

@@ -46,6 +46,7 @@ import { Route as AuthPumpListeditImport } from './routes/_auth/pump/list_edit'
 import { Route as AuthPumpEngineeringImport } from './routes/_auth/pump/engineering'
 import { Route as AuthPumpDetailImport } from './routes/_auth/pump/detail'
 import { Route as AuthCustomersDashboardImport } from './routes/_auth/customers/dashboard'
+import { Route as AuthAnalyticReporteditImport } from './routes/_auth/analytic/report_edit'
 import { Route as AuthAnalyticReportImport } from './routes/_auth/analytic/report'
 import { Route as AuthAnalyticFactorycurveImport } from './routes/_auth/analytic/factory_curve'
 import { Route as AuthAnalyticEngineeringImport } from './routes/_auth/analytic/engineering'
@@ -228,6 +229,11 @@ const AuthCustomersDashboardRoute = AuthCustomersDashboardImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AuthAnalyticReporteditRoute = AuthAnalyticReporteditImport.update({
+  path: '/analytic/report_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
 const AuthAnalyticReportRoute = AuthAnalyticReportImport.update({
   path: '/analytic/report',
   getParentRoute: () => AuthRoute,
@@ -306,6 +312,13 @@ declare module '@tanstack/react-router' {
       path: '/analytic/report'
       fullPath: '/analytic/report'
       preLoaderRoute: typeof AuthAnalyticReportImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/analytic/report_edit': {
+      id: '/_auth/analytic/report_edit'
+      path: '/analytic/report_edit'
+      fullPath: '/analytic/report_edit'
+      preLoaderRoute: typeof AuthAnalyticReporteditImport
       parentRoute: typeof AuthImport
     }
     '/_auth/customers/dashboard': {
@@ -538,6 +551,7 @@ export const routeTree = rootRoute.addChildren({
     AuthAnalyticEngineeringRoute,
     AuthAnalyticFactorycurveRoute,
     AuthAnalyticReportRoute,
+    AuthAnalyticReporteditRoute,
     AuthCustomersDashboardRoute,
     AuthPumpDetailRoute,
     AuthPumpEngineeringRoute,
@@ -594,6 +608,7 @@ export const routeTree = rootRoute.addChildren({
         "/_auth/analytic/engineering",
         "/_auth/analytic/factory_curve",
         "/_auth/analytic/report",
+        "/_auth/analytic/report_edit",
         "/_auth/customers/dashboard",
         "/_auth/pump/detail",
         "/_auth/pump/engineering",
@@ -652,6 +667,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_auth/analytic/report": {
       "filePath": "_auth/analytic/report.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/analytic/report_edit": {
+      "filePath": "_auth/analytic/report_edit.tsx",
       "parent": "/_auth"
     },
     "/_auth/customers/dashboard": {

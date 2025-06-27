@@ -141,6 +141,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.19(postcss@8.4.39)
+      csstype:
+        specifier: ^3.1.3
+        version: 3.1.3
       eslint:
         specifier: ^8.57.0
         version: 8.57.0

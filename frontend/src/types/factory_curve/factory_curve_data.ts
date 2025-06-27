@@ -44,7 +44,7 @@ export interface FactoryCurveNumberResponse {
 export interface PumpDetailCalDataOut {
     pump_lov_id : string
     design_impeller_dia : string
-    model_short : string 
+    pump_model : string 
     pump_model_size : string 
     pump_speed : string 
     pump_speed_unit : string
@@ -52,9 +52,9 @@ export interface PumpDetailCalDataOut {
     design_flow_unit : string 
     design_head : string 
     design_head_unit : string 
-    media : string
-    density : string
-    density_unit : string 
+    media_name : string
+    media_density : string
+    media_density_unit : string 
 }
 
 export interface PumpDetailCalResponse {

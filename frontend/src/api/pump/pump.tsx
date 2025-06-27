@@ -7,7 +7,6 @@ import {
   PumpDetailResponse
 } from "@/types/index";
 import { axiosInstance } from "../utils";
-import { useQuery, useMutation } from "@tanstack/react-query";
 
 export const getAllUnitLOV = async (): Promise<LOVOut[]> => {
   try {
@@ -29,11 +28,26 @@ export const getAllPumpLOV = async (): Promise<LOVOut[]> => {
   }
 };
 
+/* Pump Detail */
+
 export const createPumpDetail = async (data: PumpDetailResponse) => {
-  console.log(data)
   const response = await axiosInstance.post("/pump-data/pump-detail", data);
   return response.data;
 }
+
+export const getPumpDetail = async (id: string | null) => {
+  if (!id || id === "") {
+    const response = await axiosInstance.get("/pump-data/pump-detail");
+    return response.data.data;
+  } else {
+    const response = await axiosInstance.get(
+      `/pump-data/pump-detail?id=${id}`
+    );
+    return response.data;
+  }
+}
+
+/* LOV */
 
 export const getLOVById = async (id: string) => {
   const response = await axiosInstance.get(`/pump-data/lov/${id}`);
@@ -236,5 +250,10 @@ export const updateMediaLOV = async ({
 
 export const deleteMediaLOV = async (id: string) => {
   const response = await axiosInstance.delete(`/pump-data/media-lov/${id}`);
+  return response.data;
+};
+
+export const deletePumpDetail = async (id: string) => {
+  const response = await axiosInstance.delete(`/pump-data/pump-detail/${id}`);
   return response.data;
 };

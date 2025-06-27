@@ -15,8 +15,28 @@ class ListOfValuesController:
     # Pump Detail API
     @http_post('/pump-detail')
     def create_pump_detail(self, request, payload: PumpDetail_schema):
-        PumpDetail.objects.create(**payload.dict())
-        return JsonResponse({"success": True, "message": f"Pump detail created successfully"}, status=200)
+        try:
+            payload_dict = payload.dict()
+            company_instance = CompaniesDetail.objects.get(company_id=payload_dict.get('company_id'))
+            pump_lov_instance = PumpDetailLOV.objects.get(pump_lov_id=payload_dict.get('pump_lov_id'))
+            media_lov_instance = MediaLOV.objects.get(media_lov_id=payload_dict.get('media_lov_id'))
+            mat_lov_instance = PumpMaterialLOV.objects.get(mat_lov_id=payload_dict.get('mat_lov_id'))
+            motor_lov_instance = MotorDetailLOV.objects.get(motor_lov_id=payload_dict.get('motor_lov_id'))
+            shaft_seal_lov_instance = ShaftSealLOV.objects.get(shaft_seal_lov_id=payload_dict.get('shaft_seal_lov_id'))
+
+            payload_dict.update({
+                'company_id' : company_instance,
+                'pump_lov_id' : pump_lov_instance,
+                'media_lov_id' : media_lov_instance,
+                'mat_lov_id' : mat_lov_instance,
+                'motor_lov_id' : motor_lov_instance,
+                'shaft_seal_lov_id' : shaft_seal_lov_instance
+            })
+            PumpDetail.objects.create(**payload_dict)
+            return JsonResponse({"success": True, "message": f"Pump detail created successfully"}, status=200)
+        except ValueError:
+            return JsonResponse({"error": "Error creating pump detail"}, status=400)
+        
 
     @http_get('/pump-detail')
     def get_pump_detail(self, request):
@@ -28,11 +48,12 @@ class ListOfValuesController:
                 data = model_to_dict(data)
                 return JsonResponse(data, status=200)
             except PumpDetail.DoesNotExist:
-                return JsonResponse({"error": "Pump detail not found"}, status=404)
+                return JsonResponse({"error": "Pump not found"}, status=404)
         else:
             pump_detail = list(PumpDetail.objects.all().values())
             return JsonResponse({"data": pump_detail}, status=200)
-    
+
+
     @http_delete('/pump-detail/{id}')
     def delete_pump_detail(self, request, id: str):
         try:
@@ -183,7 +204,7 @@ class ListOfValuesController:
         motor_lov_id = request.GET.get('id')
         if motor_lov_id:
             try:
-                motor_lov = MotorDetailLOV.objects.get(motor_id=motor_lov_id)
+                motor_lov = MotorDetailLOV.objects.get(motor_lov_id=motor_lov_id)
                 return JsonResponse({"data": model_to_dict(motor_lov)}, status=200)
             except MotorDetailLOV.DoesNotExist:
                 return JsonResponse({"error": "Motor LOV not found"}, status=404)
@@ -222,7 +243,7 @@ class ListOfValuesController:
         shaft_seal_lov_id = request.GET.get('id')
         if shaft_seal_lov_id:
             try:
-                shaft_seal_lov = ShaftSealLOV.objects.get(shaft_seal_id=shaft_seal_lov_id)
+                shaft_seal_lov = ShaftSealLOV.objects.get(shaft_seal_lov_id=shaft_seal_lov_id)
                 return JsonResponse({"data": model_to_dict(shaft_seal_lov)}, status=200)
             except ShaftSealLOV.DoesNotExist:
                 return JsonResponse({"error": "Shaft Seal LOV not found"}, status=404)
@@ -261,7 +282,7 @@ class ListOfValuesController:
         material_lov_id = request.GET.get('id')
         if material_lov_id:
             try:
-                material_lov = PumpMaterialLOV.objects.get(material_id=material_lov_id)
+                material_lov = PumpMaterialLOV.objects.get(mat_lov_id=material_lov_id)
                 return JsonResponse({"data": model_to_dict(material_lov)}, status=200)
             except PumpMaterialLOV.DoesNotExist:
                 return JsonResponse({"error": "Material LOV not found"}, status=404)

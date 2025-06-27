@@ -80,7 +80,7 @@ class CalPumpResponse_schema(Schema):
 
 class CalPumpPayload_schema(Schema):
     design_impeller_dia : str
-    model_short : str
+    pump_model : str
     pump_model_size : str
     pump_speed : str
     pump_speed_unit : str
@@ -88,6 +88,6 @@ class CalPumpPayload_schema(Schema):
     design_flow_unit : str
     design_head : str
     design_head_unit : str
-    media : str
-    density : str
-    density_unit : str
+    media_name : str
+    media_density : str
+    media_density_unit : str

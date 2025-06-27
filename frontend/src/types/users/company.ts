@@ -1,20 +1,20 @@
 
 export interface CompaniesResponse {
     company_id ?: any,
-    customer_code : string,
+    customer_code ?: string,
     customer_industry_id ?: string | null,
     customer_industry_group ?: string | null,
-    company_name_en : string,
-    address_en : string,
-    company_name_th : string,
-    address_th : string,
+    company_name_en ?: string,
+    address_en ?: string,
+    company_name_th ?: string,
+    address_th ?: string,
     map ?: string | null,
     province: string,
-    sales_area : string
-    created_by : string,
-    created_at : string,
-    updated_by : string,
-    updated_at : string,
+    sales_area ?: string
+    created_by ?: string,
+    created_at ?: string,
+    updated_by ?: string,
+    updated_at ?: string,
 }
 
 export interface ContactPersonResponse {

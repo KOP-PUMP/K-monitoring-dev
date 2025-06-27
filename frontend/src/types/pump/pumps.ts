@@ -196,31 +196,32 @@ export interface PumpDetailResponse {
 }
 
 export interface PumpDetailLOVResponse {
-  pump_lov_id ?: string ;
-  pump_code_name ?: string ;
-  pump_brand ?: string ;
-  pump_model ?: string ;
-  model_size ?: string ;
-  pump_design ?: string ;
-  pump_standard ?: string ;
-  pump_standard_no ?: string ;
-  pump_impeller_type ?: string ;
-  pump_flange_con_std ?: string ;
-  pump_type ?: string ;
-  pump_stage ?: string ;
-  pump_seal_chamber ?: string ;
-  pump_oil_seal ?: string ;
-  pump_max_temp ?: string ;
-  pump_suction_size_id ?: string ;
-  pump_suction_size ?: string ;
-  pump_suction_rating ?: string ;
-  pump_discharge_size_id ?: string ;
-  pump_discharge_size ?: string ;
-  pump_discharge_rating ?: string ;
-  created_at ?: string ;
-  created_by ?: string ;
-  updated_at ?: string ;
-  updated_by ?: string ;
+  pump_lov_id ?: string;
+  pump_code_name ?: string;
+  pump_brand ?: string;
+  pump_model ?: string;
+  pump_model_size ?: string;
+  pump_design ?: string;
+  pump_standard ?: string;
+  pump_standard_no ?: string;
+  pump_impeller_type ?: string;
+  pump_flange_con_std ?: string;
+  pump_type_name ?: string;
+  pump_stage ?: string;
+  pump_seal_chamber ?: string;
+  pump_oil_seal ?: string;
+  pump_max_temp ?: string;
+  pump_suction_size_id ?: string;
+  pump_suction_size ?: string;
+  pump_suction_rating ?: string;
+  pump_discharge_size_id ?: string;
+  pump_discharge_size ?: string;
+  pump_discharge_rating ?: string;
+  pump_impeller_max_size ?: string;
+  created_at ?: string;
+  created_by ?: string;
+  updated_at ?: string;
+  updated_by ?: string;
 }
 export interface MotorDetailLOVResponse {
   motor_lov_id ?: string ;
@@ -264,7 +265,7 @@ export interface PumpShaftSealLOVResponse {
 }
 
 export interface PumpMatLOVResponse {
-  material_id ?: string ;
+  mat_lov_id ?: string ;
   mat_code_name ?: string ;
   pump_type_mat ?: string ;
   pump_mat_code ?: string ;
@@ -272,7 +273,7 @@ export interface PumpMatLOVResponse {
   casing_cover_mat ?: string ;
   impeller_mat ?: string ;
   liner_mat ?: string ;
-  base_mat ?: string ;
+  pump_base_mat ?: string ;
   pump_head_mat ?: string ;
   pump_head_cover_mat ?: string ;
   stage_casing_diffuser_mat ?: string ;
@@ -283,7 +284,7 @@ export interface PumpMatLOVResponse {
 }
 
 export interface MediaLOVResponse {
-  media_id ?: string ;
+  media_lov_id ?: string ;
   media_name ?: string ;
   media_density ?: string ;
   media_density_unit ?: string ;

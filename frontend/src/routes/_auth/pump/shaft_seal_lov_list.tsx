@@ -216,11 +216,11 @@ const ShaftSealTable = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <Link to={`/pump/shaft_seal_lov_edit?id=${data.shaft_seal_id}`}>
+              <Link to={`/pump/shaft_seal_lov_edit?id=${data.shaft_seal_lov_id}`}>
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() =>handleDeleteData(data.shaft_seal_id)}
+                onClick={() =>handleDeleteData(data.shaft_seal_lov_id)}
               >
                 Delete
               </DropdownMenuItem>

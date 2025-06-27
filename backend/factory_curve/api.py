@@ -14,6 +14,7 @@ from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.interpolate import griddata
+import re
 
 
 #, auth=JWTAuth()
@@ -53,10 +54,10 @@ class FactoryCurveController:
     def get_cal_factory_curve(self, request, payload: CalPumpPayload_schema):
         # Get query parameters
         impeller_dia = float(payload.design_impeller_dia)
-        model = payload.model_short
+        model = payload.pump_model
         speed = payload.pump_speed 
-        size = payload.pump_model_size
-        model_input = f"{model} {size}  {speed}RPM"
+        model_input = f"{model}  {speed}RPM"
+        #model_input = re.sub(r'\s+', '', model_input)
         cal_result = {}
 
         def FindUnitConversion(unit_group : str , unit : str):
@@ -68,11 +69,11 @@ class FactoryCurveController:
         operation_head_unit = FindUnitConversion('unit_head',payload.design_head_unit)
         operation_head_unit_conversion = model_to_dict(operation_head_unit) if operation_head_unit else None
         operation_head_unit_conversion = float(operation_head_unit_conversion["data_value2"])
-        media_density_unit = FindUnitConversion('unit_density',payload.density_unit)
+        media_density_unit = FindUnitConversion('unit_density',payload.media_density_unit)
         media_density_unit_conversion = model_to_dict(media_density_unit) if media_density_unit else None
         media_density_unit_conversion = float(media_density_unit_conversion["data_value2"])
         
-        media_density = float(payload.density) * media_density_unit_conversion
+        media_density = float(payload.media_density) * media_density_unit_conversion
         operation_flow = float(payload.design_flow) * operation_flow_unit_conversion
         operation_head = float(payload.design_head) * operation_head_unit_conversion
 
@@ -85,6 +86,7 @@ class FactoryCurveController:
         #}, safe=False, status=200)
         
         # Filter FactoryCurve objects based on the query parameters
+        #data = list(FactoryCurve.objects.filter(model__regex=f'^{re.escape(model_input)}$'))
         data = list(FactoryCurve.objects.filter(model=model_input))
         def distance_interpolate(y_up,y_low,distance_target_to_upper,distance_target_to_lower):
             return y_low + (distance_target_to_lower * (y_up - y_low)) / (distance_target_to_upper + distance_target_to_lower)

@@ -43,31 +43,57 @@ function MaterialLOVEdit() {
     resolver: zodResolver(PumpMatLOVSchema),
   });
 
-
   const { id } = useSearch({ from: "/_auth/pump/material_lov_edit" });
   const { data: materialData } = useGetMaterialDetailLOV(id);
 
   useEffect(() => {
     if (id && materialData) {
-        materialLOVForm.setValue("mat_code_name", materialData?.mat_code_name ?? "")
-        materialLOVForm.setValue("pump_type_mat", materialData?.pump_type_mat ?? "")
-        materialLOVForm.setValue("pump_mat_code", materialData?.pump_mat_code ?? "")
-        materialLOVForm.setValue("casing_mat", materialData?.casing_mat ?? "")
-        materialLOVForm.setValue("casing_cover_mat", materialData?.casing_cover_mat ?? "")
-        materialLOVForm.setValue("impeller_mat", materialData?.impeller_mat ?? "")
-        materialLOVForm.setValue("liner_mat", materialData?.liner_mat ?? "")
-        materialLOVForm.setValue("base_mat", materialData?.base_mat ?? "")
-        materialLOVForm.setValue("pump_head_mat", materialData?.pump_head_mat ?? "")
-        materialLOVForm.setValue("pump_head_cover_mat", materialData?.pump_head_cover_mat ?? "")
-        materialLOVForm.setValue("stage_casing_diffuser_mat", materialData?.stage_casing_diffuser_mat ?? "")
-    }  
+      materialLOVForm.setValue(
+        "mat_code_name",
+        materialData?.mat_code_name ?? ""
+      );
+      materialLOVForm.setValue(
+        "pump_type_mat",
+        materialData?.pump_type_mat ?? ""
+      );
+      materialLOVForm.setValue(
+        "pump_mat_code",
+        materialData?.pump_mat_code ?? ""
+      );
+      materialLOVForm.setValue("casing_mat", materialData?.casing_mat ?? "");
+      materialLOVForm.setValue(
+        "casing_cover_mat",
+        materialData?.casing_cover_mat ?? ""
+      );
+      materialLOVForm.setValue(
+        "impeller_mat",
+        materialData?.impeller_mat ?? ""
+      );
+      materialLOVForm.setValue("liner_mat", materialData?.liner_mat ?? "");
+      materialLOVForm.setValue(
+        "pump_base_mat",
+        materialData?.pump_base_mat ?? ""
+      );
+      materialLOVForm.setValue(
+        "pump_head_mat",
+        materialData?.pump_head_mat ?? ""
+      );
+      materialLOVForm.setValue(
+        "pump_head_cover_mat",
+        materialData?.pump_head_cover_mat ?? ""
+      );
+      materialLOVForm.setValue(
+        "stage_casing_diffuser_mat",
+        materialData?.stage_casing_diffuser_mat ?? ""
+      );
+    }
   }, [id, materialData]);
 
   //Get data for update when URL has id for update data
   const createMutation = useCreateMaterialLOV();
   const updateMutation = useUpdateMaterialLOV();
 
-  const handleUnitSubmit = (values: z.infer<typeof PumpMatLOVSchema>) => {
+  const handleMatSubmit = (values: z.infer<typeof PumpMatLOVSchema>) => {
     const addData = {
       mat_code_name: values.mat_code_name,
       pump_type_mat: values.pump_type_mat,
@@ -76,7 +102,7 @@ function MaterialLOVEdit() {
       casing_cover_mat: values.casing_cover_mat,
       impeller_mat: values.impeller_mat,
       liner_mat: values.liner_mat,
-      base_mat: values.base_mat,
+      pump_base_mat: values.pump_base_mat,
       pump_head_mat: values.pump_head_mat,
       pump_head_cover_mat: values.pump_head_cover_mat,
       stage_casing_diffuser_mat: values.stage_casing_diffuser_mat,
@@ -97,7 +123,6 @@ function MaterialLOVEdit() {
     }
   };
 
-
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -112,7 +137,7 @@ function MaterialLOVEdit() {
           <Form {...materialLOVForm}>
             <form
               onSubmit={materialLOVForm.handleSubmit(
-                handleUnitSubmit,
+                handleMatSubmit,
                 (errors) => {
                   console.log("Validation Errors:", [
                     errors,
@@ -171,7 +196,9 @@ function MaterialLOVEdit() {
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">
-                            <FormLabel className="w-2/12 ">Pump Material Code</FormLabel>
+                            <FormLabel className="w-2/12 ">
+                              Pump Material Code
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="Pump Material Code"
@@ -229,7 +256,9 @@ function MaterialLOVEdit() {
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">
-                            <FormLabel className="w-2/12 ">Impeller Material</FormLabel>
+                            <FormLabel className="w-2/12 ">
+                              Impeller Material
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="Impeller Material"
@@ -263,7 +292,7 @@ function MaterialLOVEdit() {
                     />
                     <FormField
                       control={materialLOVForm.control}
-                      name="base_mat"
+                      name="pump_base_mat"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">

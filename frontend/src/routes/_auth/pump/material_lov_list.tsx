@@ -12,7 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { PumpMatLOVResponse } from "@/types";
-import { useGetMaterialDetailLOV, useDeleteMaterialLOVById } from "@/hook/pump/pump";
+import {
+  useGetMaterialDetailLOV,
+  useDeleteMaterialLOVById,
+} from "@/hook/pump/pump";
 import { Card } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 
@@ -24,11 +27,11 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
 };
 
 const MaterialTable = () => {
-  const { data : materialData} = useGetMaterialDetailLOV("");
+  const { data: materialData } = useGetMaterialDetailLOV("");
   const deleteMutation = useDeleteMaterialLOVById();
-  const handleDeleteData = (id : string) => {
+  const handleDeleteData = (id: string) => {
     deleteMutation.mutate(id);
-  }; 
+  };
 
   /* Set column */
   const columns: ExtendedColumnDef<PumpMatLOVResponse>[] = [
@@ -159,7 +162,7 @@ const MaterialTable = () => {
       },
     },
     {
-      accessorKey: "base_mat",
+      accessorKey: "pump_base_mat",
       header: ({ column }) => {
         return (
           <Button
@@ -173,7 +176,7 @@ const MaterialTable = () => {
       },
       label: "Base Material",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("base_mat")}</div>;
+        return <div className="pl-4">{row.getValue("pump_base_mat")}</div>;
       },
     },
     {
@@ -209,7 +212,9 @@ const MaterialTable = () => {
       },
       label: "Pump Head Cover Material",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("pump_head_cover_mat")}</div>;
+        return (
+          <div className="pl-4">{row.getValue("pump_head_cover_mat")}</div>
+        );
       },
     },
     {
@@ -227,7 +232,11 @@ const MaterialTable = () => {
       },
       label: "Stage Casing Diffuser Material",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("stage_casing_diffuser_mat")}</div>;
+        return (
+          <div className="pl-4">
+            {row.getValue("stage_casing_diffuser_mat")}
+          </div>
+        );
       },
     },
     {
@@ -306,11 +315,11 @@ const MaterialTable = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <Link to={`/pump/material_lov_edit?id=${data.material_id}`}>
+              <Link to={`/pump/material_lov_edit?id=${data.mat_lov_id}`}>
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() =>handleDeleteData(data.material_id)}
+                onClick={() => handleDeleteData(data.mat_lov_id ?? "")}
               >
                 Delete
               </DropdownMenuItem>
@@ -320,20 +329,24 @@ const MaterialTable = () => {
       },
     },
   ];
-  
+
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 ">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Material Data</h2>
         <div className="flex items-center space-x-2">
-          <Link to="/pump/media_lov_edit" search={{ id: null }}>
+          <Link to="/pump/material_lov_edit" search={{ id: null }}>
             <Button>Add Material</Button>
           </Link>
         </div>
       </div>
       <Card className="px-6 w-full max-w-full overflow-x-hidden">
         {materialData ? (
-          <DataTable data={materialData} columns={columns} search={"mat_code_name"} />
+          <DataTable
+            data={materialData}
+            columns={columns}
+            search={"mat_code_name"}
+          />
         ) : (
           <div>Error</div>
         )}

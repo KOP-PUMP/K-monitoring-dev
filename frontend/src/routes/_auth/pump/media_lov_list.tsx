@@ -219,11 +219,11 @@ const MediaTable = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <Link to={`/pump/media_lov_edit?id=${data.media_id}`}>
+              <Link to={`/pump/media_lov_edit?id=${data.media_lov_id}`}>
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() =>handleDeleteData(data.media_id)}
+                onClick={() =>handleDeleteData(data.media_lov_id)}
               >
                 Delete
               </DropdownMenuItem>

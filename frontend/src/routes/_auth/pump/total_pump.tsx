@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/table/DataTable";
 import { PumpDataType } from "@/data/pump_models";
+import { useGetPumpDetail } from "@/hook/pump/pump";
 import {
   GearIcon,
   PersonIcon,
@@ -20,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-
+import { useDeletePump } from "@/hook/pump/pump";
 import { pumpData } from "@/data/pump_models";
 
 export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
@@ -30,60 +31,122 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
   label?: string; // Add the label property
 };
 
-/**
- * TotalPump
- *
- * This component renders a dashboard showing the total pumps, customer count, pumps requiring maintenance, and pumps needing recheck.
- *
- * It also renders a table showing the list of pumps with their respective details like image, name, brand, company code, province, sales area, status, created at, and created by.
- *
- * The table is searchable and sortable.
- *
- * @returns A React component
- */
 function TotalPump() {
+  const { data: pumpDetailData } = useGetPumpDetail("");
+  const deleteMutation = useDeletePump()
+  const handlePumpDelete = (id: string) => {
+    console.log(id);
+    deleteMutation.mutate(id)
+  }
+
   const columns: ExtendedColumnDef<PumpDataType>[] = [
     {
-      accessorKey: "image",
-      header: ({ column }) => {
-        return "";
-      },
-      label: "image",
-      cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("image")}</div>;
-      },
-    },
-    {
-      accessorKey: "name",
-      label: "Pump name",
+      accessorKey: "pump_code_name",
+      label: "Pump",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Pump name
+            Pump
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
-      cell: ({ row }) => <div className="pl-4">{row.getValue("name")}</div>,
+      cell: ({ row }) => (
+        <div className="pl-4">{row.getValue("pump_code_name")}</div>
+      ),
     },
     {
-      accessorKey: "brand",
-      label: "Brand",
+      accessorKey: "pump_speed",
+      label: "Speed",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Brand
+            Speed (RPM)
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
-      cell: ({ row }) => <div className="pl-4">{row.getValue("brand")}</div>,
+      cell: ({ row }) => (
+        <div className="pl-4">{`${row.getValue("pump_speed")}`}</div>
+      ),
+    },
+    {
+      accessorKey: "design_impeller_dia",
+      label: "Impeller Diameter",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Impeller Diameter
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="pl-4">{`${row.getValue("design_impeller_dia")}`}</div>
+      ),
+    },
+    {
+      accessorKey: "pump_type_name",
+      label: "Pump Type",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Pump Type
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="pl-4">{row.getValue("pump_type_name")}</div>
+      ),
+    },
+    {
+      accessorKey: "pump_design",
+      label: "Pump Design",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Pump Design
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="pl-4">{row.getValue("pump_design")}</div>
+      ),
+    },
+    {
+      accessorKey: "pump_status",
+      label: "Pump Status",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Pump Status
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="pl-4">{row.getValue("pump_status")}</div>
+      ),
     },
     {
       accessorKey: "company_code",
@@ -104,6 +167,76 @@ function TotalPump() {
       ),
     },
     {
+      accessorKey: "doc_customer",
+      label: "Customer Note",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Customer Note
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="pl-4">{row.getValue("doc_customer")}</div>
+      ),
+    },
+    {
+      accessorKey: "company_name_en",
+      label: "Company Name (Eng)",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Company Name (Eng)
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="pl-4">{row.getValue("company_name_en")}</div>
+      ),
+    },
+    {
+      accessorKey: "company_name_th",
+      label: "Company Name (TH)",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Company Name (Eng)
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="pl-4">{row.getValue("company_name_th")}</div>
+      ),
+    },
+    {
+      accessorKey: "location",
+      label: "Location",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Location
+            <ArrowUpDown className="pl-2" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div className="pl-4">{row.getValue("location")}</div>,
+    },
+    {
       accessorKey: "province",
       label: "Province",
       header: ({ column }) => {
@@ -112,23 +245,25 @@ function TotalPump() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Province"}
+            Province
             <ArrowUpDown className="pl-2" />
           </Button>
         );
       },
-      cell: ({ row }) => <div className="pl-4">{row.getValue("province")}</div>,
+      cell: ({ row }) => (
+        <div className="pl-4">{row.getValue("province")}</div>
+      ),
     },
     {
       accessorKey: "sales_area",
-      label: "Sales Area",
+      label: "Sale Area",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Sales Area"}
+            Sale Area
             <ArrowUpDown className="pl-2" />
           </Button>
         );
@@ -138,111 +273,11 @@ function TotalPump() {
       ),
     },
     {
-      accessorKey: "status",
-      label: "Status",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Status"}
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => <div className="pl-4">{row.getValue("status")}</div>,
-    },
-    {
-      accessorKey: "created_at",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Created at
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      label: "Created at",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("created_at"));
-        const dateFormatted = date.toLocaleDateString("en-US", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
-        return <div className="pl-4">{dateFormatted}</div>;
-      },
-    },
-    {
-      accessorKey: "created_by",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Created by
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      label: "Created by",
-      cell: ({ row }) => (
-        <div className="pl-4">{row.getValue("created_by")}</div>
-      ),
-    },
-    {
-      accessorKey: "updated_at",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Updated at
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      label: "Updated at",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("updated_at"));
-        const dateFormatted = date.toLocaleDateString("en-US", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
-        return <div className="pl-4">{dateFormatted}</div>;
-      },
-    },
-    {
-      accessorKey: "updated_by",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Updated by
-            <ArrowUpDown className="pl-2" />
-          </Button>
-        );
-      },
-      label: "Updated by",
-      cell: ({ row }) => (
-        <div className="pl-4">{row.getValue("updated_by")}</div>
-      ),
-    },
-    {
       id: "action",
       enableHiding: false,
       label: "Action",
       cell: ({ row }) => {
-        const company = row.original;
+        const row_data = row.original;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -254,13 +289,19 @@ function TotalPump() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <Link
-                to={`/pump/pump_detail?code=${company.company_code}&name=${company.name}&status=${company.status}`}
+                to={`/pump/pump_detail?id=${row_data.pump_id}`}
               >
                 <DropdownMenuItem>View</DropdownMenuItem>
               </Link>
+              <Link
+                to={`/analytic/report?id=${row_data.pump_id}`}
+              >
+                <DropdownMenuItem>Report</DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem onClick={() => handlePumpDelete(row_data.pump_id)}>Delete</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )
+        );
       },
     },
   ];
@@ -325,11 +366,11 @@ function TotalPump() {
 
       <div className="flex flex-col gap-4 max-w-full w-full">
         <Card className="w-full flex flex-col gap-4 p-4 overflow-x-hidden">
-          {pumpData ? (
+          {pumpDetailData ? (
             <DataTable
-              data={pumpData}
+              data={pumpDetailData}
               columns={columns}
-              search={["name", "status"]}
+              search={["pump_code_name", "pump_status"]}
             />
           ) : (
             <div>Error</div>

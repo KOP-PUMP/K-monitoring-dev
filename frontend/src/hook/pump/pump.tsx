@@ -26,7 +26,9 @@ import {
   createMediaLOV,
   deleteMediaLOV,
   updateMediaLOV,
-  createPumpDetail
+  createPumpDetail,
+  getPumpDetail,
+  deletePumpDetail
 } from "@/api/pump/pump";
 import { LOVData } from "@/types/table";
 import {
@@ -35,6 +37,7 @@ import {
   PumpMatLOVResponse,
   PumpShaftSealLOVResponse,
   MediaLOVResponse,
+  PumpDetailResponse,
 } from "@/types/pump/pumps";
 import toast from "react-hot-toast";
 import { get } from "http";
@@ -57,6 +60,13 @@ export const useCreatePumpDetail = () => {
     },
   });
 };
+
+export const useGetPumpDetail = (id: string | null) => {
+  return useQuery({
+    queryKey: ["pump", "pump_detail", id],
+    queryFn: () => getPumpDetail(id),
+  });
+}
 
 export const useGetAllUnitLOVData = () => {
   return useQuery<LOVData[]>({
@@ -421,3 +431,15 @@ export const useUpdateMediaLOV = () => {
     },
   });
 };
+
+export const useDeletePump = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id : string) => deletePumpDetail(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pump", "pump_detail"]});
+      toast.success("Pump detail deleted successfully")
+    },
+    onError: () => toast.error("Error deleting pump detail"),
+  });
+}

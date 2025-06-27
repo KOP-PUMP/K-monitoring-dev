@@ -266,13 +266,6 @@ function Dashboard() {
                   >
                     Factory Curve
                   </Link>
-                  <Link
-                    to="/analytic/report"
-                    className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                    activeProps={activeProps}
-                  >
-                    Service Report
-                  </Link>
                 </CollapsibleContent>
               </Collapsible>
               <Collapsible>
