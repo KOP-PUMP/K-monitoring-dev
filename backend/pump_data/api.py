@@ -37,7 +37,6 @@ class ListOfValuesController:
         except ValueError:
             return JsonResponse({"error": "Error creating pump detail"}, status=400)
         
-
     @http_get('/pump-detail')
     def get_pump_detail(self, request):
         pump_id = request.GET.get('id')
@@ -110,13 +109,11 @@ class ListOfValuesController:
         lov = KMonitoringLOV.objects.create(**payload.dict())
         return lov
     
-
     @http_post('/pump-lov')
     def create_pump_lov(self, request, payload: PumpDetailLOV_schema):
         PumpDetailLOV.objects.create(**payload.dict())
         return JsonResponse({"success": True, "message": "Pump LOV created successfully"}, status=200)
-    
-    
+        
     # Pump Detail LOV API
     @http_get('/pump-detail-lov')
     def get_pump_detail_lov(self, request):
@@ -135,8 +132,11 @@ class ListOfValuesController:
         
     @http_post('/pump-detail-lov')
     def create_pump_detail_lov(self, request, payload: PumpDetailLOV_schema):
-        PumpDetailLOV.objects.create(**payload.dict())
-        return JsonResponse({"success": True, "message": "Pump detail LOV created successfully"}, status=200)
+        try:
+            PumpDetailLOV.objects.create(**payload.dict())
+            return JsonResponse({"success": True, "message": "Pump detail LOV created successfully"}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
     
     @http_put('/pump-detail-lov/{id}', response=PumpDetailLOV_schema)
     def update_pump_detail_lov(self, request, id: str, payload: PumpDetailLOV_schema):
@@ -211,7 +211,7 @@ class ListOfValuesController:
         else:
             motor_lovs = list(MotorDetailLOV.objects.all().values())
             return JsonResponse({"data": motor_lovs}, status=200)
-        00
+        
     @http_put('/motor-lov/{id}', response=MotorDetailLOV_schema)
     def update_motor_lov(self, request, id: str, payload: MotorDetailLOV_schema):
         uuid_id = UUID(id)

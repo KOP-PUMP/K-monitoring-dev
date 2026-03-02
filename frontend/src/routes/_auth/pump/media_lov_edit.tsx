@@ -129,7 +129,7 @@ function MediaLOVEdit() {
     };
     if (!id) {
       createMutation.mutate({
-        ...values,
+        ...addData,
         created_at: new Date().toISOString(),
         created_by: userData?.user.user_email,
       });

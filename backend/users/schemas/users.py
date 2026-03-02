@@ -2,6 +2,7 @@ from pydantic import EmailStr, Field
 from typing import Optional
 from datetime import datetime
 from ninja import Schema
+from uuid import UUID
 
 class UserProfileData(Schema):
     user_username: str = Field(max_length=50)
@@ -30,5 +31,13 @@ class UserCreateWithProfileSchema(Schema):
     user_email : EmailStr
     user_username : str
     user_password : str
-    user_role: str = Field(max_length=30)
+    user_role: str
     profile: Optional[UserProfileData] = None
+    
+class UserOnlyOut(Schema):
+    id : Optional[UUID] = None
+    user_username : Optional[str] = None
+    user_email : Optional[str] = None
+    user_role : Optional[str] = None
+    is_active : Optional[bool] = None
+    is_staff : Optional[bool] = None

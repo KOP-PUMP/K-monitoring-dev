@@ -18,10 +18,12 @@ export const getPECPersonByCode = async (code: string) => {
     const response = await axiosInstance.get(`/users/${email}`);
 } */
 
-/* export const createUser = async (data: CreateUserOut) => {
-    try {
-    const cheeckDupUser = await axiosInstance.get(`/users/${data.username}`);
-
+export const createUser = async (data: CreateUserOut) => {
     const response = await axiosInstance.post(`/users/profile`, data);
-    }
-} */
+    return response.data;
+}
+
+export const getUserProfile = async (role: 'Customer' | 'Member') => {
+    const response = await axiosInstance.get(`/users/profile?user_role=${role}`);
+    return response.data;
+}

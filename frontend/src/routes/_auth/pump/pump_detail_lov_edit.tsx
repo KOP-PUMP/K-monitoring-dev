@@ -43,67 +43,67 @@ function MediaLOVEdit() {
   const { data: pumpDetailLOV } = useGetPumpDetailLOV(id);
   useEffect(() => {
     if (id && pumpDetailLOV) {
-        pumpDetailLOVForm.setValue("pump_code_name", pumpDetailLOV?.pump_code_name);
-        pumpDetailLOVForm.setValue("pump_brand", pumpDetailLOV?.pump_brand);
-        pumpDetailLOVForm.setValue("pump_model", pumpDetailLOV?.pump_model);
-        pumpDetailLOVForm.setValue("model_size", pumpDetailLOV?.model_size);
+        pumpDetailLOVForm.setValue("pump_code_name", pumpDetailLOV[0]?.pump_code_name);
+        pumpDetailLOVForm.setValue("pump_brand", pumpDetailLOV[0]?.pump_brand);
+        pumpDetailLOVForm.setValue("pump_model", pumpDetailLOV[0]?.pump_model);
+        pumpDetailLOVForm.setValue("pump_model_size", pumpDetailLOV[0]?.pump_model_size);
         pumpDetailLOVForm.setValue(
           "pump_design",
-          pumpDetailLOV?.pump_design
+          pumpDetailLOV[0]?.pump_design
         );
         pumpDetailLOVForm.setValue(
           "pump_standard",
-          pumpDetailLOV?.pump_standard
+          pumpDetailLOV[0]?.pump_standard
         );
         pumpDetailLOVForm.setValue(
           "pump_standard_no",
-          pumpDetailLOV?.pump_standard_no
+          pumpDetailLOV[0]?.pump_standard_no
         );
         pumpDetailLOVForm.setValue(
           "pump_impeller_type",
-          pumpDetailLOV?.pump_impeller_type
+          pumpDetailLOV[0]?.pump_impeller_type
         );
         pumpDetailLOVForm.setValue(
           "pump_flange_con_std",
-          pumpDetailLOV?.pump_flange_con_std
+          pumpDetailLOV[0]?.pump_flange_con_std
         );
-        pumpDetailLOVForm.setValue("pump_type", pumpDetailLOV?.pump_type);
-        pumpDetailLOVForm.setValue("pump_stage", pumpDetailLOV?.pump_stage);
+        pumpDetailLOVForm.setValue("pump_type_name", pumpDetailLOV[0]?.pump_type_name);
+        pumpDetailLOVForm.setValue("pump_stage", pumpDetailLOV[0]?.pump_stage);
         pumpDetailLOVForm.setValue(
           "pump_seal_chamber",
-          pumpDetailLOV?.pump_seal_chamber
+          pumpDetailLOV[0]?.pump_seal_chamber
         );
         pumpDetailLOVForm.setValue(
           "pump_oil_seal",
-          pumpDetailLOV?.pump_oil_seal
+          pumpDetailLOV[0]?.pump_oil_seal
         );
         pumpDetailLOVForm.setValue(
           "pump_max_temp",
-          pumpDetailLOV?.pump_max_temp
+          pumpDetailLOV[0]?.pump_max_temp
         );
         pumpDetailLOVForm.setValue(
           "pump_suction_size_id",
-          pumpDetailLOV?.pump_suction_size_id
+          pumpDetailLOV[0]?.pump_suction_size_id
         );
         pumpDetailLOVForm.setValue(
           "pump_suction_size",
-          pumpDetailLOV?.pump_suction_size
+          pumpDetailLOV[0]?.pump_suction_size
         );
         pumpDetailLOVForm.setValue(
           "pump_suction_rating",
-          pumpDetailLOV?.pump_suction_rating
+          pumpDetailLOV[0]?.pump_suction_rating
         );
         pumpDetailLOVForm.setValue(
           "pump_discharge_size_id",
-          pumpDetailLOV?.pump_discharge_size_id
+          pumpDetailLOV[0]?.pump_discharge_size_id
         );
         pumpDetailLOVForm.setValue(
           "pump_discharge_size",
-          pumpDetailLOV?.pump_discharge_size
+          pumpDetailLOV[0]?.pump_discharge_size
         );
         pumpDetailLOVForm.setValue(
           "pump_discharge_rating",
-          pumpDetailLOV?.pump_discharge_rating
+          pumpDetailLOV[0]?.pump_discharge_rating
         );
     }
   }, [id, pumpDetailLOV]);
@@ -114,30 +114,33 @@ function MediaLOVEdit() {
   const handlePumpDetailSubmit = (
     values: z.infer<typeof PumpDetailLOVSchema>
   ) => {
-    const addData = {
-      pump_code_name: values.pump_code_name,
-      pump_brand: values.pump_brand,
-      pump_model: values.pump_model,
-      model_size: values.model_size,
-      pump_design: values.pump_design,
-      pump_standard: values.pump_standard,
-      pump_standard_no: values.pump_standard_no,
-      pump_impeller_type: values.pump_impeller_type,
-      pump_flange_con_std: values.pump_flange_con_std,
-      pump_type: values.pump_type,
-      pump_stage: values.pump_stage,
-      pump_seal_chamber: values.pump_seal_chamber,
-      pump_oil_seal: values.pump_oil_seal,
-      pump_max_temp: values.pump_max_temp,
-      pump_suction_size_id: values.pump_suction_size_id,
-      pump_suction_size: values.pump_suction_size,
-      pump_suction_rating: values.pump_suction_rating,
-      pump_discharge_size_id: values.pump_discharge_size_id,
-      pump_discharge_size: values.pump_discharge_size,
-      pump_discharge_rating: values.pump_discharge_rating,
+    console.log(values);
+    if (values) {
+      const addData = {
+      pump_code_name: values.pump_code_name || "",
+      pump_brand: values.pump_brand || "",
+      pump_model: values.pump_model || "",
+      pump_model_size: values.pump_model_size || "",
+      pump_design: values.pump_design || "",
+      pump_standard: values.pump_standard || "",
+      pump_standard_no: values.pump_standard_no || "",
+      pump_impeller_type: values.pump_impeller_type || "",
+      pump_flange_con_std: values.pump_flange_con_std || "",
+      pump_type_name: values.pump_type_name || "",
+      pump_stage: values.pump_stage || "",
+      pump_seal_chamber: values.pump_seal_chamber || "",
+      pump_oil_seal: values.pump_oil_seal || "",
+      pump_max_temp: values.pump_max_temp || "",
+      pump_suction_size_id: values.pump_suction_size_id || "",
+      pump_suction_size: values.pump_suction_size || "",
+      pump_suction_rating: values.pump_suction_rating || "",
+      pump_discharge_size_id: values.pump_discharge_size_id || "",
+      pump_discharge_size: values.pump_discharge_size || "",
+      pump_discharge_rating: values.pump_discharge_rating || "",
       updated_at: new Date().toISOString(),
       updated_by: userData?.user.user_email,
     };
+    
     if (!id) {
       createMutation.mutate({
         ...addData,
@@ -146,6 +149,7 @@ function MediaLOVEdit() {
       });
     } else {
       updateMutation.mutate({ id, data: addData });
+    }
     }
   };
 
@@ -165,6 +169,7 @@ function MediaLOVEdit() {
               onSubmit={pumpDetailLOVForm.handleSubmit(
                 handlePumpDetailSubmit,
                 (errors) => {
+                  console.log(object);
                   console.log("Validation Errors:", [
                     errors,
                     pumpDetailLOVForm.getValues(),
@@ -233,7 +238,7 @@ function MediaLOVEdit() {
                     />
                     <FormField
                       control={pumpDetailLOVForm.control}
-                      name="model_size"
+                      name="pump_model_size"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">
@@ -353,7 +358,7 @@ function MediaLOVEdit() {
                     />
                     <FormField
                       control={pumpDetailLOVForm.control}
-                      name="pump_type"
+                      name="pump_type_name"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center">

@@ -27,7 +27,6 @@ const FactoryCurve = () => {
     isError,
   } = useGetFactoryCurveData(null, null, factoryNumber);
 
-  console.log(factoryCurveData)
   const graphTypes: ComboboxItemProps[] = [
     { value: "line", label: "Show Lines Plot" },
     { value: "scatter", label: "Show Scatter Plot" },

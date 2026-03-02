@@ -494,13 +494,13 @@ export default function PumpList() {
         shut_off_head: pumpDetailCalData.shut_off_head.toFixed(2),
         npshr: pumpDetailCalData.npshr.toFixed(2),
         pump_efficiency: pumpDetailCalData.operation_point.eff.toFixed(2),
-        hyd_power: pumpDetailCalData.hydraulic_power.toFixed(2),
-        power_min_flow: pumpDetailCalData.power_min_flow.toFixed(2),
-        power_max_flow: pumpDetailCalData.power_max_flow.toFixed(2),
-        power_required_cal: pumpDetailCalData.power_required_cal.toFixed(2),
-        power_bep_flow: pumpDetailCalData.power_bep.toFixed(2),
-        pump_efficiency_unit: pumpDetailCalData.unit.unit_eff,
-        shut_off_head_unit: pumpDetailCalData.unit.unit_head,
+        hyd_power: pumpDetailCalData.hydraulic_power_kW.toFixed(2),
+        power_min_flow: pumpDetailCalData.power_min_flow_kW.toFixed(2),
+        power_max_flow: pumpDetailCalData.power_max_flow_kW.toFixed(2),
+        power_required_cal: pumpDetailCalData.power_required_cal_kW.toFixed(2),
+        power_bep_flow: pumpDetailCalData.power_bep_kW.toFixed(2),
+        pump_efficiency_unit: pumpDetailCalData.units.unit_eff,
+        shut_off_head_unit: pumpDetailCalData.units.unit_head,
       });
     }
   }, [pumpDetailCalData]);
@@ -1352,7 +1352,6 @@ export default function PumpList() {
                                     <Input
                                       placeholder="Impeller Max"
                                       {...field}
-                                      readOnly
                                     />
                                   </FormControl>
                                 </div>
@@ -2061,8 +2060,8 @@ export default function PumpList() {
                               <HeadFlowGraph
                                 chartData={
                                   pumpDetailCalData && [
-                                    ...pumpDetailCalData.desire_curve_data,
-                                    ...pumpDetailCalData.total_curve_data,
+                                    ...pumpDetailCalData.desire_imp_curve_data,
+                                    ...pumpDetailCalData.efficiency_curve_data,
                                     pumpDetailCalData.min_flow_point,
                                     pumpDetailCalData.max_flow_point,
                                     pumpDetailCalData.operation_point,
@@ -2075,136 +2074,6 @@ export default function PumpList() {
                               />
                               <FormBox field="Technical Details : Operating Point">
                                 <div className="space-y-2">
-                                  <FormField
-                                    control={formPumpGeneralDetail.control}
-                                    name="design_flow_unit"
-                                    render={({ field: Field }) => (
-                                      <FormItem>
-                                        <div className="w-full flex items-center">
-                                          <FormLabel className="w-32 lg:w-44">
-                                            Operating Flow
-                                          </FormLabel>
-                                          <div className="w-full flex gap-2">
-                                            <FormField
-                                              control={
-                                                formPumpGeneralDetail.control
-                                              }
-                                              name="design_flow"
-                                              render={({ field: Field }) => (
-                                                <FormControl className="w-full">
-                                                  <Input
-                                                    placeholder="Operating Flow"
-                                                    {...Field}
-                                                    defaultValue={
-                                                      getFormData("formData1")
-                                                        .design_flow
-                                                        ? getFormData(
-                                                            "formData1"
-                                                          ).design_flow
-                                                        : ""
-                                                    }
-                                                  />
-                                                </FormControl>
-                                              )}
-                                            />
-                                            <FormControl className="md:max-w-[500px]">
-                                              <Combobox
-                                                className="min-w-[86px]"
-                                                items={
-                                                  handleLOVDataFilter(
-                                                    "unit_flow",
-                                                    "pump_unit"
-                                                  ) || []
-                                                } // Dropdown options
-                                                label={
-                                                  getFormData("formData1")
-                                                    .operating_flow_unit
-                                                    ? getFormData("formData1")
-                                                        .operating_flow_unit
-                                                    : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
-                                                          .unit_flow
-                                                      : "Select"
-                                                }
-                                                onChange={(value) => {
-                                                  Field.onChange(value); // Update form state
-                                                }}
-                                              />
-                                            </FormControl>
-                                          </div>
-                                        </div>
-
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={formPumpGeneralDetail.control}
-                                    name="design_head_unit"
-                                    render={({ field: headField }) => (
-                                      <FormItem>
-                                        <div className="w-full flex items-center">
-                                          <FormLabel className="w-32 lg:w-44">
-                                            Operating Head
-                                          </FormLabel>
-                                          <div className="w-full flex gap-2">
-                                            {/* Input for design_head */}
-                                            <FormField
-                                              control={
-                                                formPumpGeneralDetail.control
-                                              }
-                                              name="design_head"
-                                              render={({
-                                                field: headField,
-                                              }) => (
-                                                <FormControl className="w-full">
-                                                  <Input
-                                                    placeholder="Operating Head"
-                                                    {...headField}
-                                                    readOnly
-                                                    defaultValue={
-                                                      getFormData("formData1")
-                                                        .design_head
-                                                        ? getFormData(
-                                                            "formData1"
-                                                          ).design_head
-                                                        : ""
-                                                    }
-                                                  />
-                                                </FormControl>
-                                              )}
-                                            />
-                                            {/* Combobox for design_head_unit */}
-                                            <FormControl className="md:max-w-[500px]">
-                                              <Combobox
-                                                className="min-w-[86px]"
-                                                items={
-                                                  handleLOVDataFilter(
-                                                    "unit_head",
-                                                    "pump_unit"
-                                                  ) || []
-                                                } // Dropdown options
-                                                label={
-                                                  getFormData("formData1")
-                                                    .operating_head_unit
-                                                    ? getFormData("formData1")
-                                                        .design_head_unit
-                                                    : pumpDetailCalData
-                                                      ? pumpDetailCalData.design_head_unit
-                                                      : "Select"
-                                                }
-                                                onChange={(value) => {
-                                                  headField.onChange(value); // Update form state
-                                                }}
-                                              />
-                                            </FormControl>
-                                          </div>
-                                        </div>
-
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
                                   <FormField
                                     control={formPumpGeneralDetail.control}
                                     name="pump_efficiency_unit"
@@ -2261,7 +2130,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .pump_efficiency_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_eff
                                                       : "Select"
                                                 }
@@ -2327,7 +2196,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .shut_off_head_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_head
                                                       : "Select"
                                                 }
@@ -2395,7 +2264,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .npshr_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_npshr
                                                       : "Select"
                                                 }
@@ -2461,7 +2330,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .hyd_power_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_power
                                                       : "Select"
                                                 }
@@ -2527,7 +2396,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .power_required_cal_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_power
                                                       : "Select"
                                                 }
@@ -2597,7 +2466,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .bep_flow_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_flow
                                                       : "Select"
                                                 }
@@ -2662,7 +2531,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .bep_head_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_head
                                                       : "Select"
                                                 }
@@ -2731,7 +2600,7 @@ export default function PumpList() {
                                                               .power_bep_flow_unit
                                                           : pumpDetailCalData
                                                             ? pumpDetailCalData
-                                                                .unit.unit_flow
+                                                                .units.unit_flow
                                                             : "Select"
                                                       }
                                                       onChange={(value) => {
@@ -2801,7 +2670,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .min_flow_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_flow
                                                       : "Select"
                                                 }
@@ -2865,7 +2734,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .min_head_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_head
                                                       : "Select"
                                                 }
@@ -2931,7 +2800,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .power_min_flow_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_flow
                                                       : "Select"
                                                 }
@@ -2999,7 +2868,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .max_flow_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_flow
                                                       : "Select"
                                                 }
@@ -3062,7 +2931,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .max_head_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_head
                                                       : "Select"
                                                 }
@@ -3128,7 +2997,7 @@ export default function PumpList() {
                                                     ? getFormData("formData1")
                                                         .power_max_flow_unit
                                                     : pumpDetailCalData
-                                                      ? pumpDetailCalData.unit
+                                                      ? pumpDetailCalData.units
                                                           .unit_power
                                                       : "Select"
                                                 }

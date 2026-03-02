@@ -23,25 +23,21 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+
 import { Input } from "@/components/ui/input";
 import { UserOutSchema } from "@/validators/user";
 import { PECPersonResponse } from "@/types/users/users";
 import { useSettings } from "@/lib/settings";
 import { FormBox } from "@/components/common/FormBox";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Car, CircleX, Key, PlusCircle, Search } from "lucide-react";
+import { Car, CircleX, Key, PlusCircle, Search, User } from "lucide-react";
 import { useEffect } from "react";
-import { useGetPECPersonByCode } from "@/hook/users/users";
+import { useGetPECPersonByCode, useCreateUser } from "@/hook/users/users";
 import { useGetCompanyDetailByCode } from "@/hook/users/company";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { CreateUserOut } from "@/types/users/users";
+import { CreateUserOut, UserProfile } from "@/types/users/users";
+import {jwtDecode} from "jwt-decode";
 
 function CreateUser() {
   const [SelectedPECCode, setSelectedPECCode] = useState<string>("");
@@ -54,8 +50,13 @@ function CreateUser() {
   const { data: PECPersonDetail } = useGetPECPersonByCode(PECPersonCode);
   const { showDescriptions } = useSettings();
   const localstorage = window.localStorage.getItem("user");
-  const userData = localstorage ? JSON.parse(localstorage) : null;
+  const userData: any = localstorage ? JSON.parse(localstorage) : null;
+  const userCreateMutation = useCreateUser();
   const roleData = [
+    {
+      value: "Service",
+      label: "Service",
+    },
     {
       value: "Engineer",
       label: "Engineer",
@@ -65,6 +66,17 @@ function CreateUser() {
       label: "Customer",
     },
   ];
+
+  useEffect(() => {
+    if(localstorage){
+      USERCreateForm.reset({
+        ...USERCreateForm.getValues(),
+        created_by: userData.user.user_email,
+        updated_by: userData.user.user_email,
+      });
+    }
+  },[localstorage]);
+
   const defaultValues = {
     user_email: "",
     user_username: "",
@@ -77,16 +89,16 @@ function CreateUser() {
     show_name_en: "",
     show_department: "",
     show_position: "",
-    show_mobile: "",
-    show_tel: "",
+    user_mobile: "",
+    user_tel: "",
     show_company_name_en: "",
     show_company_name_th: "",
     show_address_en: "",
     show_address_th: "",
     show_province: "",
     show_sales_area: "",
-    created_by: userData.user_email,
-    updated_by: userData.user_email,
+    created_by: userData?.user.user_email,
+    updated_by: userData?.user.user_email,
   };
   const USERCreateForm = useForm<z.infer<typeof UserOutSchema>>({
     resolver: zodResolver(UserOutSchema),
@@ -113,7 +125,7 @@ function CreateUser() {
   }, [companyData, isAdd]);
 
   useEffect(() => {
-    if (selectedRole !== "Engineer") {
+    if (selectedRole == "Customer") {
       USERCreateForm.reset(defaultValues);
       setCompanyCode("");
       setPECPersonCode("");
@@ -122,8 +134,10 @@ function CreateUser() {
     }
   }, [selectedRole, USERCreateForm]);
 
+  const localStorageUser = window.localStorage.getItem("access_token");
+
+
   const handleSubmit = (values: z.infer<typeof UserOutSchema>) => {
-    
     const data: CreateUserOut = {
       user_email: values.user_email,
       user_username:values.user_username,
@@ -137,34 +151,18 @@ function CreateUser() {
         user_name: values.user_name,
         user_pec_code: values.user_pec_code,
         user_company_code: values.user_company_code,
-        created_by: userData.user_email,
-        updated_by: userData.user_email,
+        created_at: new Date().toISOString(),
+        created_by: userData.user.user_email,
+        updated_at: new Date().toISOString(),
+        updated_by: userData.user.user_email,
       },
     };
 
     console.log("Data Submitted:", data);
-    /* const date = new Date().toISOString();
-    const formData = {
-      ...values,
-      user_email: "",
-      user_username: "",
-      user_password: "",
-      user_name: "",
-      user_company_code: "",
-      user_role: "",
-      created_by: userData.email,
-      created_at: date,
-      updated_by: userData.email,
-      updated_at: date,
-    }; */
-
-    /* if (!code) {
-      createMutation.mutate(formData);
-    } else {
-      updateMutation.mutate({ code: code, data: formData });
-    } */
+    
+    userCreateMutation.mutate(data);
   };
-  console.log(typeof userData.user_email)
+
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -366,8 +364,8 @@ function CreateUser() {
                                                     show_name_en:PECPersonDetail[0].name_surname_en,
                                                     show_department:PECPersonDetail[0].department,
                                                     show_position:PECPersonDetail[0].position,
-                                                    show_mobile:PECPersonDetail[0].mobile,
-                                                    show_tel:PECPersonDetail[0].tel,
+                                                    user_mobile:PECPersonDetail[0].mobile,
+                                                    user_tel:PECPersonDetail[0].tel,
                                                   });
                                                   setCompanyCode("PEC");
                                                   setIsAdd(true);
@@ -499,7 +497,7 @@ function CreateUser() {
                         />
                         <FormField
                           control={USERCreateForm.control}
-                          name="show_mobile"
+                          name="user_mobile"
                           render={({ field }) => (
                             <FormItem>
                               <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
@@ -524,7 +522,7 @@ function CreateUser() {
                         />
                         <FormField
                           control={USERCreateForm.control}
-                          name="show_tel"
+                          name="user_tel"
                           render={({ field }) => (
                             <FormItem>
                               <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
@@ -830,6 +828,9 @@ function CreateUser() {
                                         <Button
                                           type="button"
                                           variant={"destructive"}
+                                          onClick={()=>{
+                                            setSelectedPECCode("");
+                                          }}
                                         >
                                           Close
                                         </Button>

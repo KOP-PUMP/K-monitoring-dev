@@ -93,6 +93,7 @@ export const getPECCompanyDetail = async (code?: string) => {
     const response = await axiosInstancePEC.get(
       `/customer_api.php?code=${code}`
     );
+    console.log(response);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

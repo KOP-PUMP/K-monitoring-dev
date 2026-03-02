@@ -5,7 +5,6 @@ from ninja_jwt.tokens import RefreshToken
 
 class UserSchema(Schema):
     user_email: str
-    user_role: str
 
 class MyTokenObtainPairOutSchema(Schema):
     refresh: str
@@ -27,7 +26,6 @@ class MyTokenObtainPairInputSchema(TokenObtainInputSchemaBase):
         # Manually extract user data
         values["user"] = {
             "user_email": user.user_email,
-            "user_role": user.user_role 
         }
 
         return values

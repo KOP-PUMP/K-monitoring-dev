@@ -3,9 +3,12 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
+  Scatter,
   Legend,
+  Tooltip,
   ResponsiveContainer,
   ComposedChart,
+  ScatterChart,
   LabelList,
 } from "recharts";
 import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
@@ -36,6 +39,7 @@ export const FlowPowerGraph = ({
   };
 
   const YAxisDefaultProps = {
+    dataKey: "power",
     label: {
       value: "Power (kw)",
       angle: -90,
@@ -65,60 +69,69 @@ export const FlowPowerGraph = ({
     const colors = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
 
     const uniqueImpDia = [
-      ...new Set(chartData.map((item) => item.imp_dia?.slice(0, -3))),
+      ...new Set(
+        chartData.map((item) => item.imp_dia && item.imp_dia?.split(".")[0]),
+      ),
     ].filter(
-      (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== ""
+      (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== "",
     );
 
-    const transformedData = uniqueImpDia.reduce((acc, dia) => {
+
+    const transformedDataImp = uniqueImpDia.reduce((acc, dia) => {
       acc[dia] = chartData
-        .filter((item) => item.imp_dia?.slice(0, -3) === dia)
+        .filter(
+          (item) => item.imp_dia?.split(".")[0] === dia && item.kw && item.flow,
+        )
         .map((item) => ({
-          flow: parseFloat(item.flow ?? null),
-          kw: parseFloat(item.kw ?? null),
+          flow: parseFloat(item.flow),
+          power: parseFloat(item.kw),
         }))
         .sort((a, b) => a.flow - b.flow); // Sort by flow
       return acc;
     }, {});
 
+
     return (
       <ResponsiveContainer height={400}>
-        <ComposedChart title="KW Graph" data={chartData}>
+        <ScatterChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis {...XAxisDefaultProps} />
           <YAxis {...YAxisDefaultProps} />
+          <Tooltip cursor={{ strokeDasharray: "3 3" }} />
           {uniqueImpDia.map((dia, index) => {
-            let dataSeries = transformedData[dia];
-            dataSeries = dataSeries.filter((point: any) => !isNaN(point.kw));
+            let dataSeries = transformedDataImp[dia];
+            dataSeries = dataSeries.filter((point: any) => !isNaN(point.power));
             const lastDataPointIndex = dataSeries.length - 1; // Ensure we get last index
             return (
-              <Line
+              <Scatter
                 key={dia}
-                connectNulls
-                type="monotone"
-                dataKey="kw"
-                stroke={scatter ? "none" : colors[index % colors.length]}
-                strokeWidth={2}
                 name={`${dia}mm`}
-                data={dataSeries}
-                dot={
-                  scatter
-                    ? {
-                        stroke: colors[index % colors.length],
-                        strokeWidth: 0.5,
-                      }
-                    : false
-                }
+                data={transformedDataImp[dia]}
+                line
+                fill={scatter ? "none" : colors[index % colors.length]}
+                strokeWidth={2}
+                shape={(props: any) => {
+                  const { cx, cy, isActive } = props;
+                  return (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={6}
+                      fill="transparent"
+                      stroke="none"
+                    />
+                  );
+                }}
               >
                 <LabelList
-                  dataKey="kw"
+                  dataKey="power"
                   content={({ x, y, index: pointIndex }) => {
                     if (pointIndex && pointIndex === lastDataPointIndex) {
                       return (
                         <text
-                          x={x + 10} // Slightly shift to the right
-                          y={y + 5}
-                          fill={colors[index % colors.length]} // Match label color with the line
+                          x={x + 10}
+                          y={y + 0}
+                          fill={colors[index % colors.length]}
                           fontSize={12}
                           fontWeight="bold"
                           textAnchor="start"
@@ -127,14 +140,13 @@ export const FlowPowerGraph = ({
                         </text>
                       );
                     }
-
                     return null;
                   }}
                 />
-              </Line>
+              </Scatter>
             );
           })}
-        </ComposedChart>
+        </ScatterChart>
       </ResponsiveContainer>
     );
   }

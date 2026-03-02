@@ -23,13 +23,13 @@ class PumpDetailLOV_schema(Schema):
     pump_code_name : Optional[str]=None
     pump_brand : Optional[str]=None
     pump_model : Optional[str]=None
-    model_size : Optional[str]=None
+    pump_model_size : Optional[str]=None
     pump_design : Optional[str]=None
     pump_standard : Optional[str]=None
     pump_standard_no : Optional[str]=None
     pump_impeller_type : Optional[str]=None
     pump_flange_con_std : Optional[str]=None
-    pump_type : Optional[str]=None
+    pump_type_name : Optional[str]=None
     pump_stage : Optional[str]=None
     pump_seal_chamber : Optional[str]=None
     pump_oil_seal : Optional[str]=None
@@ -316,12 +316,12 @@ class PumpDetail_schema(Schema):
 
     created_at: Optional[datetime] = None
     created_by: Optional[str] = None
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
     updated_by: Optional[str] = None
 
 
 class MediaLOV_schema(Schema):
-    media_id : Optional[UUID]=Field(default_factory=uuid4)
+    media_lov_id : Optional[UUID]=Field(default_factory=uuid4)
     media_name : Optional[str]=None
     media_density : Optional[str]=None
     media_density_unit : Optional[str]=None
@@ -331,7 +331,8 @@ class MediaLOV_schema(Schema):
     operating_temperature : Optional[str]=None
     vapor_pressure : Optional[str]=None
     vapor_pressure_unit : Optional[str]=None
+
     created_at: Optional[datetime] = None
     created_by: Optional[str] = None
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
     updated_by: Optional[str] = None

@@ -51,7 +51,7 @@ const PumpLOV = () => {
       },
     },
     {
-      accessorKey: "pump_type",
+      accessorKey: "pump_type_name",
       header: ({ column }) => {
         return (
           <Button
@@ -65,7 +65,7 @@ const PumpLOV = () => {
       },
       label: "Pump Type",
       cell: ({ row }) => {
-        return <div className="pl-4">{row.getValue("pump_type")}</div>;
+        return <div className="pl-4">{row.getValue("pump_type_name")}</div>;
       },
     },
     {

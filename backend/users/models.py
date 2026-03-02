@@ -45,7 +45,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, editable=False , default=uuid.uuid4)
     user_username = models.CharField(max_length=50, unique=True)
     user_email = models.EmailField(_('email address'), unique=True)
-    user_role = models.CharField(choices=[('Admin', 'Admin'), ('Developer', 'Developer'), ('Engineer', 'Engineer'), ('Customer', 'Customer')], max_length=30)
+    user_role = models.CharField(choices=[('Admin', 'Admin'), ('Developer', 'Developer'),('Sales', 'Sales'), ('Service', 'Service'), ('Engineer', 'Engineer'), ('Customer', 'Customer')], max_length=30)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     

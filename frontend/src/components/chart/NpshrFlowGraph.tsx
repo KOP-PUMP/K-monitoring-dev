@@ -6,8 +6,10 @@ import {
   Legend,
   ResponsiveContainer,
   ComposedChart,
+  ScatterChart,
   LabelList,
   Tooltip,
+  Scatter,
 } from "recharts";
 import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
 
@@ -37,10 +39,12 @@ export const NpshrFlowGraph = ({
   };
 
   const YAxisDefaultProps = {
+    dataKey: "npshr",
     label: {
       value: "NPSHR (m)",
       angle: -90,
-      position: "insideLeft", inset: -2,
+      position: "insideLeft",
+      inset: -2,
       style: { fontSize: 12 },
     },
     type: "number" as const,
@@ -59,30 +63,76 @@ export const NpshrFlowGraph = ({
 
   if (chartData) {
     const colors = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
-    const uniqueImpDia = [
-      ...new Set(chartData.map((item) => item.imp_dia?.slice(0, -3))),
-    ].filter((dia) => dia !== null && dia === "0" && dia !== undefined);
 
-    const transformedData = uniqueImpDia.reduce((acc, dia) => {
-      acc[dia] = chartData
-        .filter((item) => item.imp_dia?.slice(0, -3) === dia)
-        .map((item) => ({
-          flow: parseFloat(item.flow ?? null),
-          npshr: parseFloat(item.npshr ?? null),
-        }))
-        .sort((a, b) => a.flow - b.flow); // Sort by flow
-      return acc;
-    }, {});
+    const filteredChartData = chartData
+      .filter((point) => point.npshr !== "" && point.flow !== "")
+      .sort((a, b) => a.flow - b.flow);
+    const transformedData = filteredChartData.map((point) => ({
+      flow: point.flow,
+      npshr: point.npshr,
+    }));
 
+    const maxFlow = Math.max(...transformedData.map((p) => p.flow));
+    const tolerance = 0.001;
+    const maxFlowPoints = transformedData.filter(
+              (p) => Math.abs(p.flow - maxFlow) < tolerance
+            );
+    const maxFlowMaxNpshrPoint =
+              maxFlowPoints.length > 0
+                ? maxFlowPoints.reduce((a, b) => (a.npshr > b.npshr ? a : b))
+                : null;
+    const maxFlowMaxNpshrIndex = maxFlowMaxNpshrPoint
+              ? transformedData.indexOf(maxFlowMaxNpshrPoint)
+              : -1;
     return (
       <ResponsiveContainer height={400}>
-        <ComposedChart title="Npshr Graph" data={chartData}>
+        <ScatterChart data={transformedData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis {...XAxisDefaultProps} />
           <YAxis {...YAxisDefaultProps} />
-          <Tooltip />
-
-          {uniqueImpDia.map((dia, index) => {
+          <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+          <Scatter
+            key="npshr"
+            name="npshr"
+            data={transformedData}
+            line
+            fill={scatter ? "none" : colors[0]}
+            strokeWidth={2}
+            shape={(props: any) => {
+              const { cx, cy, isActive } = props;
+              return (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={6}
+                  fill="transparent"
+                  stroke="none"
+                />
+              );
+            }}
+          >
+            <LabelList
+              dataKey="npshr"
+              content={({ x, y, index: pointIndex }) => {
+                if (pointIndex === maxFlowMaxNpshrIndex) {
+                  return (
+                    <text
+                      x={x + 10}
+                      y={y + 0}
+                      fill={colors[0]}
+                      fontSize={12}
+                      fontWeight="bold"
+                      textAnchor="start"
+                    >
+                      {"npshr"}
+                    </text>
+                  );
+                }
+                return null;
+              }}
+            />
+          </Scatter>
+          {/* {uniqueImpDia.map((dia, index) => {
             let dataSeries = transformedData[dia];
             dataSeries = dataSeries.filter((point: any) => !isNaN(point.npshr));
             const lastDataPointIndex = dataSeries.length - 1; // Ensure we get last index
@@ -90,12 +140,12 @@ export const NpshrFlowGraph = ({
               <Line
                 key={dia}
                 connectNulls
+                name={`npshr`}
+                data={dataSeries}
                 type="monotone"
                 dataKey="npshr"
                 stroke={scatter ? "none" : colors[index % colors.length]}
                 strokeWidth={2}
-                name={`npshr`}
-                data={dataSeries}
                 dot={
                   scatter
                     ? {
@@ -128,8 +178,8 @@ export const NpshrFlowGraph = ({
                 />
               </Line>
             );
-          })}
-        </ComposedChart>
+          })} */}
+        </ScatterChart>
       </ResponsiveContainer>
     );
   }

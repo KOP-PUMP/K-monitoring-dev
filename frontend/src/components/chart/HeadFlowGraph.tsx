@@ -74,10 +74,6 @@ export const HeadFlowGraph = ({
       (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== ""
     );
 
-    const pointData = chartData.filter(
-      (item) => item.point_label && item.point_flow && item.point_head
-    );
-
     const transformedDataEff = uniqueEff.reduce((acc, eff) => {
       acc[eff] = chartData
         .filter((item) => item.eff === eff)
@@ -92,7 +88,7 @@ export const HeadFlowGraph = ({
     const transformedDataImp = uniqueImpDia.reduce((acc, dia) => {
       acc[dia] = chartData
         .filter(
-          (item) => item.imp_dia?.split(".")[0] === dia && item.head !== null
+          (item) => item.imp_dia?.split(".")[0] === dia && item.head && item.flow
         )
         .map((item) => ({
           flow: parseFloat(item.flow),
@@ -134,26 +130,7 @@ export const HeadFlowGraph = ({
                   );
                 }}
               >
-                <LabelList
-                  dataKey="head"
-                  content={({ x, y, index: pointIndex }) => {
-                    if (pointIndex && pointIndex === lastDataPointIndex) {
-                      return (
-                        <text
-                          x={x + 10}
-                          y={y + 0}
-                          fill={colors[index % colors.length]}
-                          fontSize={12}
-                          fontWeight="bold"
-                          textAnchor="start"
-                        >
-                          {`${dia}mm`}
-                        </text>
-                      );
-                    }
-                    return null;
-                  }}
-                />
+                
               </Scatter>
             );
           })}
@@ -188,7 +165,7 @@ export const HeadFlowGraph = ({
             return (
               <Scatter
                 key={eff}
-                name={`${eff}%`}
+                name={eff}
                 data={dataSeries}
                 shape={(props) => (
                   <circle cx={props.cx} cy={props.cy} r={2} fill={colors[index % colors.length]} />
@@ -200,7 +177,7 @@ export const HeadFlowGraph = ({
                     if (
                       pointIndex === maxFlowMaxHeadIndex
                     ) {
-                      const labelText = eff + "%"
+                      const labelText = eff
                       return (
                         <text
                           x={x + 10}
@@ -216,43 +193,6 @@ export const HeadFlowGraph = ({
                     }
                     return null;
                   }}
-                />
-              </Scatter>
-            );
-          })}
-          {pointData.map((point, index) => {
-            const data = [
-              {
-                flow: point.point_flow,
-                head: point.point_head,
-                label: point.point_label, // this is used in Tooltip
-              },
-            ];
-
-            return (
-              <Scatter
-                key={point.point_label}
-                dataKey="head"
-                name={point.point_label}
-                data={data}
-                shape={(props) => (
-                  <circle cx={props.cx} cy={props.cy} r={4} fill="red" />
-                )}
-              >
-                <LabelList
-                  dataKey="label"
-                  content={({ x, y, value }) => (
-                    <text
-                      x={x + 15}
-                      y={y + 8}
-                      fill="red"
-                      fontSize={12}
-                      fontWeight="bold"
-                      textAnchor="start"
-                    >
-                      {value}
-                    </text>
-                  )}
                 />
               </Scatter>
             );

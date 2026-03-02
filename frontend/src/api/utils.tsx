@@ -2,6 +2,7 @@ import axios from "axios";
 import AuthService from "@/lib/auth";
 
 // Get the base URL for the API from environment variables
+const MARS_API_BASE_URL = import.meta.env.VITE_MARS_API_BASE_URL as string;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 const API_PUBLIC_BASE_URL = import.meta.env.VITE_API_PUBLIC_BASE_URL as string;
 const API_PEC_URL = import.meta.env.VITE_API_PEC_URL as string;
@@ -9,7 +10,7 @@ const API_PUBLIC_PROVINCE_URL = import.meta.env
   .VITE_PUBLIC_API_PROVINCE_URL as string;
 const API_BASE_LOCAL_URL = import.meta.env.VITE_API_BASE_LOCAL_URL as string;
 
-  const baseURL =
+  const kmonitoring_baseURL =
   window.location.origin === "http://pecsystem.ddns.net:5173"
     ? API_PUBLIC_BASE_URL
     : window.location.origin === "http://192.168.1.177:5173"
@@ -18,7 +19,7 @@ const API_BASE_LOCAL_URL = import.meta.env.VITE_API_BASE_LOCAL_URL as string;
       
 // Create a custom Axios instance with default settings
 export const axiosInstance = axios.create({
-  baseURL, // Base URL for all API requests
+  baseURL: kmonitoring_baseURL, // Base URL for all API requests
   timeout: 5000, // Set timeout to 5 seconds for API calls
   headers: {
     Authorization: "Bearer " + localStorage.getItem("access_token"), // Set initial Authorization header with token from localStorage
@@ -26,6 +27,20 @@ export const axiosInstance = axios.create({
     accept: "application/json", // Accept header for JSON responses
   },
 });
+
+export const axiosInstanceLine = axios.create({
+  baseURL: "https://api.line.me/v2/bot/message/push", // Base URL for all API requests
+  timeout: 5000,
+  headers: {
+    Authorization: "Bearer " + "uQ/uhgrejilRm2vl+1jQo+DAc7kYNdpe54xp+No1mgDr+UqlwAxlcVoW22XOa6+6+RGcE8t0aLzRv3gbJBBAGtTbipKCtJ8RRTh6OyMhccgorC//vBqk6MCsCSgEVDO6Xz+qEe8a85CjFJbplv3TSAdB04t89/1O/w1cDnyilFU=",
+    accept: "application/json", // Accept header for JSON responses
+  } // Set timeout to 5 seconds for API calls
+});
+
+export const axiosInstanceMars = axios.create({
+  baseURL: MARS_API_BASE_URL, // Base URL for all API requests
+  timeout: 5000, // Set timeout to 5 seconds for API calls
+})
 
 export const axiosInstancePEC = axios.create({
   baseURL: API_PEC_URL, // Base URL for all API requests

@@ -28,24 +28,25 @@ const PumpDetail = () => {
   const { id } = useSearch({ from: "/_auth/pump/pump_detail" });
   const { data: pumpDetail } = useGetPumpDetail(id);
   const { mutate, isPending, isError, error } = useGetCalPumpData();
-  const data = pumpData.filter((item) => item.name == name)[0];
   const [pumpDetailCalData, setPumpDetailCalData] = useState<any>();
+
 
   useEffect(() => {
     if (pumpDetail) {
       const calData = {
-        design_impeller_dia: pumpDetail.design_impeller_dia,
-        pump_model: pumpDetail.pump_model,
-        pump_model_size: pumpDetail.pump_model_size,
-        pump_speed: pumpDetail.pump_speed,
-        pump_speed_unit: pumpDetail.pump_speed_unit,
-        design_flow: pumpDetail.design_flow,
-        design_flow_unit: pumpDetail.design_flow_unit,
-        design_head: pumpDetail.design_head,
-        design_head_unit: pumpDetail.design_head_unit,
-        media_name: pumpDetail.media_name,
-        media_density: pumpDetail.media_density,
-        media_density_unit: pumpDetail.media_density_unit,
+        pump_lov_id: pumpDetail?.pump_lov_id,
+        design_impeller_dia: pumpDetail?.design_impeller_dia,
+        pump_model: pumpDetail?.pump_model,
+        pump_model_size: pumpDetail?.pump_model_size,
+        pump_speed: pumpDetail?.pump_speed,
+        pump_speed_unit: pumpDetail?.pump_speed_unit,
+        design_flow: pumpDetail?.design_flow,
+        design_flow_unit: pumpDetail?.design_flow_unit,
+        design_head: pumpDetail?.design_head,
+        design_head_unit: pumpDetail?.design_head_unit,
+        media_name: pumpDetail?.media_name,
+        media_density: pumpDetail?.media_density,
+        media_density_unit: pumpDetail?.media_density_unit,
       };
 
       mutate(calData, {
@@ -132,7 +133,9 @@ const PumpDetail = () => {
                   </label>
                   <Input
                     id="model"
-                    value={pumpDetail?.pump_model ?? "KDIN 36 125x100-400 C36 XXD"}
+                    value={
+                      pumpDetail?.pump_model ?? "KDIN 36 125x100-400 C36 XXD"
+                    }
                     className="h-6"
                     readOnly
                   ></Input>
@@ -336,14 +339,14 @@ const PumpDetail = () => {
             <CardTitle className="p-4">Pump Technical Data</CardTitle>
             <ChevronDown className="w-3.5 h-3.5" />
           </CollapsibleTrigger>
-          {pumpDetail ? (
+          {pumpDetailCalData ? (
             <CollapsibleContent>
               <CardContent className="flex flex-col gap-2 text-sm">
                 <HeadFlowGraph
                   chartData={
                     pumpDetailCalData && [
-                      ...pumpDetailCalData.desire_curve_data,
-                      ...pumpDetailCalData.total_curve_data,
+                      ...pumpDetailCalData.desire_imp_curve_data,
+                      ...pumpDetailCalData.efficiency_curve_data,
                       pumpDetailCalData.min_flow_point,
                       pumpDetailCalData.max_flow_point,
                       pumpDetailCalData.operation_point,

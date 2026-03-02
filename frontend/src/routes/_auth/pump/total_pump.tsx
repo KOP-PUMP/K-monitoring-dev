@@ -41,6 +41,38 @@ function TotalPump() {
 
   const columns: ExtendedColumnDef<PumpDataType>[] = [
     {
+      id: "action",
+      enableHiding: false,
+      label: "Action",
+      cell: ({ row }) => {
+        const row_data = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <Link
+                to={`/pump/pump_detail?id=${row_data.pump_id}`}
+              >
+                <DropdownMenuItem>View</DropdownMenuItem>
+              </Link>
+              <Link
+                to={`/analytic/report?id=${row_data.pump_id}`}
+              >
+                <DropdownMenuItem>Report</DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem onClick={() => handlePumpDelete(row_data.pump_id.toString())}>Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+    {
       accessorKey: "pump_code_name",
       label: "Pump",
       header: ({ column }) => {
@@ -271,38 +303,6 @@ function TotalPump() {
       cell: ({ row }) => (
         <div className="pl-4">{row.getValue("sales_area")}</div>
       ),
-    },
-    {
-      id: "action",
-      enableHiding: false,
-      label: "Action",
-      cell: ({ row }) => {
-        const row_data = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <Link
-                to={`/pump/pump_detail?id=${row_data.pump_id}`}
-              >
-                <DropdownMenuItem>View</DropdownMenuItem>
-              </Link>
-              <Link
-                to={`/analytic/report?id=${row_data.pump_id}`}
-              >
-                <DropdownMenuItem>Report</DropdownMenuItem>
-              </Link>
-              <DropdownMenuItem onClick={() => handlePumpDelete(row_data.pump_id)}>Delete</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
     },
   ];
   return (

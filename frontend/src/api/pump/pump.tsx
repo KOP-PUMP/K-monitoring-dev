@@ -77,7 +77,8 @@ export const getPumpDetailLOV = async (id: string | null) => {
     const response = await axiosInstance.get(
       `/pump-data/pump-detail-lov?id=${id}`
     );
-    return response.data;
+    console.log(response.data);
+    return [response.data];
   }
 };
 

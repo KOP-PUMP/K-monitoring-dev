@@ -1,7 +1,7 @@
 from ninja_jwt.controller import NinjaJWTDefaultController
 from ninja_extra import NinjaExtraAPI
 
-from users.api import UserProfileController, CompaniesController
+from users.api import UserProfileController, CompaniesController, CustomerController
 from pump_data.api import ListOfValuesController
 from factory_curve.api import FactoryCurveController
 from engineer.api import ReportController
@@ -14,6 +14,7 @@ api.register_controllers(
     ListOfValuesController,
     CompaniesController,
     FactoryCurveController,
-    ReportController
+    ReportController,
+    CustomerController  
 )
 api.register_controllers(NinjaJWTDefaultController)

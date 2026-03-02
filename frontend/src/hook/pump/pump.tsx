@@ -189,8 +189,9 @@ export const useCreatePumpDetailLOV = () => {
         window.location.reload();
       }, 2000);
     },
-    onError: () => {
-      toast.error("Error creating pump detail LOV");
+    onError: (error) => {
+      toast.error("Error updating LOV");
+      console.error("Update Error:", error);
     },
   });
 };
@@ -398,8 +399,9 @@ export const useCreateMediaLOV = () => {
         window.location.reload();
       }, 2000);
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("Error creating media LOV");
+      console.error("Update Error:", error);
     },
   });
 };
