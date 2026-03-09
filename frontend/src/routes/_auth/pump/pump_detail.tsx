@@ -30,6 +30,7 @@ const PumpDetail = () => {
   const { mutate, isPending, isError, error } = useGetCalPumpData();
   const [pumpDetailCalData, setPumpDetailCalData] = useState<any>();
 
+  console.log("pumpDetailCalData:", pumpDetailCalData);
 
   useEffect(() => {
     if (pumpDetail) {

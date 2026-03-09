@@ -9,6 +9,7 @@ import {
   ScatterChart,
   LabelList,
   Tooltip,
+  ReferenceLine,
 } from "recharts";
 import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
 import { parse } from "path";
@@ -64,14 +65,14 @@ export const HeadFlowGraph = ({
     const colors = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
     const uniqueImpDia = [
       ...new Set(
-        chartData.map((item) => item.imp_dia && item.imp_dia?.split(".")[0])
+        chartData.map((item) => item.imp_dia && item.imp_dia?.split(".")[0]),
       ),
     ].filter(
-      (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== ""
+      (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== "",
     );
 
     const uniqueEff = [...new Set(chartData.map((item) => item.eff))].filter(
-      (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== ""
+      (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== "",
     );
 
     const transformedDataEff = uniqueEff.reduce((acc, eff) => {
@@ -88,7 +89,8 @@ export const HeadFlowGraph = ({
     const transformedDataImp = uniqueImpDia.reduce((acc, dia) => {
       acc[dia] = chartData
         .filter(
-          (item) => item.imp_dia?.split(".")[0] === dia && item.head && item.flow
+          (item) =>
+            item.imp_dia?.split(".")[0] === dia && item.head && item.flow,
         )
         .map((item) => ({
           flow: parseFloat(item.flow),
@@ -97,6 +99,10 @@ export const HeadFlowGraph = ({
         .sort((a, b) => a.flow - b.flow); // Sort by flow
       return acc;
     }, {});
+
+    const pointData = chartData.filter(
+      (item) => item.point_label && item.point_flow && item.point_head,
+    );
 
     return (
       <ResponsiveContainer height={400}>
@@ -109,6 +115,25 @@ export const HeadFlowGraph = ({
             let dataSeries = transformedDataImp[dia];
             dataSeries = dataSeries.filter((point: any) => !isNaN(point.head));
             const lastDataPointIndex = dataSeries.length - 1; // Ensure we get last index
+            const tolerance = 0.001;
+            const minFlow = Math.min(...dataSeries.map((p) => p.flow));
+            const maxFlow = Math.max(...dataSeries.map((p) => p.flow));
+
+            const minFlowPoints = dataSeries.filter(
+              (p) => Math.abs(p.flow - minFlow) < tolerance,
+            );
+            const maxFlowPoints = dataSeries.filter(
+              (p) => Math.abs(p.flow - maxFlow) < tolerance,
+            );
+
+            const maxFlowMaxHeadPoint =
+              maxFlowPoints.length > 0
+                ? maxFlowPoints.reduce((a, b) => (a.head > b.head ? a : b))
+                : null;
+
+            const maxFlowMaxHeadIndex = maxFlowMaxHeadPoint
+              ? dataSeries.indexOf(maxFlowMaxHeadPoint)
+              : -1;
             return (
               <Scatter
                 key={dia}
@@ -130,7 +155,26 @@ export const HeadFlowGraph = ({
                   );
                 }}
               >
-                
+                <LabelList
+                  dataKey="head"
+                  content={({ x, y, index: pointIndex }) => {
+                    if (pointIndex === maxFlowMaxHeadIndex) {
+                      const labelText = dia + "mm";
+                      return (
+                        <text
+                          x={x + 10}
+                          fill={colors[index % colors.length]}
+                          fontSize={12}
+                          fontWeight="bold"
+                          textAnchor="start"
+                        >
+                          {`${labelText}`}
+                        </text>
+                      );
+                    }
+                    return null;
+                  }}
+                />
               </Scatter>
             );
           })}
@@ -147,10 +191,10 @@ export const HeadFlowGraph = ({
             const maxFlow = Math.max(...dataSeries.map((p) => p.flow));
 
             const minFlowPoints = dataSeries.filter(
-              (p) => Math.abs(p.flow - minFlow) < tolerance
+              (p) => Math.abs(p.flow - minFlow) < tolerance,
             );
             const maxFlowPoints = dataSeries.filter(
-              (p) => Math.abs(p.flow - maxFlow) < tolerance
+              (p) => Math.abs(p.flow - maxFlow) < tolerance,
             );
 
             const maxFlowMaxHeadPoint =
@@ -168,16 +212,19 @@ export const HeadFlowGraph = ({
                 name={eff}
                 data={dataSeries}
                 shape={(props) => (
-                  <circle cx={props.cx} cy={props.cy} r={2} fill={colors[index % colors.length]} />
+                  <circle
+                    cx={props.cx}
+                    cy={props.cy}
+                    r={2}
+                    fill={colors[index % colors.length]}
+                  />
                 )}
               >
                 <LabelList
                   dataKey="head"
                   content={({ x, y, index: pointIndex }) => {
-                    if (
-                      pointIndex === maxFlowMaxHeadIndex
-                    ) {
-                      const labelText = eff
+                    if (pointIndex === maxFlowMaxHeadIndex) {
+                      const labelText = eff;
                       return (
                         <text
                           x={x + 10}
@@ -195,6 +242,76 @@ export const HeadFlowGraph = ({
                   }}
                 />
               </Scatter>
+            );
+          })}
+          {pointData.map((point, index) => {
+            const data = [
+              {
+                flow: point.point_flow,
+                head: point.point_head,
+                label: point.point_label, // this is used in Tooltip
+              },
+            ];
+
+            return (
+              <>
+                <Scatter
+                  key={point.point_label}
+                  dataKey="head"
+                  name={point.point_label}
+                  data={data}
+                  shape={(props) => (
+                    <circle
+                      cx={props.cx}
+                      cy={props.cy}
+                      r={4}
+                      fill={
+                        point && point.point_label?.includes("Flow")
+                          ? "red"
+                          : point.point_label?.includes("BEP")
+                            ? "blue"
+                            : "green"
+                      }
+                    />
+                  )}
+                >
+                  <LabelList
+                    dataKey="label"
+                    content={({ x, y, value }) => (
+                      <text
+                        x={x + 10}
+                        y={y}
+                        fill={
+                          point && point.point_label?.includes("Flow")
+                            ? "red"
+                            : point.point_label?.includes("BEP")
+                              ? "blue"
+                              : "green"
+                        }
+                        fontSize={12}
+                        fontWeight="bold"
+                        textAnchor="start"
+                      >
+                        {value}
+                      </text>
+                    )}
+                  />
+                </Scatter>
+                {/* Add Vertical Line for Each Data Point outside the Scatter component */}
+                <ReferenceLine
+                  key={`vertical-line-${point.point_label}`}
+                  x={
+                    point && !point.point_label?.includes("BEP") && data[0].flow
+                  } // Use the 'head' value for the X position of the vertical line
+                  stroke={
+                    point && point.point_label?.includes("Flow")
+                      ? "red"
+                      : "green"
+                  } // Line color
+                  strokeWidth={3} // Line width
+                  strokeDasharray="3 3" // Dotted line (optional)
+                />
+              </>
             );
           })}
         </ScatterChart>
