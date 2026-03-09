@@ -1,8 +1,15 @@
 import { MoreHorizontal } from "lucide-react";
-
+import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +17,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export function UserTable() {
   return (
@@ -29,8 +43,12 @@ export function UserTable() {
               <TableHead>Name</TableHead>
               <TableHead>Need Inspection?</TableHead>
               <TableHead>Owned Pumps</TableHead>
-              <TableHead className="hidden md:table-cell">Last Pump Inspection</TableHead>
-              <TableHead className="hidden md:table-cell">Membership Start Date</TableHead>
+              <TableHead className="hidden md:table-cell">
+                Last Pump Inspection
+              </TableHead>
+              <TableHead className="hidden md:table-cell">
+                Membership Start Date
+              </TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -52,8 +70,12 @@ export function UserTable() {
                 <Badge variant="outline">Yes</Badge>
               </TableCell>
               <TableCell>1</TableCell>
-              <TableCell className="hidden md:table-cell">25 days ago</TableCell>
-              <TableCell className="hidden md:table-cell">2023-07-12 10:42 AM</TableCell>
+              <TableCell className="hidden md:table-cell">
+                25 days ago
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                2023-07-12 10:42 AM
+              </TableCell>
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -64,7 +86,9 @@ export function UserTable() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>View</DropdownMenuItem>
+                    <Link to="/customers/dashboard">
+                      <DropdownMenuItem>View</DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem>Delete</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -85,8 +109,12 @@ export function UserTable() {
                 <Badge variant="outline">Yes</Badge>
               </TableCell>
               <TableCell>3</TableCell>
-              <TableCell className="hidden md:table-cell">100 days ago</TableCell>
-              <TableCell className="hidden md:table-cell">2023-10-18 03:21 PM</TableCell>
+              <TableCell className="hidden md:table-cell">
+                100 days ago
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                2023-10-18 03:21 PM
+              </TableCell>
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -97,7 +125,9 @@ export function UserTable() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>View</DropdownMenuItem>
+                    <Link to="/customers/dashboard">
+                      <DropdownMenuItem>View</DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem>Delete</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -118,8 +148,12 @@ export function UserTable() {
                 <Badge variant="outline">Yes</Badge>
               </TableCell>
               <TableCell>2</TableCell>
-              <TableCell className="hidden md:table-cell">50 days ago</TableCell>
-              <TableCell className="hidden md:table-cell">2023-11-29 08:15 AM</TableCell>
+              <TableCell className="hidden md:table-cell">
+                50 days ago
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                2023-11-29 08:15 AM
+              </TableCell>
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -130,7 +164,9 @@ export function UserTable() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>View</DropdownMenuItem>
+                    <Link to="/customers/dashboard">
+                      <DropdownMenuItem>View</DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem>Delete</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -152,7 +188,9 @@ export function UserTable() {
               </TableCell>
               <TableCell>4</TableCell>
               <TableCell className="hidden md:table-cell">1 day ago</TableCell>
-              <TableCell className="hidden md:table-cell">2023-12-25 11:59 PM</TableCell>
+              <TableCell className="hidden md:table-cell">
+                2023-12-25 11:59 PM
+              </TableCell>
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -163,7 +201,9 @@ export function UserTable() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>View</DropdownMenuItem>
+                    <Link to="/customers/dashboard">
+                      <DropdownMenuItem>View</DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem>Delete</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

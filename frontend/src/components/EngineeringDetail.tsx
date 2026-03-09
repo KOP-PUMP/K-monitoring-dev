@@ -8,7 +8,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Combobox, ComboboxItemProps } from "@/components/common/ComboBox";
 
-import { PumpGeneralDetailSchema } from "@/validators/pump";
+import { PumpDetailFormSchema } from "@/validators/pump";
 import { useSettings } from "@/lib/settings";
 import { FormBox } from "./common/FormBox";
 
@@ -43,9 +43,9 @@ const frameworks: ComboboxItemProps[] = [
 // const frameworks: ComboboxItemProps[] =
 
 export function EngineeringDetail() {
-  type PumpGeneralDetail = z.infer<typeof PumpGeneralDetailSchema>;
+  type PumpGeneralDetail = z.infer<typeof PumpDetailFormSchema>;
   const form = useForm<PumpGeneralDetail>({
-    resolver: zodResolver(PumpGeneralDetailSchema),
+    resolver: zodResolver(PumpDetailFormSchema),
   });
   const { showDescriptions } = useSettings();
 

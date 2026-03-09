@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.environ.get("DEBUG"))
 
-ALLOWED_HOSTS = ["kmonitoring.ts2337.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -42,8 +42,9 @@ INSTALLED_APPS = [
     'corsheaders',
     "ninja_extra",
     "users",
-    "pumps",
     "pump_data",
+    "factory_curve",
+    "engineer"
 ]
 
 MIDDLEWARE = [
@@ -136,14 +137,21 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'https://project5.ts2337.com'
-]
+CORS_ALLOW_ALL_ORIGINS = True
+
+# CORS_ALLOWED_ORIGINS = [
+#    'http://localhost:5173',
+#    'http://192.168.1.177:5173',
+#    'https://project5.ts2337.com',
+#    'http://pecsystem.ddns.net:5173'
+#]
+
+CORS_ALLOW_CREDENTIALS = True
 
 from datetime import timedelta
 
 NINJA_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'TOKEN_OBTAIN_PAIR_INPUT_SCHEMA': 'users.custom_token.MyTokenObtainPairInputSchema',
 }

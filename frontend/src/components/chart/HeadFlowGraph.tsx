@@ -1,25 +1,54 @@
-import { Line, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer, ComposedChart } from "recharts";
-import { useHeadFlowData } from "@/api/chart";
-
+import {
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Scatter,
+  Legend,
+  ResponsiveContainer,
+  ScatterChart,
+  LabelList,
+  Tooltip,
+  ReferenceLine,
+} from "recharts";
+import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
+import { parse } from "path";
 export interface HeadFlowGraphProps {
-  model: string;
+  chartData: FactoryCurveDataResponse[];
   scatter?: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-export const HeadFlowGraph = ({ model, scatter = false }: HeadFlowGraphProps) => {
-  const { data: chartData, isLoading, isError } = useHeadFlowData(model);
-
+export const HeadFlowGraph = ({
+  chartData,
+  scatter,
+  isLoading,
+  isError,
+}: HeadFlowGraphProps) => {
   const XAxisDefaultProps = {
     dataKey: "flow",
-    label: { value: "Flow (m3/hr)", position: "insideBottomRight", offset: -5 },
+    label: {
+      value: "Flow (m3/hr)",
+      position: "insideBottomRight",
+      offset: -2,
+      style: { fontSize: 12 },
+    },
     type: "number" as const,
-    domain: [0, 14],
+    style: { fontSize: 12 },
   };
 
   const YAxisDefaultProps = {
-    label: { value: "Head (m)", angle: -90, position: "insideLeft" },
+    dataKey: "head",
+    label: {
+      value: "Head (m)",
+      angle: -90,
+      position: "insideLeft",
+      inset: -2,
+      style: { fontSize: 12 },
+    },
     type: "number" as const,
-    domain: [0, 7],
+    style: { fontSize: 12 },
   };
 
   const error = console.error;
@@ -33,29 +62,259 @@ export const HeadFlowGraph = ({ model, scatter = false }: HeadFlowGraphProps) =>
   }
 
   if (chartData) {
-    const uniqueImpDiameters = [...new Set(chartData.map((item) => item.imp_dia))];
     const colors = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
+    const uniqueImpDia = [
+      ...new Set(
+        chartData.map((item) => item.imp_dia && item.imp_dia?.split(".")[0]),
+      ),
+    ].filter(
+      (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== "",
+    );
+
+    const uniqueEff = [...new Set(chartData.map((item) => item.eff))].filter(
+      (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== "",
+    );
+
+    const transformedDataEff = uniqueEff.reduce((acc, eff) => {
+      acc[eff] = chartData
+        .filter((item) => item.eff === eff)
+        .map((item) => ({
+          flow: item.flow ?? null,
+          head: item.head,
+        }))
+        .sort((a, b) => a.flow - b.flow);
+      return acc;
+    }, {});
+
+    const transformedDataImp = uniqueImpDia.reduce((acc, dia) => {
+      acc[dia] = chartData
+        .filter(
+          (item) =>
+            item.imp_dia?.split(".")[0] === dia && item.head && item.flow,
+        )
+        .map((item) => ({
+          flow: parseFloat(item.flow),
+          head: parseFloat(item.head),
+        }))
+        .sort((a, b) => a.flow - b.flow); // Sort by flow
+      return acc;
+    }, {});
+
+    const pointData = chartData.filter(
+      (item) => item.point_label && item.point_flow && item.point_head,
+    );
 
     return (
-      <ResponsiveContainer width="50%" height={400} className="w-1/2 p-2">
-        <ComposedChart title="QH Graph" data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+      <ResponsiveContainer height={400}>
+        <ScatterChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis {...XAxisDefaultProps} />
           <YAxis {...YAxisDefaultProps} />
-          <Legend verticalAlign="top" height={36} />
-          {uniqueImpDiameters.map((imp_dia, index) => (
-            <Line
-              key={imp_dia}
-              type="monotone"
-              dataKey="head"
-              stroke={scatter ? "none" : colors[index % colors.length]}
-              strokeWidth={3}
-              name={`${imp_dia}mm`}
-              data={chartData.filter((item) => item.imp_dia === imp_dia)}
-              dot={scatter ? { stroke: colors[index % colors.length], strokeWidth: 1.2 } : false}
-            />
-          ))}
-        </ComposedChart>
+          <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+          {uniqueImpDia.map((dia, index) => {
+            let dataSeries = transformedDataImp[dia];
+            dataSeries = dataSeries.filter((point: any) => !isNaN(point.head));
+            const lastDataPointIndex = dataSeries.length - 1; // Ensure we get last index
+            const tolerance = 0.001;
+            const minFlow = Math.min(...dataSeries.map((p) => p.flow));
+            const maxFlow = Math.max(...dataSeries.map((p) => p.flow));
+
+            const minFlowPoints = dataSeries.filter(
+              (p) => Math.abs(p.flow - minFlow) < tolerance,
+            );
+            const maxFlowPoints = dataSeries.filter(
+              (p) => Math.abs(p.flow - maxFlow) < tolerance,
+            );
+
+            const maxFlowMaxHeadPoint =
+              maxFlowPoints.length > 0
+                ? maxFlowPoints.reduce((a, b) => (a.head > b.head ? a : b))
+                : null;
+
+            const maxFlowMaxHeadIndex = maxFlowMaxHeadPoint
+              ? dataSeries.indexOf(maxFlowMaxHeadPoint)
+              : -1;
+            return (
+              <Scatter
+                key={dia}
+                name={`${dia}mm`}
+                data={transformedDataImp[dia]}
+                line
+                fill={scatter ? "none" : colors[index % colors.length]}
+                strokeWidth={2}
+                shape={(props: any) => {
+                  const { cx, cy, isActive } = props;
+                  return (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={6}
+                      fill="transparent"
+                      stroke="none"
+                    />
+                  );
+                }}
+              >
+                <LabelList
+                  dataKey="head"
+                  content={({ x, y, index: pointIndex }) => {
+                    if (pointIndex === maxFlowMaxHeadIndex) {
+                      const labelText = dia + "mm";
+                      return (
+                        <text
+                          x={x + 10}
+                          fill={colors[index % colors.length]}
+                          fontSize={12}
+                          fontWeight="bold"
+                          textAnchor="start"
+                        >
+                          {`${labelText}`}
+                        </text>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </Scatter>
+            );
+          })}
+          {uniqueEff.map((eff, index) => {
+            let dataSeries = transformedDataEff[eff];
+            dataSeries = dataSeries.filter((point: any) => !isNaN(point.head));
+
+            if (dataSeries.length === 0) return null;
+
+            // Tolerance to handle float comparison
+            const tolerance = 0.001;
+
+            const minFlow = Math.min(...dataSeries.map((p) => p.flow));
+            const maxFlow = Math.max(...dataSeries.map((p) => p.flow));
+
+            const minFlowPoints = dataSeries.filter(
+              (p) => Math.abs(p.flow - minFlow) < tolerance,
+            );
+            const maxFlowPoints = dataSeries.filter(
+              (p) => Math.abs(p.flow - maxFlow) < tolerance,
+            );
+
+            const maxFlowMaxHeadPoint =
+              maxFlowPoints.length > 0
+                ? maxFlowPoints.reduce((a, b) => (a.head > b.head ? a : b))
+                : null;
+
+            const maxFlowMaxHeadIndex = maxFlowMaxHeadPoint
+              ? dataSeries.indexOf(maxFlowMaxHeadPoint)
+              : -1;
+
+            return (
+              <Scatter
+                key={eff}
+                name={eff}
+                data={dataSeries}
+                shape={(props) => (
+                  <circle
+                    cx={props.cx}
+                    cy={props.cy}
+                    r={2}
+                    fill={colors[index % colors.length]}
+                  />
+                )}
+              >
+                <LabelList
+                  dataKey="head"
+                  content={({ x, y, index: pointIndex }) => {
+                    if (pointIndex === maxFlowMaxHeadIndex) {
+                      const labelText = eff;
+                      return (
+                        <text
+                          x={x + 10}
+                          y={y - 0}
+                          fill={colors[index % colors.length]}
+                          fontSize={12}
+                          fontWeight="bold"
+                          textAnchor="start"
+                        >
+                          {`${labelText}`}
+                        </text>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </Scatter>
+            );
+          })}
+          {pointData.map((point, index) => {
+            const data = [
+              {
+                flow: point.point_flow,
+                head: point.point_head,
+                label: point.point_label, // this is used in Tooltip
+              },
+            ];
+
+            return (
+              <>
+                <Scatter
+                  key={point.point_label}
+                  dataKey="head"
+                  name={point.point_label}
+                  data={data}
+                  shape={(props) => (
+                    <circle
+                      cx={props.cx}
+                      cy={props.cy}
+                      r={4}
+                      fill={
+                        point && point.point_label?.includes("Flow")
+                          ? "red"
+                          : point.point_label?.includes("BEP")
+                            ? "blue"
+                            : "green"
+                      }
+                    />
+                  )}
+                >
+                  <LabelList
+                    dataKey="label"
+                    content={({ x, y, value }) => (
+                      <text
+                        x={x + 10}
+                        y={y}
+                        fill={
+                          point && point.point_label?.includes("Flow")
+                            ? "red"
+                            : point.point_label?.includes("BEP")
+                              ? "blue"
+                              : "green"
+                        }
+                        fontSize={12}
+                        fontWeight="bold"
+                        textAnchor="start"
+                      >
+                        {value}
+                      </text>
+                    )}
+                  />
+                </Scatter>
+                {/* Add Vertical Line for Each Data Point outside the Scatter component */}
+                <ReferenceLine
+                  key={`vertical-line-${point.point_label}`}
+                  x={
+                    point && !point.point_label?.includes("BEP") && data[0].flow
+                  } // Use the 'head' value for the X position of the vertical line
+                  stroke={
+                    point && point.point_label?.includes("Flow")
+                      ? "red"
+                      : "green"
+                  } // Line color
+                  strokeWidth={3} // Line width
+                  strokeDasharray="3 3" // Dotted line (optional)
+                />
+              </>
+            );
+          })}
+        </ScatterChart>
       </ResponsiveContainer>
     );
   }

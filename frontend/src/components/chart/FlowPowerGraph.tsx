@@ -1,25 +1,54 @@
-import { Line, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer, ComposedChart } from "recharts";
-import { useFlowPowerData } from "@/api/chart";
+import {
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Scatter,
+  Legend,
+  Tooltip,
+  ResponsiveContainer,
+  ComposedChart,
+  ScatterChart,
+  LabelList,
+} from "recharts";
+import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
 
 export interface FlowPowerGraphProps {
-  model: string;
+  chartData: FactoryCurveDataResponse[];
   scatter?: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-export const FlowPowerGraph = ({ model, scatter = false }: FlowPowerGraphProps) => {
-  const { data: chartData, isLoading, isError } = useFlowPowerData(model);
-
+export const FlowPowerGraph = ({
+  chartData,
+  scatter,
+  isLoading,
+  isError,
+}: FlowPowerGraphProps) => {
   const XAxisDefaultProps = {
     dataKey: "flow",
-    label: { value: "Flow (m3/hr)", position: "insideBottomRight", offset: -2 },
+    label: {
+      value: "Flow (m3/hr)",
+      position: "insideBottomRight",
+      offset: -2,
+      style: { fontSize: 12 },
+    },
     type: "number" as const,
-    domain: [0, 14],
+    style: { fontSize: 12 },
   };
 
   const YAxisDefaultProps = {
-    label: { value: "Power (kW)", angle: -90, position: "insideLeft", offset: -2 },
+    dataKey: "power",
+    label: {
+      value: "Power (kw)",
+      angle: -90,
+      position: "insideLeft",
+      inset: -2,
+      style: { fontSize: 12 },
+    },
     type: "number" as const,
-    domain: [0, 0.3],
+    style: { fontSize: 12 },
   };
 
   const error = console.error;
@@ -38,28 +67,86 @@ export const FlowPowerGraph = ({ model, scatter = false }: FlowPowerGraphProps) 
 
   if (chartData) {
     const colors = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
-    const uniqueImpDia = [...new Set(chartData.map((item) => item.imp_dia))];
+
+    const uniqueImpDia = [
+      ...new Set(
+        chartData.map((item) => item.imp_dia && item.imp_dia?.split(".")[0]),
+      ),
+    ].filter(
+      (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== "",
+    );
+
+
+    const transformedDataImp = uniqueImpDia.reduce((acc, dia) => {
+      acc[dia] = chartData
+        .filter(
+          (item) => item.imp_dia?.split(".")[0] === dia && item.kw && item.flow,
+        )
+        .map((item) => ({
+          flow: parseFloat(item.flow),
+          power: parseFloat(item.kw),
+        }))
+        .sort((a, b) => a.flow - b.flow); // Sort by flow
+      return acc;
+    }, {});
+
 
     return (
-      <ResponsiveContainer width="50%" height={400} className="w-1/2 p-2">
-        <ComposedChart title="KW Graph" data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+      <ResponsiveContainer height={400}>
+        <ScatterChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis {...XAxisDefaultProps} />
           <YAxis {...YAxisDefaultProps} />
-          <Legend verticalAlign="top" height={36} />
-          {uniqueImpDia.map((dia, index) => (
-            <Line
-              key={dia}
-              type="monotone"
-              dataKey="kw"
-              stroke={scatter ? "none" : colors[index % colors.length]}
-              strokeWidth={3}
-              name={`${dia}mm`}
-              data={chartData.filter((item) => item.imp_dia === dia)}
-              dot={scatter ? { stroke: colors[index % colors.length], strokeWidth: 1.2 } : false}
-            />
-          ))}
-        </ComposedChart>
+          <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+          {uniqueImpDia.map((dia, index) => {
+            let dataSeries = transformedDataImp[dia];
+            dataSeries = dataSeries.filter((point: any) => !isNaN(point.power));
+            const lastDataPointIndex = dataSeries.length - 1; // Ensure we get last index
+            return (
+              <Scatter
+                key={dia}
+                name={`${dia}mm`}
+                data={transformedDataImp[dia]}
+                line
+                fill={scatter ? "none" : colors[index % colors.length]}
+                strokeWidth={2}
+                shape={(props: any) => {
+                  const { cx, cy, isActive } = props;
+                  return (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={6}
+                      fill="transparent"
+                      stroke="none"
+                    />
+                  );
+                }}
+              >
+                <LabelList
+                  dataKey="power"
+                  content={({ x, y, index: pointIndex }) => {
+                    if (pointIndex && pointIndex === lastDataPointIndex) {
+                      return (
+                        <text
+                          x={x + 10}
+                          y={y + 0}
+                          fill={colors[index % colors.length]}
+                          fontSize={12}
+                          fontWeight="bold"
+                          textAnchor="start"
+                        >
+                          {`${dia}mm`}
+                        </text>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </Scatter>
+            );
+          })}
+        </ScatterChart>
       </ResponsiveContainer>
     );
   }

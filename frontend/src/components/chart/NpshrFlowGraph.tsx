@@ -1,25 +1,54 @@
-import { Line, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer, ComposedChart } from "recharts";
-import { useNpshrFlowData } from "@/api/chart";
+import {
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Legend,
+  ResponsiveContainer,
+  ComposedChart,
+  ScatterChart,
+  LabelList,
+  Tooltip,
+  Scatter,
+} from "recharts";
+import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
 
 export interface NpshrFlowGraphProps {
-  model: string;
+  chartData: FactoryCurveDataResponse[];
   scatter?: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-export const NpshrFlowGraph = ({ model, scatter = false }: NpshrFlowGraphProps) => {
-  const { data: chartData, isLoading, isError } = useNpshrFlowData(model);
-
+export const NpshrFlowGraph = ({
+  chartData,
+  scatter,
+  isError,
+  isLoading,
+}: NpshrFlowGraphProps) => {
   const XAxisDefaultProps = {
     dataKey: "flow",
-    label: { value: "Flow (m3/hr)", position: "insideBottomRight", offset: -5 },
+    label: {
+      value: "Flow (m3/hr)",
+      position: "insideBottomRight",
+      offset: -2,
+      style: { fontSize: 12 },
+    },
     type: "number" as const,
-    domain: [0, 14],
+    style: { fontSize: 12 },
   };
 
   const YAxisDefaultProps = {
-    label: { value: "NPSHR (m)", angle: -90, position: "insideLeft" },
+    dataKey: "npshr",
+    label: {
+      value: "NPSHR (m)",
+      angle: -90,
+      position: "insideLeft",
+      inset: -2,
+      style: { fontSize: 12 },
+    },
     type: "number" as const,
-    domain: [0, 7],
+    style: { fontSize: 12 },
   };
 
   const error = console.error;
@@ -33,29 +62,124 @@ export const NpshrFlowGraph = ({ model, scatter = false }: NpshrFlowGraphProps) 
   }
 
   if (chartData) {
-    const uniqueImpDiameters = [...new Set(chartData.map((item) => item.imp_dia))];
     const colors = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
 
+    const filteredChartData = chartData
+      .filter((point) => point.npshr !== "" && point.flow !== "")
+      .sort((a, b) => a.flow - b.flow);
+    const transformedData = filteredChartData.map((point) => ({
+      flow: point.flow,
+      npshr: point.npshr,
+    }));
+
+    const maxFlow = Math.max(...transformedData.map((p) => p.flow));
+    const tolerance = 0.001;
+    const maxFlowPoints = transformedData.filter(
+              (p) => Math.abs(p.flow - maxFlow) < tolerance
+            );
+    const maxFlowMaxNpshrPoint =
+              maxFlowPoints.length > 0
+                ? maxFlowPoints.reduce((a, b) => (a.npshr > b.npshr ? a : b))
+                : null;
+    const maxFlowMaxNpshrIndex = maxFlowMaxNpshrPoint
+              ? transformedData.indexOf(maxFlowMaxNpshrPoint)
+              : -1;
     return (
-      <ResponsiveContainer width="50%" height={400} className="w-1/2 p-2">
-        <ComposedChart title="QH Graph" data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+      <ResponsiveContainer height={400}>
+        <ScatterChart data={transformedData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis {...XAxisDefaultProps} />
           <YAxis {...YAxisDefaultProps} />
-          <Legend verticalAlign="top" height={36} />
-          {uniqueImpDiameters.map((imp_dia, index) => (
-            <Line
-              key={imp_dia}
-              type="monotone"
+          <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+          <Scatter
+            key="npshr"
+            name="npshr"
+            data={transformedData}
+            line
+            fill={scatter ? "none" : colors[0]}
+            strokeWidth={2}
+            shape={(props: any) => {
+              const { cx, cy, isActive } = props;
+              return (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={6}
+                  fill="transparent"
+                  stroke="none"
+                />
+              );
+            }}
+          >
+            <LabelList
               dataKey="npshr"
-              stroke={scatter ? "none" : colors[index % colors.length]}
-              strokeWidth={3}
-              name={`${imp_dia}mm`}
-              data={chartData.filter((item) => item.imp_dia === imp_dia)}
-              dot={scatter ? { stroke: colors[index % colors.length], strokeWidth: 1.2 } : false}
+              content={({ x, y, index: pointIndex }) => {
+                if (pointIndex === maxFlowMaxNpshrIndex) {
+                  return (
+                    <text
+                      x={x + 10}
+                      y={y + 0}
+                      fill={colors[0]}
+                      fontSize={12}
+                      fontWeight="bold"
+                      textAnchor="start"
+                    >
+                      {"npshr"}
+                    </text>
+                  );
+                }
+                return null;
+              }}
             />
-          ))}
-        </ComposedChart>
+          </Scatter>
+          {/* {uniqueImpDia.map((dia, index) => {
+            let dataSeries = transformedData[dia];
+            dataSeries = dataSeries.filter((point: any) => !isNaN(point.npshr));
+            const lastDataPointIndex = dataSeries.length - 1; // Ensure we get last index
+            return (
+              <Line
+                key={dia}
+                connectNulls
+                name={`npshr`}
+                data={dataSeries}
+                type="monotone"
+                dataKey="npshr"
+                stroke={scatter ? "none" : colors[index % colors.length]}
+                strokeWidth={2}
+                dot={
+                  scatter
+                    ? {
+                        stroke: colors[index % colors.length],
+                        strokeWidth: 0.5,
+                      }
+                    : false
+                }
+              >
+                <LabelList
+                  dataKey="npshr"
+                  content={({ x, y, index: pointIndex }) => {
+                    if (pointIndex && pointIndex === lastDataPointIndex) {
+                      return (
+                        <text
+                          x={x + 10} // Slightly shift to the right
+                          y={y + 5}
+                          fill={colors[index % colors.length]} // Match label color with the line
+                          fontSize={12}
+                          fontWeight="bold"
+                          textAnchor="start"
+                        >
+                          {`npshr`}
+                        </text>
+                      );
+                    }
+
+                    return null;
+                  }}
+                />
+              </Line>
+            );
+          })} */}
+        </ScatterChart>
       </ResponsiveContainer>
     );
   }

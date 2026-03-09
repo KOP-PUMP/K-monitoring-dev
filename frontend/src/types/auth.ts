@@ -1,5 +1,5 @@
 export interface LoginRequest {
-  email: string;
+  user_email: string;
   password: string;
 }
 
@@ -16,3 +16,11 @@ export interface RefreshRequest {
 export interface VerifyRequest {
   token: string;
 }
+
+export interface CollapsibleState {
+  pumps: boolean;
+  pump_data: boolean;
+  user_manage : boolean;
+  analytics: boolean;
+};
+

@@ -15,13 +15,42 @@ import { Route as LoginImport } from './routes/login'
 import { Route as AuthImport } from './routes/_auth'
 import { Route as AuthIndexImport } from './routes/_auth/index'
 import { Route as AuthSettingsImport } from './routes/_auth/settings'
-import { Route as AuthCustomersImport } from './routes/_auth/customers'
-import { Route as AuthPumpIndexImport } from './routes/_auth/pump/index'
 import { Route as AuthDashboardIndexImport } from './routes/_auth/dashboard/index'
+import { Route as AuthCustomersIndexImport } from './routes/_auth/customers/index'
+import { Route as AuthUsersPecuserlistImport } from './routes/_auth/users/pec_user_list'
+import { Route as AuthUsersPecusereditImport } from './routes/_auth/users/pec_user_edit'
+import { Route as AuthUsersCustomeruserlistImport } from './routes/_auth/users/customer_user_list'
+import { Route as AuthUsersCustomerusereditImport } from './routes/_auth/users/customer_user_edit'
+import { Route as AuthUsersCustomerlistImport } from './routes/_auth/users/customer_list'
+import { Route as AuthUsersCreateuserImport } from './routes/_auth/users/create_user'
+import { Route as AuthUsersContactlistImport } from './routes/_auth/users/contact_list'
+import { Route as AuthUsersCompanylistImport } from './routes/_auth/users/company_list'
+import { Route as AuthUsersCompanyeditImport } from './routes/_auth/users/company_edit'
+import { Route as AuthPumpUnitlistImport } from './routes/_auth/pump/unit_list'
+import { Route as AuthPumpUniteditImport } from './routes/_auth/pump/unit_edit'
+import { Route as AuthPumpTotalpumpImport } from './routes/_auth/pump/total_pump'
+import { Route as AuthPumpShaftseallovlistImport } from './routes/_auth/pump/shaft_seal_lov_list'
+import { Route as AuthPumpShaftsealloveditImport } from './routes/_auth/pump/shaft_seal_lov_edit'
+import { Route as AuthPumpPumpdetaillovlistImport } from './routes/_auth/pump/pump_detail_lov_list'
+import { Route as AuthPumpPumpdetailloveditImport } from './routes/_auth/pump/pump_detail_lov_edit'
+import { Route as AuthPumpPumpdetailImport } from './routes/_auth/pump/pump_detail'
+import { Route as AuthPumpMotorlovlistImport } from './routes/_auth/pump/motor_lov_list'
+import { Route as AuthPumpMotorloveditImport } from './routes/_auth/pump/motor_lov_edit'
+import { Route as AuthPumpMedialovlistImport } from './routes/_auth/pump/media_lov_list'
+import { Route as AuthPumpMedialoveditImport } from './routes/_auth/pump/media_lov_edit'
+import { Route as AuthPumpMateriallovlistImport } from './routes/_auth/pump/material_lov_list'
+import { Route as AuthPumpMaterialloveditImport } from './routes/_auth/pump/material_lov_edit'
+import { Route as AuthPumpLovlistImport } from './routes/_auth/pump/lov_list'
+import { Route as AuthPumpLoveditImport } from './routes/_auth/pump/lov_edit'
 import { Route as AuthPumpListeditImport } from './routes/_auth/pump/list_edit'
 import { Route as AuthPumpEngineeringImport } from './routes/_auth/pump/engineering'
 import { Route as AuthPumpDetailImport } from './routes/_auth/pump/detail'
-import { Route as AuthAnalyticModelImport } from './routes/_auth/analytic.$model'
+import { Route as AuthCustomersDashboardImport } from './routes/_auth/customers/dashboard'
+import { Route as AuthAnalyticReporteditImport } from './routes/_auth/analytic/report_edit'
+import { Route as AuthAnalyticReportImport } from './routes/_auth/analytic/report'
+import { Route as AuthAnalyticFactorycurveImport } from './routes/_auth/analytic/factory_curve'
+import { Route as AuthAnalyticEngineeringImport } from './routes/_auth/analytic/engineering'
+import { Route as AuthAnalyticModelImport } from './routes/_auth/analytic/$model'
 
 // Create/Update Routes
 
@@ -45,18 +74,138 @@ const AuthSettingsRoute = AuthSettingsImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
-const AuthCustomersRoute = AuthCustomersImport.update({
-  path: '/customers',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthPumpIndexRoute = AuthPumpIndexImport.update({
-  path: '/pump/',
-  getParentRoute: () => AuthRoute,
-} as any)
-
 const AuthDashboardIndexRoute = AuthDashboardIndexImport.update({
   path: '/dashboard/',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthCustomersIndexRoute = AuthCustomersIndexImport.update({
+  path: '/customers/',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersPecuserlistRoute = AuthUsersPecuserlistImport.update({
+  path: '/users/pec_user_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersPecusereditRoute = AuthUsersPecusereditImport.update({
+  path: '/users/pec_user_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCustomeruserlistRoute = AuthUsersCustomeruserlistImport.update({
+  path: '/users/customer_user_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCustomerusereditRoute = AuthUsersCustomerusereditImport.update({
+  path: '/users/customer_user_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCustomerlistRoute = AuthUsersCustomerlistImport.update({
+  path: '/users/customer_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCreateuserRoute = AuthUsersCreateuserImport.update({
+  path: '/users/create_user',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersContactlistRoute = AuthUsersContactlistImport.update({
+  path: '/users/contact_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCompanylistRoute = AuthUsersCompanylistImport.update({
+  path: '/users/company_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthUsersCompanyeditRoute = AuthUsersCompanyeditImport.update({
+  path: '/users/company_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpUnitlistRoute = AuthPumpUnitlistImport.update({
+  path: '/pump/unit_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpUniteditRoute = AuthPumpUniteditImport.update({
+  path: '/pump/unit_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpTotalpumpRoute = AuthPumpTotalpumpImport.update({
+  path: '/pump/total_pump',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpShaftseallovlistRoute = AuthPumpShaftseallovlistImport.update({
+  path: '/pump/shaft_seal_lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpShaftsealloveditRoute = AuthPumpShaftsealloveditImport.update({
+  path: '/pump/shaft_seal_lov_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpPumpdetaillovlistRoute = AuthPumpPumpdetaillovlistImport.update({
+  path: '/pump/pump_detail_lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpPumpdetailloveditRoute = AuthPumpPumpdetailloveditImport.update({
+  path: '/pump/pump_detail_lov_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpPumpdetailRoute = AuthPumpPumpdetailImport.update({
+  path: '/pump/pump_detail',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpMotorlovlistRoute = AuthPumpMotorlovlistImport.update({
+  path: '/pump/motor_lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpMotorloveditRoute = AuthPumpMotorloveditImport.update({
+  path: '/pump/motor_lov_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpMedialovlistRoute = AuthPumpMedialovlistImport.update({
+  path: '/pump/media_lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpMedialoveditRoute = AuthPumpMedialoveditImport.update({
+  path: '/pump/media_lov_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpMateriallovlistRoute = AuthPumpMateriallovlistImport.update({
+  path: '/pump/material_lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpMaterialloveditRoute = AuthPumpMaterialloveditImport.update({
+  path: '/pump/material_lov_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpLovlistRoute = AuthPumpLovlistImport.update({
+  path: '/pump/lov_list',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpLoveditRoute = AuthPumpLoveditImport.update({
+  path: '/pump/lov_edit',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -72,6 +221,31 @@ const AuthPumpEngineeringRoute = AuthPumpEngineeringImport.update({
 
 const AuthPumpDetailRoute = AuthPumpDetailImport.update({
   path: '/pump/detail',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthCustomersDashboardRoute = AuthCustomersDashboardImport.update({
+  path: '/customers/dashboard',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthAnalyticReporteditRoute = AuthAnalyticReporteditImport.update({
+  path: '/analytic/report_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthAnalyticReportRoute = AuthAnalyticReportImport.update({
+  path: '/analytic/report',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthAnalyticFactorycurveRoute = AuthAnalyticFactorycurveImport.update({
+  path: '/analytic/factory_curve',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthAnalyticEngineeringRoute = AuthAnalyticEngineeringImport.update({
+  path: '/analytic/engineering',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -98,13 +272,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
-    '/_auth/customers': {
-      id: '/_auth/customers'
-      path: '/customers'
-      fullPath: '/customers'
-      preLoaderRoute: typeof AuthCustomersImport
-      parentRoute: typeof AuthImport
-    }
     '/_auth/settings': {
       id: '/_auth/settings'
       path: '/settings'
@@ -124,6 +291,41 @@ declare module '@tanstack/react-router' {
       path: '/analytic/$model'
       fullPath: '/analytic/$model'
       preLoaderRoute: typeof AuthAnalyticModelImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/analytic/engineering': {
+      id: '/_auth/analytic/engineering'
+      path: '/analytic/engineering'
+      fullPath: '/analytic/engineering'
+      preLoaderRoute: typeof AuthAnalyticEngineeringImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/analytic/factory_curve': {
+      id: '/_auth/analytic/factory_curve'
+      path: '/analytic/factory_curve'
+      fullPath: '/analytic/factory_curve'
+      preLoaderRoute: typeof AuthAnalyticFactorycurveImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/analytic/report': {
+      id: '/_auth/analytic/report'
+      path: '/analytic/report'
+      fullPath: '/analytic/report'
+      preLoaderRoute: typeof AuthAnalyticReportImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/analytic/report_edit': {
+      id: '/_auth/analytic/report_edit'
+      path: '/analytic/report_edit'
+      fullPath: '/analytic/report_edit'
+      preLoaderRoute: typeof AuthAnalyticReporteditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/customers/dashboard': {
+      id: '/_auth/customers/dashboard'
+      path: '/customers/dashboard'
+      fullPath: '/customers/dashboard'
+      preLoaderRoute: typeof AuthCustomersDashboardImport
       parentRoute: typeof AuthImport
     }
     '/_auth/pump/detail': {
@@ -147,18 +349,193 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPumpListeditImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/pump/lov_edit': {
+      id: '/_auth/pump/lov_edit'
+      path: '/pump/lov_edit'
+      fullPath: '/pump/lov_edit'
+      preLoaderRoute: typeof AuthPumpLoveditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/lov_list': {
+      id: '/_auth/pump/lov_list'
+      path: '/pump/lov_list'
+      fullPath: '/pump/lov_list'
+      preLoaderRoute: typeof AuthPumpLovlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/material_lov_edit': {
+      id: '/_auth/pump/material_lov_edit'
+      path: '/pump/material_lov_edit'
+      fullPath: '/pump/material_lov_edit'
+      preLoaderRoute: typeof AuthPumpMaterialloveditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/material_lov_list': {
+      id: '/_auth/pump/material_lov_list'
+      path: '/pump/material_lov_list'
+      fullPath: '/pump/material_lov_list'
+      preLoaderRoute: typeof AuthPumpMateriallovlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/media_lov_edit': {
+      id: '/_auth/pump/media_lov_edit'
+      path: '/pump/media_lov_edit'
+      fullPath: '/pump/media_lov_edit'
+      preLoaderRoute: typeof AuthPumpMedialoveditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/media_lov_list': {
+      id: '/_auth/pump/media_lov_list'
+      path: '/pump/media_lov_list'
+      fullPath: '/pump/media_lov_list'
+      preLoaderRoute: typeof AuthPumpMedialovlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/motor_lov_edit': {
+      id: '/_auth/pump/motor_lov_edit'
+      path: '/pump/motor_lov_edit'
+      fullPath: '/pump/motor_lov_edit'
+      preLoaderRoute: typeof AuthPumpMotorloveditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/motor_lov_list': {
+      id: '/_auth/pump/motor_lov_list'
+      path: '/pump/motor_lov_list'
+      fullPath: '/pump/motor_lov_list'
+      preLoaderRoute: typeof AuthPumpMotorlovlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/pump_detail': {
+      id: '/_auth/pump/pump_detail'
+      path: '/pump/pump_detail'
+      fullPath: '/pump/pump_detail'
+      preLoaderRoute: typeof AuthPumpPumpdetailImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/pump_detail_lov_edit': {
+      id: '/_auth/pump/pump_detail_lov_edit'
+      path: '/pump/pump_detail_lov_edit'
+      fullPath: '/pump/pump_detail_lov_edit'
+      preLoaderRoute: typeof AuthPumpPumpdetailloveditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/pump_detail_lov_list': {
+      id: '/_auth/pump/pump_detail_lov_list'
+      path: '/pump/pump_detail_lov_list'
+      fullPath: '/pump/pump_detail_lov_list'
+      preLoaderRoute: typeof AuthPumpPumpdetaillovlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/shaft_seal_lov_edit': {
+      id: '/_auth/pump/shaft_seal_lov_edit'
+      path: '/pump/shaft_seal_lov_edit'
+      fullPath: '/pump/shaft_seal_lov_edit'
+      preLoaderRoute: typeof AuthPumpShaftsealloveditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/shaft_seal_lov_list': {
+      id: '/_auth/pump/shaft_seal_lov_list'
+      path: '/pump/shaft_seal_lov_list'
+      fullPath: '/pump/shaft_seal_lov_list'
+      preLoaderRoute: typeof AuthPumpShaftseallovlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/total_pump': {
+      id: '/_auth/pump/total_pump'
+      path: '/pump/total_pump'
+      fullPath: '/pump/total_pump'
+      preLoaderRoute: typeof AuthPumpTotalpumpImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/unit_edit': {
+      id: '/_auth/pump/unit_edit'
+      path: '/pump/unit_edit'
+      fullPath: '/pump/unit_edit'
+      preLoaderRoute: typeof AuthPumpUniteditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/pump/unit_list': {
+      id: '/_auth/pump/unit_list'
+      path: '/pump/unit_list'
+      fullPath: '/pump/unit_list'
+      preLoaderRoute: typeof AuthPumpUnitlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/company_edit': {
+      id: '/_auth/users/company_edit'
+      path: '/users/company_edit'
+      fullPath: '/users/company_edit'
+      preLoaderRoute: typeof AuthUsersCompanyeditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/company_list': {
+      id: '/_auth/users/company_list'
+      path: '/users/company_list'
+      fullPath: '/users/company_list'
+      preLoaderRoute: typeof AuthUsersCompanylistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/contact_list': {
+      id: '/_auth/users/contact_list'
+      path: '/users/contact_list'
+      fullPath: '/users/contact_list'
+      preLoaderRoute: typeof AuthUsersContactlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/create_user': {
+      id: '/_auth/users/create_user'
+      path: '/users/create_user'
+      fullPath: '/users/create_user'
+      preLoaderRoute: typeof AuthUsersCreateuserImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/customer_list': {
+      id: '/_auth/users/customer_list'
+      path: '/users/customer_list'
+      fullPath: '/users/customer_list'
+      preLoaderRoute: typeof AuthUsersCustomerlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/customer_user_edit': {
+      id: '/_auth/users/customer_user_edit'
+      path: '/users/customer_user_edit'
+      fullPath: '/users/customer_user_edit'
+      preLoaderRoute: typeof AuthUsersCustomerusereditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/customer_user_list': {
+      id: '/_auth/users/customer_user_list'
+      path: '/users/customer_user_list'
+      fullPath: '/users/customer_user_list'
+      preLoaderRoute: typeof AuthUsersCustomeruserlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/pec_user_edit': {
+      id: '/_auth/users/pec_user_edit'
+      path: '/users/pec_user_edit'
+      fullPath: '/users/pec_user_edit'
+      preLoaderRoute: typeof AuthUsersPecusereditImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/users/pec_user_list': {
+      id: '/_auth/users/pec_user_list'
+      path: '/users/pec_user_list'
+      fullPath: '/users/pec_user_list'
+      preLoaderRoute: typeof AuthUsersPecuserlistImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/customers/': {
+      id: '/_auth/customers/'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AuthCustomersIndexImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/dashboard/': {
       id: '/_auth/dashboard/'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthDashboardIndexImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/pump/': {
-      id: '/_auth/pump/'
-      path: '/pump'
-      fullPath: '/pump'
-      preLoaderRoute: typeof AuthPumpIndexImport
       parentRoute: typeof AuthImport
     }
   }
@@ -168,15 +545,44 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   AuthRoute: AuthRoute.addChildren({
-    AuthCustomersRoute,
     AuthSettingsRoute,
     AuthIndexRoute,
     AuthAnalyticModelRoute,
+    AuthAnalyticEngineeringRoute,
+    AuthAnalyticFactorycurveRoute,
+    AuthAnalyticReportRoute,
+    AuthAnalyticReporteditRoute,
+    AuthCustomersDashboardRoute,
     AuthPumpDetailRoute,
     AuthPumpEngineeringRoute,
     AuthPumpListeditRoute,
+    AuthPumpLoveditRoute,
+    AuthPumpLovlistRoute,
+    AuthPumpMaterialloveditRoute,
+    AuthPumpMateriallovlistRoute,
+    AuthPumpMedialoveditRoute,
+    AuthPumpMedialovlistRoute,
+    AuthPumpMotorloveditRoute,
+    AuthPumpMotorlovlistRoute,
+    AuthPumpPumpdetailRoute,
+    AuthPumpPumpdetailloveditRoute,
+    AuthPumpPumpdetaillovlistRoute,
+    AuthPumpShaftsealloveditRoute,
+    AuthPumpShaftseallovlistRoute,
+    AuthPumpTotalpumpRoute,
+    AuthPumpUniteditRoute,
+    AuthPumpUnitlistRoute,
+    AuthUsersCompanyeditRoute,
+    AuthUsersCompanylistRoute,
+    AuthUsersContactlistRoute,
+    AuthUsersCreateuserRoute,
+    AuthUsersCustomerlistRoute,
+    AuthUsersCustomerusereditRoute,
+    AuthUsersCustomeruserlistRoute,
+    AuthUsersPecusereditRoute,
+    AuthUsersPecuserlistRoute,
+    AuthCustomersIndexRoute,
     AuthDashboardIndexRoute,
-    AuthPumpIndexRoute,
   }),
   LoginRoute,
 })
@@ -196,23 +602,48 @@ export const routeTree = rootRoute.addChildren({
     "/_auth": {
       "filePath": "_auth.tsx",
       "children": [
-        "/_auth/customers",
         "/_auth/settings",
         "/_auth/",
         "/_auth/analytic/$model",
+        "/_auth/analytic/engineering",
+        "/_auth/analytic/factory_curve",
+        "/_auth/analytic/report",
+        "/_auth/analytic/report_edit",
+        "/_auth/customers/dashboard",
         "/_auth/pump/detail",
         "/_auth/pump/engineering",
         "/_auth/pump/list_edit",
-        "/_auth/dashboard/",
-        "/_auth/pump/"
+        "/_auth/pump/lov_edit",
+        "/_auth/pump/lov_list",
+        "/_auth/pump/material_lov_edit",
+        "/_auth/pump/material_lov_list",
+        "/_auth/pump/media_lov_edit",
+        "/_auth/pump/media_lov_list",
+        "/_auth/pump/motor_lov_edit",
+        "/_auth/pump/motor_lov_list",
+        "/_auth/pump/pump_detail",
+        "/_auth/pump/pump_detail_lov_edit",
+        "/_auth/pump/pump_detail_lov_list",
+        "/_auth/pump/shaft_seal_lov_edit",
+        "/_auth/pump/shaft_seal_lov_list",
+        "/_auth/pump/total_pump",
+        "/_auth/pump/unit_edit",
+        "/_auth/pump/unit_list",
+        "/_auth/users/company_edit",
+        "/_auth/users/company_list",
+        "/_auth/users/contact_list",
+        "/_auth/users/create_user",
+        "/_auth/users/customer_list",
+        "/_auth/users/customer_user_edit",
+        "/_auth/users/customer_user_list",
+        "/_auth/users/pec_user_edit",
+        "/_auth/users/pec_user_list",
+        "/_auth/customers/",
+        "/_auth/dashboard/"
       ]
     },
     "/login": {
       "filePath": "login.tsx"
-    },
-    "/_auth/customers": {
-      "filePath": "_auth/customers.tsx",
-      "parent": "/_auth"
     },
     "/_auth/settings": {
       "filePath": "_auth/settings.tsx",
@@ -223,7 +654,27 @@ export const routeTree = rootRoute.addChildren({
       "parent": "/_auth"
     },
     "/_auth/analytic/$model": {
-      "filePath": "_auth/analytic.$model.tsx",
+      "filePath": "_auth/analytic/$model.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/analytic/engineering": {
+      "filePath": "_auth/analytic/engineering.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/analytic/factory_curve": {
+      "filePath": "_auth/analytic/factory_curve.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/analytic/report": {
+      "filePath": "_auth/analytic/report.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/analytic/report_edit": {
+      "filePath": "_auth/analytic/report_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/customers/dashboard": {
+      "filePath": "_auth/customers/dashboard.tsx",
       "parent": "/_auth"
     },
     "/_auth/pump/detail": {
@@ -238,12 +689,112 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth/pump/list_edit.tsx",
       "parent": "/_auth"
     },
-    "/_auth/dashboard/": {
-      "filePath": "_auth/dashboard/index.tsx",
+    "/_auth/pump/lov_edit": {
+      "filePath": "_auth/pump/lov_edit.tsx",
       "parent": "/_auth"
     },
-    "/_auth/pump/": {
-      "filePath": "_auth/pump/index.tsx",
+    "/_auth/pump/lov_list": {
+      "filePath": "_auth/pump/lov_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/material_lov_edit": {
+      "filePath": "_auth/pump/material_lov_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/material_lov_list": {
+      "filePath": "_auth/pump/material_lov_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/media_lov_edit": {
+      "filePath": "_auth/pump/media_lov_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/media_lov_list": {
+      "filePath": "_auth/pump/media_lov_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/motor_lov_edit": {
+      "filePath": "_auth/pump/motor_lov_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/motor_lov_list": {
+      "filePath": "_auth/pump/motor_lov_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/pump_detail": {
+      "filePath": "_auth/pump/pump_detail.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/pump_detail_lov_edit": {
+      "filePath": "_auth/pump/pump_detail_lov_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/pump_detail_lov_list": {
+      "filePath": "_auth/pump/pump_detail_lov_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/shaft_seal_lov_edit": {
+      "filePath": "_auth/pump/shaft_seal_lov_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/shaft_seal_lov_list": {
+      "filePath": "_auth/pump/shaft_seal_lov_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/total_pump": {
+      "filePath": "_auth/pump/total_pump.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/unit_edit": {
+      "filePath": "_auth/pump/unit_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/unit_list": {
+      "filePath": "_auth/pump/unit_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/company_edit": {
+      "filePath": "_auth/users/company_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/company_list": {
+      "filePath": "_auth/users/company_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/contact_list": {
+      "filePath": "_auth/users/contact_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/create_user": {
+      "filePath": "_auth/users/create_user.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/customer_list": {
+      "filePath": "_auth/users/customer_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/customer_user_edit": {
+      "filePath": "_auth/users/customer_user_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/customer_user_list": {
+      "filePath": "_auth/users/customer_user_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/pec_user_edit": {
+      "filePath": "_auth/users/pec_user_edit.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/users/pec_user_list": {
+      "filePath": "_auth/users/pec_user_list.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/customers/": {
+      "filePath": "_auth/customers/index.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/dashboard/": {
+      "filePath": "_auth/dashboard/index.tsx",
       "parent": "/_auth"
     }
   }
