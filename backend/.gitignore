@@ -85,6 +85,11 @@ target/
 __pycache__/
 local_settings.py
 
+venv/
 .env
+.env.*
+media/
 db.sqlite3
 engineer/report/
+staticfiles/
+gunicorn.ctl
