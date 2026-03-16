@@ -6,7 +6,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import { MotorDetailLOVResponse } from "@/types";
 import { useGetMotorDetailLOV, useDeleteMotorLOVById } from "@/hook/pump/pump";
 import { Card } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 
 export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
   TData,
@@ -280,7 +278,7 @@ const MotorLOV = () => {
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() => handleDeleteData(payment.motor_lov_id)}
+                onClick={() => handleDeleteData(payment.motor_lov_id as string)}
               >
                 Delete
               </DropdownMenuItem>

@@ -1,10 +1,5 @@
-import {
-  CompaniesResponse,
-  ContactPersonResponse,
-} from "@/types/users/company";
+import { CompaniesResponse } from "@/types/users/company";
 import { axiosInstance, axiosInstancePEC } from "../utils";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { on } from "events";
 import toast from "react-hot-toast";
 import axios from "axios";
 
@@ -43,7 +38,7 @@ export const createCompany = async (data: CompaniesResponse) => {
   try {
     // Check if the company already exists
     const checkCodeResponse = await axiosInstance.get(
-      `/companies/${data.customer_code}`
+      `/companies/${data.customer_code}`,
     );
     if (checkCodeResponse.data) {
       throw new Error("Company already exists");
@@ -91,7 +86,7 @@ export const getPECCompanyDetail = async (code?: string) => {
       return;
     }
     const response = await axiosInstancePEC.get(
-      `/customer_api.php?code=${code}`
+      `/customer_api.php?code=${code}`,
     );
     console.log(response);
     return response.data;

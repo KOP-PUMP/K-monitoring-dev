@@ -228,6 +228,7 @@ export const PumpDetailLOVSchema = z.object({
   pump_standard : z.string().optional().nullable(),
   pump_standard_no : z.string().optional().nullable(),
   pump_impeller_type : z.string().optional().nullable(),
+  pump_impeller_max_size : z.string().optional().nullable(),
   pump_flange_con_std : z.string().optional().nullable(),
   pump_type_name : z.string().optional().nullable(),
   pump_stage : z.string().optional().nullable(),

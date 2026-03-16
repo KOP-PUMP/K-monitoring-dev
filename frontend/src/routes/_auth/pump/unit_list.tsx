@@ -6,7 +6,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
 };
 
 const UnitTable = () => {
-  const { data: units, isLoading, isError } = useGetAllUnitLOVData();
+  const { data: units} = useGetAllUnitLOVData();
 
   const deleteMutation = useDeleteLOVById();
   const handleDeleteData = (id: string, isUnit: boolean) => {

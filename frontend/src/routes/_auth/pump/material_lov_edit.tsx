@@ -10,18 +10,12 @@ import toast from "react-hot-toast";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
-import { useState } from "react";
-import { ComboboxItemProps } from "@/components/common/ComboBox";
-import { Combobox } from "@/components/common/ComboBox";
 import { Input } from "@/components/ui/input";
 import { PumpMatLOVSchema } from "@/validators/pump";
-import { useSettings } from "@/lib/settings";
 import { FormBox } from "@/components/common/FormBox";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
@@ -32,8 +26,7 @@ import {
   useUpdateMaterialLOV,
   useCreateMaterialLOV,
 } from "@/hook/pump/pump";
-import { create } from "domain";
-import { pumpData } from "@/data/pump_models";
+import { PumpMatLOVResponse } from "@/types/pump/pumps";
 
 function MaterialLOVEdit() {
   // Unit form setup
@@ -44,47 +37,49 @@ function MaterialLOVEdit() {
   });
 
   const { id } = useSearch({ from: "/_auth/pump/material_lov_edit" });
-  const { data: materialData } = useGetMaterialDetailLOV(id);
+  const { data: materialData } = useGetMaterialDetailLOV(id) as {
+    data: PumpMatLOVResponse;
+  };
 
   useEffect(() => {
     if (id && materialData) {
       materialLOVForm.setValue(
         "mat_code_name",
-        materialData?.mat_code_name ?? ""
+        materialData?.mat_code_name ?? "",
       );
       materialLOVForm.setValue(
         "pump_type_mat",
-        materialData?.pump_type_mat ?? ""
+        materialData?.pump_type_mat ?? "",
       );
       materialLOVForm.setValue(
         "pump_mat_code",
-        materialData?.pump_mat_code ?? ""
+        materialData?.pump_mat_code ?? "",
       );
       materialLOVForm.setValue("casing_mat", materialData?.casing_mat ?? "");
       materialLOVForm.setValue(
         "casing_cover_mat",
-        materialData?.casing_cover_mat ?? ""
+        materialData?.casing_cover_mat ?? "",
       );
       materialLOVForm.setValue(
         "impeller_mat",
-        materialData?.impeller_mat ?? ""
+        materialData?.impeller_mat ?? "",
       );
       materialLOVForm.setValue("liner_mat", materialData?.liner_mat ?? "");
       materialLOVForm.setValue(
         "pump_base_mat",
-        materialData?.pump_base_mat ?? ""
+        materialData?.pump_base_mat ?? "",
       );
       materialLOVForm.setValue(
         "pump_head_mat",
-        materialData?.pump_head_mat ?? ""
+        materialData?.pump_head_mat ?? "",
       );
       materialLOVForm.setValue(
         "pump_head_cover_mat",
-        materialData?.pump_head_cover_mat ?? ""
+        materialData?.pump_head_cover_mat ?? "",
       );
       materialLOVForm.setValue(
         "stage_casing_diffuser_mat",
-        materialData?.stage_casing_diffuser_mat ?? ""
+        materialData?.stage_casing_diffuser_mat ?? "",
       );
     }
   }, [id, materialData]);
@@ -144,7 +139,7 @@ function MaterialLOVEdit() {
                     materialLOVForm.getValues(),
                   ]);
                   toast.error("Validation Errors");
-                }
+                },
               )}
             >
               <div className="text-foreground dark:text-foreground grow flex-1">

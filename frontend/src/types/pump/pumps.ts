@@ -196,8 +196,9 @@ export interface PumpDetailResponse {
 }
 
 export interface PumpDetailLOVResponse {
-  created_by: string ;
+  created_by?: string ;
   created_at?: string ;
+  pump_lov_id?: string ;
   pump_brand: string ;
   pump_code_name: string ;
   pump_design: string ;
@@ -217,9 +218,10 @@ export interface PumpDetailLOVResponse {
   pump_suction_rating: string ;
   pump_suction_size: string ;
   pump_suction_size_id: string ;
+  pump_impeller_max_size: string ;
   pump_type_name: string ;
   updated_at?: string ;
-  updated_by: string ;
+  updated_by?: string ;
 }
 
 export interface MotorDetailLOVResponse {
@@ -282,6 +284,7 @@ export interface PumpMatLOVResponse {
   updated_by ?: string ;
 }
 
+
 export interface MediaLOVResponse {
   media_lov_id ?: string ;
   media_name ?: string ;
@@ -298,4 +301,5 @@ export interface MediaLOVResponse {
   updated_at ?: string ;
   updated_by ?: string ;
 }
+
 

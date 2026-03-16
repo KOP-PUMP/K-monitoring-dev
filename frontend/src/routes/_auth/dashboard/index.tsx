@@ -1,8 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createFileRoute } from "@tanstack/react-router";
-import { PumpCardsList } from "@/components/PumpCardsList";
 import { Link } from "@tanstack/react-router";
 import {useSendLineNotification} from "@/hook/line_notification";
 import {
@@ -18,6 +16,10 @@ import { PumpStatusChart } from "@/components/chart/PumpStatusChart";
 const DashboardPage = () => {
   const { mutate: sendLineNotification } = useSendLineNotification();
 
+  const handleNotificationClick = () => {
+  sendLineNotification();
+};
+
   return (
     <>
       <div className="flex-1 space-y-4 p-8 pt-6">
@@ -29,7 +31,7 @@ const DashboardPage = () => {
             <Link to="/pump/detail">
               <Button>Add Pump</Button>
             </Link>
-            <Button onClick={sendLineNotification}>Test Line Notification</Button>
+            <Button onClick={handleNotificationClick}>Test Line Notification</Button>
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

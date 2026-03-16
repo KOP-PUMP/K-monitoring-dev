@@ -1,5 +1,4 @@
-import { createFileRoute, pick } from "@tanstack/react-router";
-import { useGetPumpDetail } from "@/hook/pump/pump";
+import { createFileRoute} from "@tanstack/react-router";
 import { ReportCheckCalResponse } from "@/types/amalytic/report_check_data";
 import {
   LineChart,
@@ -13,8 +12,6 @@ import {
   Brush,
 } from "recharts";
 import {
-  useCreateEngineerReport,
-  useCreateEngineerReportCheck,
   useCreateEngineerReportCalCheck,
   useCreateEngineerReportVibeCheck,
   useCreateEngineerReportVisualCheck,
@@ -26,18 +23,16 @@ import {
   useUpdateEngineerReportVisualCheck,
   useGetEquipmentFromMars,
   useGetAllMeasureDataFromMars,
-  useGetMeasureDataFromMars,
   useGetWaveDataFromMars,
   useGetSpecTrumWaveDataFromMars,
 } from "@/hook/engineer/engineer";
 import {
-  EngineerReportCheckSchema,
   EngineerReportCheckCalSchema,
   EngineerReportCheckVibrationSchema,
   EngineerReportCheckVisualSchema,
   EngineerReportCheckResultSchema,
 } from "@/validators/engineer";
-import { Check, ChevronDownIcon } from "lucide-react";
+import {ChevronDownIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import {
@@ -49,12 +44,11 @@ import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
-import { date, set, z } from "zod";
+import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { FormBox } from "@/components/common/FormBox";
-import { PumpDetailResponse } from "@/types";
 import { PlusCircle } from "lucide-react";
 import { Combobox, ComboboxItemProps } from "@/components/common/ComboBox";
 import {
@@ -67,12 +61,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-import {
-  MarsEquipmentDataOut,
-  MarsMeasureDataOut,
-  MarsWaveDataOut,
-} from "@/types/amalytic/report_check_data";
 
 import toast from "react-hot-toast";
 import {
@@ -89,37 +77,35 @@ import {
   useGetMediaLOVData,
 } from "@/hook/pump/pump";
 import { useEffect, useState } from "react";
-import { on } from "events";
-import { get } from "http";
-import { Title } from "@radix-ui/react-dialog";
+import { MediaLOVResponse } from "@/types/pump/pumps";
 
 function ReportEdit() {
-  const { data: pumpDetail } = useGetPumpDetail(null);
-  const localstorage = window.localStorage.getItem("user");
-  const userData = localstorage !== null ? JSON.parse(localstorage) : null;
-  const createMutation = useCreateEngineerReport();
+  /* const { data: pumpDetail } = useGetPumpDetail(null); */
+  /* const localstorage = window.localStorage.getItem("user"); */
+  /* const userData = localstorage !== null ? JSON.parse(localstorage) : null; */
+  /* const createMutation = useCreateEngineerReport(); */
   const createCheckCalMutation = useCreateEngineerReportCalCheck();
   const createEngineerReportVibeCheck = useCreateEngineerReportVibeCheck();
   const createEngineerReportVisualCheck = useCreateEngineerReportVisualCheck();
   const createEngineerReportResultCheck = useCreateEngineerReportResultCheck();
-  const createEngineerReportCheck = useCreateEngineerReportCheck();
+  /* const createEngineerReportCheck = useCreateEngineerReportCheck(); */
   const updateEngineerReportCalCheck = useUpdateEngineerReportCalCheck();
   const updateEngineerReportVibeCheck = useUpdateEngineerReportVibeCheck();
   const updateEngineerReportResultCheck = useUpdateEngineerReportResultCheck();
   const updateEngineerReportVisualCheck = useUpdateEngineerReportVisualCheck();
   const getEquipmentFromMars = useGetEquipmentFromMars();
   const getAllMeasureDataFromMars = useGetAllMeasureDataFromMars();
-  const getMeasureDataFromMars = useGetMeasureDataFromMars();
+  /* const getMeasureDataFromMars = useGetMeasureDataFromMars(); */
   const getWaveDatafromMars = useGetWaveDataFromMars();
   const getSpectrumWaveDatafromMars = useGetSpecTrumWaveDataFromMars();
 
   /* Form initialized */
 
-  const engineerReportCheckForm = useForm<
+  /* const engineerReportCheckForm = useForm<
     z.infer<typeof EngineerReportCheckSchema>
   >({
     resolver: zodResolver(EngineerReportCheckSchema),
-  });
+  }); */
   const engineerReportCheckCalForm = useForm<
     z.infer<typeof EngineerReportCheckCalSchema>
   >({
@@ -141,17 +127,17 @@ function ReportEdit() {
     resolver: zodResolver(EngineerReportCheckResultSchema),
   });
 
-  const [filteredPump, setFilteredPump] = useState("");
-  const [selectedPump, setSelectedPump] = useState<PumpDetailResponse>();
-  const [searchKey, setSearchKey] = useState({
+  /* const [filteredPump, setFilteredPump] = useState("");
+  const [selectedPump, setSelectedPump] = useState<PumpDetailResponse>(); */
+  /* const [searchKey, setSearchKey] = useState({
     pump_code_name: "",
-  });
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  }); */
+  /* const [isDialogOpen, setIsDialogOpen] = useState(false); */
   const { id } = useSearch({ from: "/_auth/analytic/report_edit" });
   const [pumpLOVData, setPumpLOVData] = useState<ComboboxItemProps[]>([]);
   const [pumpUnitLOVData, setPumpUnitLOVData] = useState<ComboboxItemProps[]>();
   const [mediaLOVData, setMediaLOVData] = useState<ComboboxItemProps[]>();
-
+  console.log(mediaLOVData);
   /* useState for MARS system data out */
   const [MARSEquipmentData, setMARSEquipmentData] = useState<any>(null);
   const [MARSMeasureData, setMARSMeasureData] = useState<any>(null);
@@ -167,7 +153,9 @@ function ReportEdit() {
 
   const { data: pumpLOVResponse } = useGetAllPumpLOVData();
   const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();
-  const { data: mediaData } = useGetMediaLOVData(null);
+  const { data: mediaData } = useGetMediaLOVData(null) as {
+    data: MediaLOVResponse[];
+  };
   const { data: reportCheckData } = useGetEngineerReportCheckData(id);
 
   const tomorrow = new Date();
@@ -328,7 +316,7 @@ function ReportEdit() {
     }
   }, [pumpLOVResponse, mediaData, pumpUnitLOVResponse]);
 
-  const handleDataSubmit = () => {
+  /* const handleDataSubmit = () => {
     const addData = {
       pump_detail: selectedPump?.pump_id,
       user_detail: userData.user.user_email,
@@ -338,9 +326,7 @@ function ReportEdit() {
       created_by: userData?.user.user_email,
     };
     createMutation.mutate(addData);
-  };
-
-  const engineerReportCurrentValue = engineerReportCheckForm.getValues();
+  }; */
 
   /* const handleResetPumpDetail = (data: PumpDetailLOVResponse) => {
     engineerReportCheckForm.reset({
@@ -359,14 +345,13 @@ function ReportEdit() {
   }; */
 
   const handleReportCalSubmit = async () => {
-    const formData = engineerReportCheckCalForm.getValues();
     if (reportCheckData.data_cal?.check_id) {
       let data: any = {};
       data["report_data"] = engineerReportCheckCalForm.getValues();
       data["pump_data"] = reportCheckData?.pump_data;
 
       const response: ReportCheckCalResponse =
-        await updateEngineerReportCalCheck.mutateAsync({ data, id });
+        await updateEngineerReportCalCheck.mutateAsync({ data, id: id ?? "" });
       if (response) {
         engineerReportCheckResultForm.reset({
           ...engineerReportCheckResultForm.getValues(),
@@ -395,7 +380,7 @@ function ReportEdit() {
   const handleReportVibrationSubmit = () => {
     let data = engineerReportCheckVibrationForm.getValues();
     if (reportCheckData.data_vibe?.check_id) {
-      updateEngineerReportVibeCheck.mutate({ data, id });
+      updateEngineerReportVibeCheck.mutate({ data, id: id ?? "" });
     } else {
       data["check_id"] = id ?? "";
       createEngineerReportVibeCheck.mutate(data);
@@ -405,7 +390,7 @@ function ReportEdit() {
   const handleReportVisualSubmit = () => {
     let data = engineerReportCheckVisualForm.getValues();
     if (reportCheckData.data_visual?.check_id) {
-      updateEngineerReportVisualCheck.mutate({ data, id });
+      updateEngineerReportVisualCheck.mutate({ data, id: id ?? "" });
     } else {
       data["check_id"] = id ?? "";
       createEngineerReportVisualCheck.mutate(data);
@@ -452,38 +437,50 @@ function ReportEdit() {
       const resultCheckFormData = engineerReportCheckResultForm.getValues();
       if (reportCheckData.data_cal.check_id) {
         for (let key in calCheckFormData) {
-          reportCheckData.data_cal[key] &&
+          const formKey = key as keyof typeof calCheckFormData; // Force the type
+
+          if (reportCheckData.data_cal[formKey]) {
             engineerReportCheckCalForm.setValue(
-              key,
-              reportCheckData.data_cal[key],
+              formKey,
+              reportCheckData.data_cal[formKey],
             );
+          }
         }
       }
       if (reportCheckData.data_vibe.check_id) {
         for (let key in vibeCheckFormData) {
-          reportCheckData.data_vibe[key] &&
+          const formKey = key as keyof typeof vibeCheckFormData; // Force the type
+
+          if (reportCheckData.data_vibe[formKey]) {
             engineerReportCheckVibrationForm.setValue(
-              key,
-              reportCheckData.data_vibe[key],
+              formKey,
+              reportCheckData.data_vibe[formKey],
             );
+          }
         }
       }
       if (reportCheckData.data_visual.check_id) {
         for (let key in visualCheckFormData) {
-          reportCheckData.data_visual[key] &&
+          const formKey = key as keyof typeof visualCheckFormData; // Force the type
+
+          if (reportCheckData.data_visual[formKey]) {
             engineerReportCheckVisualForm.setValue(
-              key,
-              reportCheckData.data_visual[key],
+              formKey,
+              reportCheckData.data_visual[formKey],
             );
+          }
         }
       }
       if (reportCheckData.data_result.check_id) {
         for (let key in resultCheckFormData) {
-          reportCheckData.data_result[key] &&
+          const formKey = key as keyof typeof resultCheckFormData; // Force the type
+
+          if (reportCheckData.data_result[formKey]) {
             engineerReportCheckResultForm.setValue(
-              key,
-              reportCheckData.data_result[key],
+              formKey,
+              reportCheckData.data_result[formKey],
             );
+          }
         }
       }
     }
@@ -553,17 +550,6 @@ function ReportEdit() {
     }
   };
 
-  /* Test data for Recharts */
-  const data = [
-    { name: "Jan", uv: 4000, pv: 2400, amt: 2400 },
-    { name: "Feb", uv: 3000, pv: 1398, amt: 2210 },
-    { name: "Mar", uv: 2000, pv: 9800, amt: 2290 },
-    { name: "Apr", uv: 2780, pv: 3908, amt: 2000 },
-    { name: "May", uv: 1890, pv: 4800, amt: 2181 },
-    { name: "Jun", uv: 2390, pv: 3800, amt: 2500 },
-    { name: "Jul", uv: 3490, pv: 4300, amt: 2100 },
-  ];
-
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -612,6 +598,7 @@ function ReportEdit() {
                                         placeholder="Test Speed"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -628,11 +615,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "test_speed_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "test_speed_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -665,6 +648,7 @@ function ReportEdit() {
                                         placeholder="Operation Flow"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -681,11 +665,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "flow_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "flow_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -718,6 +698,7 @@ function ReportEdit() {
                                         placeholder="Suction Pressure"
                                         type="float"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -734,11 +715,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "suction_pres_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "suction_pres_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -771,6 +748,7 @@ function ReportEdit() {
                                         placeholder="Discharge Pressure"
                                         type="float"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -787,11 +765,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "discharge_pres_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "discharge_pres_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -824,6 +798,7 @@ function ReportEdit() {
                                         placeholder="Difference Pressure"
                                         type="float"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -840,11 +815,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "diff_pres_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "diff_pres_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -877,6 +848,7 @@ function ReportEdit() {
                                         placeholder="Bearing housing temperature"
                                         type="float"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -893,11 +865,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "bearing_housing_temp_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "bearing_housing_temp_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -930,6 +898,7 @@ function ReportEdit() {
                                         placeholder="Current I1"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -946,11 +915,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "current_i1_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "current_i1_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -983,6 +948,7 @@ function ReportEdit() {
                                         placeholder="Current I2"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -999,11 +965,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "current_i2_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "current_i2_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -1036,6 +998,7 @@ function ReportEdit() {
                                         placeholder="Current I2"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -1052,11 +1015,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "current_i3_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "current_i3_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -1089,6 +1048,7 @@ function ReportEdit() {
                                         placeholder="Average Current"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -1105,11 +1065,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "i_avg_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "i_avg_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -1142,6 +1098,7 @@ function ReportEdit() {
                                         placeholder="Average Voltage"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -1158,11 +1115,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "v_avg_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "v_avg_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -1195,6 +1148,7 @@ function ReportEdit() {
                                         placeholder="Motor Power"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -1211,11 +1165,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "motor_power_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "motor_power_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -1248,6 +1198,7 @@ function ReportEdit() {
                                         placeholder="Shaft Power"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -1264,11 +1215,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "shaft_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "shaft_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -1301,6 +1248,7 @@ function ReportEdit() {
                                         placeholder="Hydraulic Power"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -1317,11 +1265,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "hyd_power_meassure_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "hyd_power_meassure_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -1354,6 +1298,7 @@ function ReportEdit() {
                                         placeholder="Operation Head"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -1370,11 +1315,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "head_ope_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "head_ope_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -1407,6 +1348,7 @@ function ReportEdit() {
                                         placeholder="Operation Shut Off Head"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -1423,11 +1365,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "head_shut_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "head_shut_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -1460,6 +1398,7 @@ function ReportEdit() {
                                         placeholder="Operation Head Max"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -1476,11 +1415,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "head_max_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "head_max_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -1507,6 +1442,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Line-to-line voltage between phase U and phase V"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1527,6 +1463,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Line-to-line voltage between phase V and phase W"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1547,6 +1484,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Line-to-line voltage between phase U and phase W"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1567,6 +1505,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Line-to-neutral voltage for phase U"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1587,6 +1526,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Line-to-neutral voltage for phase V"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1607,6 +1547,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Line-to-neutral voltage for phase W"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1627,6 +1568,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Insulation resistance between the windings of phase U and phase V"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1647,6 +1589,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Insulation resistance between the windings of phase U1 and phase U2"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1667,6 +1610,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Insulation resistance between the windings of phase V and phase W"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1687,6 +1631,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Insulation resistance between the windings of phase V1 and phase V2"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1707,6 +1652,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Insulation resistance between the windings of phase U and phase W"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1727,6 +1673,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Insulation resistance between the windings of phase W1 and phase W2"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1747,6 +1694,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Insulation resistance between the winding of phase U and neutral (ground)"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1767,6 +1715,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Insulation resistance between the winding of phase V and neutral (ground)"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1787,6 +1736,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Insulation resistance between the winding of phase W and neutral (ground)"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1807,6 +1757,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Current drawn by the first winding of phase U"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1827,6 +1778,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Current drawn by the first winding of phase V"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1847,6 +1799,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Current drawn by the first winding of phase W"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1867,6 +1820,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Current drawn by the first winding of phase U"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1887,6 +1841,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Current drawn by the first winding of phase V"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1907,6 +1862,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Current drawn by the first winding of phase W"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1927,6 +1883,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Temperature of the first winding of phase U"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1947,6 +1904,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Temperature of the first winding of phase V"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1967,6 +1925,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Temperature of the first winding of phase W"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -1987,6 +1946,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Temperature of the first winding of phase U"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -2007,6 +1967,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Temperature of the first winding of phase V"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -2027,6 +1988,7 @@ function ReportEdit() {
                                   <Input
                                     placeholder="Temperature of the first winding of phase W"
                                     {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
                                     type="number"
                                   />
                                 </FormControl>
@@ -2055,6 +2017,7 @@ function ReportEdit() {
                                         placeholder="Environment Temperature"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -2071,11 +2034,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "env_temp_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "env_temp_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -2108,6 +2067,7 @@ function ReportEdit() {
                                         placeholder="Liquid Temperature"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -2124,11 +2084,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "liquid_temp_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "liquid_temp_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -2161,6 +2117,7 @@ function ReportEdit() {
                                         placeholder="NPSHa"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -2177,11 +2134,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "npsha_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "npsha_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -2214,6 +2167,7 @@ function ReportEdit() {
                                         placeholder="Actual NPSHa"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -2230,11 +2184,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "npsha_actual_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "npsha_actual_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -2267,6 +2217,7 @@ function ReportEdit() {
                                         placeholder="Suction Fluid Velocity"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -2283,11 +2234,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "suction_fluid_velo_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "suction_fluid_velo_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -2320,6 +2267,7 @@ function ReportEdit() {
                                         placeholder="Discharge Fluid Velocity"
                                         type="number"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -2336,11 +2284,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckCalForm.getValues(
                                         "discharge_fluid_velo_unit",
-                                      )
-                                        ? engineerReportCheckCalForm.getValues(
-                                            "discharge_fluid_velo_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -2363,7 +2307,11 @@ function ReportEdit() {
                                 Remarks
                               </FormLabel>
                               <FormControl className="w-full">
-                                <Input placeholder="Remarks" {...field} />
+                                <Input
+                                  placeholder="Remarks"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
+                                />
                               </FormControl>
                             </div>
                           </FormItem>
@@ -2823,6 +2771,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump drive end vibration (horizontal)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -2839,11 +2788,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_pump_de_h_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_pump_de_h_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -2877,6 +2822,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump drive end vibration (vertical)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -2893,11 +2839,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_pump_de_v_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_pump_de_v_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -2931,6 +2873,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump drive end vibration (axial)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -2947,11 +2890,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_pump_de_a_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_pump_de_a_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -2985,6 +2924,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump non-drive end vibration (horizontal)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3001,11 +2941,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_pump_nde_h_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_pump_nde_h_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3039,6 +2975,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump non-drive end vibration (vertical)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3055,11 +2992,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_pump_nde_v_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_pump_nde_v_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3093,6 +3026,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump non-drive end vibration (axial)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3109,11 +3043,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_pump_nde_a_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_pump_nde_a_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3147,6 +3077,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor drive end vibration (horizontal)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3163,11 +3094,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_motor_de_h_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_motor_de_h_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3201,6 +3128,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor drive end vibration (vertical)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3217,11 +3145,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_motor_de_v_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_motor_de_v_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3255,6 +3179,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor drive end vibration (axial)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3271,11 +3196,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_motor_de_a_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_motor_de_a_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3309,6 +3230,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor non-drive end Vibration (horizontal)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3325,11 +3247,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_motor_nde_h_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_motor_nde_h_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3363,6 +3281,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor non-drive end Vibration (vertical)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3379,11 +3298,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_motor_nde_v_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_motor_nde_v_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3417,6 +3332,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor non-drive end Vibration (axial)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3433,11 +3349,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "v_motor_nde_a_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "v_motor_nde_a_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3471,6 +3383,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump drive end acceleration (horizontal)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3487,11 +3400,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_pump_de_h_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_pump_de_h_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3525,6 +3434,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump drive end acceleration (vertical)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3541,11 +3451,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_pump_de_v_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_pump_de_v_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3579,6 +3485,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump drive end acceleration (axial)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3595,11 +3502,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_pump_de_a_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_pump_de_a_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3633,6 +3536,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump non-drive end acceleration (horizontal)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3649,11 +3553,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_pump_nde_h_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_pump_nde_h_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3687,6 +3587,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump non-drive end acceleration (vertical)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3703,11 +3604,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_pump_nde_v_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_pump_nde_v_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3741,6 +3638,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump non-drive end acceleration (axial)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3757,11 +3655,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_pump_nde_a_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_pump_nde_a_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3796,6 +3690,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor drive end acceleration (horizontal)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3812,11 +3707,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_motor_de_h_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_motor_de_h_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3850,6 +3741,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor drive end acceleration (vertical)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3866,11 +3758,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_motor_de_v_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_motor_de_v_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3904,6 +3792,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor drive end acceleration (axial)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3920,11 +3809,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_motor_de_a_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_motor_de_a_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -3958,6 +3843,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor non-drive end acceleration (horizontal)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -3974,11 +3860,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_motor_nde_h_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_motor_nde_h_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4012,6 +3894,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor non-drive end acceleration (vertical)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -4028,11 +3911,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_motor_nde_v_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_motor_nde_v_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4066,6 +3945,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor non-drive end acceleration (axial)"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -4082,11 +3962,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "a_motor_nde_a_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "a_motor_nde_a_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4120,6 +3996,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump non-drive end temperature"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -4136,11 +4013,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "temp_pump_nde_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "temp_pump_nde_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4174,6 +4047,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump drive end temperature"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -4190,11 +4064,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "temp_pump_de_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "temp_pump_de_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4228,6 +4098,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Pump non-drive end temperature"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -4244,11 +4115,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "temp_pump_nde_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "temp_pump_nde_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4282,6 +4149,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor drive end temperature"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -4298,11 +4166,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "temp_motor_de_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "temp_motor_de_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4336,6 +4200,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Motor drive end temperature"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -4352,11 +4217,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "temp_motor_de_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "temp_motor_de_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4390,6 +4251,7 @@ function ReportEdit() {
                                       <Input
                                         placeholder="Environmental Vibration"
                                         {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
                                       />
                                     </FormControl>
                                   )}
@@ -4406,11 +4268,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVibrationForm.getValues(
                                         "env_vibration_unit",
-                                      )
-                                        ? engineerReportCheckVibrationForm.getValues(
-                                            "env_vibration_unit",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4479,11 +4337,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "alignment_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "alignment_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4497,7 +4351,11 @@ function ReportEdit() {
                                   name="alignment_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -4529,11 +4387,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "coupling_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "coupling_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4547,7 +4401,11 @@ function ReportEdit() {
                                   name="coupling_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -4579,11 +4437,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "suction_valve_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "suction_valve_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4597,7 +4451,11 @@ function ReportEdit() {
                                   name="suction_valve_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -4629,11 +4487,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "rotate_hand_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "rotate_hand_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4647,7 +4501,11 @@ function ReportEdit() {
                                   name="rotating_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -4679,11 +4537,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "axial_hand_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "axial_hand_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4697,7 +4551,11 @@ function ReportEdit() {
                                   name="axial_hand_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -4729,11 +4587,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "gap_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "gap_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4747,7 +4601,11 @@ function ReportEdit() {
                                   name="gap_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -4779,11 +4637,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "discharge_valve_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "discharge_valve_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4797,7 +4651,11 @@ function ReportEdit() {
                                   name="discharge_valve_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -4829,11 +4687,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "bolt_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "bolt_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4847,7 +4701,11 @@ function ReportEdit() {
                                   name="bolt_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -4879,11 +4737,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "oil_grease_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "oil_grease_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4897,7 +4751,11 @@ function ReportEdit() {
                                   name="oil_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -4929,11 +4787,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "electricity_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "electricity_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4947,7 +4801,11 @@ function ReportEdit() {
                                   name="electricity_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -4979,11 +4837,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "service_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "service_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -4997,7 +4851,11 @@ function ReportEdit() {
                                   name="service_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5029,11 +4887,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "leakage_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "leakage_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5047,7 +4901,11 @@ function ReportEdit() {
                                   name="leakage_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5079,11 +4937,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "corrosion_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "corrosion_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5097,7 +4951,11 @@ function ReportEdit() {
                                   name="corrosion_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5129,11 +4987,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "painting_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "painting_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5147,7 +5001,11 @@ function ReportEdit() {
                                   name="painting_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5179,11 +5037,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "noise_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "noise_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5197,7 +5051,11 @@ function ReportEdit() {
                                   name="noise_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5229,11 +5087,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "noise_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "noise_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5247,7 +5101,11 @@ function ReportEdit() {
                                   name="noise_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5279,11 +5137,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "oil_grease_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "oil_grease_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5297,7 +5151,11 @@ function ReportEdit() {
                                   name="noise_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5329,11 +5187,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "leakage_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "leakage_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5347,7 +5201,11 @@ function ReportEdit() {
                                   name="leakage_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5379,11 +5237,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "mechanical_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "mechanical_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5397,7 +5251,11 @@ function ReportEdit() {
                                   name="mechanical_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5429,11 +5287,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "cavitation_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "cavitation_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5447,7 +5301,11 @@ function ReportEdit() {
                                   name="cavitation_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5479,11 +5337,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "corrosion_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "corrosion_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5497,7 +5351,11 @@ function ReportEdit() {
                                   name="corrosion_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5529,11 +5387,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "suction_valve_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "suction_valve_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5547,7 +5401,11 @@ function ReportEdit() {
                                   name="suction_valve_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5579,11 +5437,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "discharge_valve_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "discharge_valve_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5597,7 +5451,11 @@ function ReportEdit() {
                                   name="discharge_valve_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5629,11 +5487,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "painting_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "painting_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5647,7 +5501,11 @@ function ReportEdit() {
                                   name="painting_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5679,11 +5537,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "electric_connectivity_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "electric_connectivity_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5697,7 +5551,11 @@ function ReportEdit() {
                                   name="electric_connectivity_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5729,11 +5587,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "service_piping_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "service_piping_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5747,7 +5601,11 @@ function ReportEdit() {
                                   name="service_piping_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5779,11 +5637,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "bolt_nut_run_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "bolt_nut_run_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5797,7 +5651,11 @@ function ReportEdit() {
                                   name="bolt_nut_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5829,11 +5687,7 @@ function ReportEdit() {
                                     label={
                                       engineerReportCheckVisualForm.getValues(
                                         "barrier_fluid_run_pres_check",
-                                      )
-                                        ? engineerReportCheckVisualForm.getValues(
-                                            "barrier_fluid_run_pres_check",
-                                          )
-                                        : "Select"
+                                      ) ?? "Select"
                                     }
                                     onChange={(value) => {
                                       field.onChange(value); // Update form state
@@ -5847,7 +5701,11 @@ function ReportEdit() {
                                   name="barrier_fluid_run_pres_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -5867,7 +5725,11 @@ function ReportEdit() {
                                 Remarks
                               </FormLabel>
                               <FormControl className="w-full">
-                                <Input placeholder="Remarks" {...field} />
+                                <Input
+                                  placeholder="Remarks"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
+                                />
                               </FormControl>
                             </div>
                           </FormItem>
@@ -5917,7 +5779,11 @@ function ReportEdit() {
                                 Speed Suggest
                               </FormLabel>
                               <FormControl className="w-full">
-                                <Input placeholder="Speed Suggest" {...field} />
+                                <Input
+                                  placeholder="Speed Suggest"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
+                                />
                               </FormControl>
                             </div>
                           </FormItem>
@@ -5933,7 +5799,11 @@ function ReportEdit() {
                                 Flow Suggest
                               </FormLabel>
                               <FormControl className="w-full">
-                                <Input placeholder="Flow Suggest" {...field} />
+                                <Input
+                                  placeholder="Flow Suggest"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
+                                />
                               </FormControl>
                             </div>
                           </FormItem>
@@ -5949,7 +5819,11 @@ function ReportEdit() {
                                 NPSHr Suggest
                               </FormLabel>
                               <FormControl className="w-full">
-                                <Input placeholder="NPSHr Suggest" {...field} />
+                                <Input
+                                  placeholder="NPSHr Suggest"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
+                                />
                               </FormControl>
                             </div>
                           </FormItem>
@@ -5968,6 +5842,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Velocity Suggest"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -5987,6 +5862,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Boiling Point Suggest"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6006,6 +5882,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Current Suggest"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6022,7 +5899,11 @@ function ReportEdit() {
                                 API Suggest
                               </FormLabel>
                               <FormControl className="w-full">
-                                <Input placeholder="API Suggest" {...field} />
+                                <Input
+                                  placeholder="API Suggest"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
+                                />
                               </FormControl>
                             </div>
                           </FormItem>
@@ -6041,6 +5922,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Buffer Suggest"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6060,6 +5942,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Bearing Suggest"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6079,6 +5962,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Vibration Suggest"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6098,6 +5982,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Bearing Temp. Suggest"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6115,7 +6000,11 @@ function ReportEdit() {
                               </FormLabel>
                               <div className="w-full flex flex-col gap-2">
                                 <FormControl className="w-full">
-                                  <Input placeholder="Result" {...field} />
+                                  <Input
+                                    placeholder="Result"
+                                    {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
+                                  />
                                 </FormControl>
                                 <FormField
                                   control={
@@ -6124,7 +6013,11 @@ function ReportEdit() {
                                   name="range_30_110_suggest"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Suggest" {...field} />
+                                      <Input
+                                        placeholder="Suggest"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6135,7 +6028,11 @@ function ReportEdit() {
                                   name="range_30_110_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6156,7 +6053,11 @@ function ReportEdit() {
                               </FormLabel>
                               <div className="w-full flex flex-col gap-2">
                                 <FormControl className="w-full">
-                                  <Input placeholder="Result" {...field} />
+                                  <Input
+                                    placeholder="Result"
+                                    {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
+                                  />
                                 </FormControl>
                                 <FormField
                                   control={
@@ -6165,7 +6066,11 @@ function ReportEdit() {
                                   name="npshr_npsha_suggest"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Suggest" {...field} />
+                                      <Input
+                                        placeholder="Suggest"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6176,7 +6081,11 @@ function ReportEdit() {
                                   name="npshr_npsha_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6197,7 +6106,11 @@ function ReportEdit() {
                               </FormLabel>
                               <div className="w-full flex flex-col gap-2">
                                 <FormControl className="w-full">
-                                  <Input placeholder="Result" {...field} />
+                                  <Input
+                                    placeholder="Result"
+                                    {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
+                                  />
                                 </FormControl>
                                 <FormField
                                   control={
@@ -6206,7 +6119,11 @@ function ReportEdit() {
                                   name="pump_standard_suggest"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Suggest" {...field} />
+                                      <Input
+                                        placeholder="Suggest"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6217,7 +6134,11 @@ function ReportEdit() {
                                   name="fulid_temp_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6238,7 +6159,11 @@ function ReportEdit() {
                               </FormLabel>
                               <div className="w-full flex flex-col gap-2">
                                 <FormControl className="w-full">
-                                  <Input placeholder="Result" {...field} />
+                                  <Input
+                                    placeholder="Result"
+                                    {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
+                                  />
                                 </FormControl>
                                 <FormField
                                   control={
@@ -6252,6 +6177,7 @@ function ReportEdit() {
                                           <Input
                                             placeholder="Suggest"
                                             {...field}
+                                            value={field.value || ""} // Ensure the value is never undefined
                                           />
                                         </FormControl>
                                       </div>
@@ -6265,7 +6191,11 @@ function ReportEdit() {
                                   name="power_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6286,7 +6216,11 @@ function ReportEdit() {
                               </FormLabel>
                               <div className="w-full flex flex-col gap-2">
                                 <FormControl className="w-full">
-                                  <Input placeholder="Result" {...field} />
+                                  <Input
+                                    placeholder="Result"
+                                    {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
+                                  />
                                 </FormControl>
                                 <FormField
                                   control={
@@ -6295,7 +6229,11 @@ function ReportEdit() {
                                   name="fulid_temp_suggest"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Suggest" {...field} />
+                                      <Input
+                                        placeholder="Suggest"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6306,7 +6244,11 @@ function ReportEdit() {
                                   name="fulid_temp_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6327,7 +6269,11 @@ function ReportEdit() {
                               </FormLabel>
                               <div className="w-full flex flex-col gap-2">
                                 <FormControl className="w-full">
-                                  <Input placeholder="Result" {...field} />
+                                  <Input
+                                    placeholder="Result"
+                                    {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
+                                  />
                                 </FormControl>
                                 <FormField
                                   control={
@@ -6341,6 +6287,7 @@ function ReportEdit() {
                                           <Input
                                             placeholder="Suggest"
                                             {...field}
+                                            value={field.value || ""} // Ensure the value is never undefined
                                           />
                                         </FormControl>
                                       </div>
@@ -6354,7 +6301,11 @@ function ReportEdit() {
                                   name="bearing_temp_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6377,6 +6328,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump drive end vibration result (horizontal)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6396,6 +6348,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump drive end vibration result (Vertical)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6415,6 +6368,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump drive end vibration result (Axial)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6435,6 +6389,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump none-drive end vibration result (horizontal)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6454,6 +6409,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump none-drive end vibration result (Vertical)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6473,6 +6429,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump none-drive end vibration result (Axial)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6492,6 +6449,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor drive end vibration result (horizontal)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6511,6 +6469,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor drive end vibration result (Vertical)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6530,6 +6489,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor drive end vibration result (Axial)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6550,6 +6510,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor none-drive end vibration result (horizontal)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6569,6 +6530,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor none-drive end vibration result (Vertical)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6588,6 +6550,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor none-drive end vibration result (Axial)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6607,6 +6570,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump drive end acceleration result (horizontal)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6626,6 +6590,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump drive end acceleration result (Vertical)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6645,6 +6610,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump drive end acceleration result (Axial)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6665,6 +6631,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump none-drive end acceleration result (horizontal)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6685,6 +6652,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump none-drive end acceleration result (Vertical)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6704,6 +6672,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Pump none-drive end acceleration result (Axial)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6723,6 +6692,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor drive end acceleration result (horizontal)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6742,6 +6712,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor drive end acceleration result (Vertical)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6761,6 +6732,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor drive end acceleration result (Axial)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6781,6 +6753,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor none-drive end acceleration result (horizontal)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6801,6 +6774,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor none-drive end acceleration result (Vertical)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6820,6 +6794,7 @@ function ReportEdit() {
                                 <Input
                                   placeholder="Motor none-drive end acceleration result (Axial)"
                                   {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
@@ -6837,7 +6812,11 @@ function ReportEdit() {
                               </FormLabel>
                               <div className="w-full flex flex-col gap-2">
                                 <FormControl className="w-full">
-                                  <Input placeholder="Suggest" {...field} />
+                                  <Input
+                                    placeholder="Suggest"
+                                    {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
+                                  />
                                 </FormControl>
                                 <FormField
                                   control={
@@ -6846,7 +6825,11 @@ function ReportEdit() {
                                   name="v_pump_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6867,7 +6850,11 @@ function ReportEdit() {
                               </FormLabel>
                               <div className="w-full flex flex-col gap-2">
                                 <FormControl className="w-full">
-                                  <Input placeholder="Suggest" {...field} />
+                                  <Input
+                                    placeholder="Suggest"
+                                    {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
+                                  />
                                 </FormControl>
                                 <FormField
                                   control={
@@ -6876,7 +6863,11 @@ function ReportEdit() {
                                   name="v_motor_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6897,7 +6888,11 @@ function ReportEdit() {
                               </FormLabel>
                               <div className="w-full flex flex-col gap-2">
                                 <FormControl className="w-full">
-                                  <Input placeholder="Suggest" {...field} />
+                                  <Input
+                                    placeholder="Suggest"
+                                    {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
+                                  />
                                 </FormControl>
                                 <FormField
                                   control={
@@ -6906,7 +6901,11 @@ function ReportEdit() {
                                   name="a_pump_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />
@@ -6927,7 +6926,11 @@ function ReportEdit() {
                               </FormLabel>
                               <div className="w-full flex flex-col gap-2">
                                 <FormControl className="w-full">
-                                  <Input placeholder="Suggest" {...field} />
+                                  <Input
+                                    placeholder="Suggest"
+                                    {...field}
+                                    value={field.value || ""} // Ensure the value is never undefined
+                                  />
                                 </FormControl>
                                 <FormField
                                   control={
@@ -6936,7 +6939,11 @@ function ReportEdit() {
                                   name="a_motor_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
-                                      <Input placeholder="Remark" {...field} />
+                                      <Input
+                                        placeholder="Remark"
+                                        {...field}
+                                        value={field.value || ""} // Ensure the value is never undefined
+                                      />
                                     </FormControl>
                                   )}
                                 />

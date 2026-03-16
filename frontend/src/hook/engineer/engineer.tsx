@@ -24,8 +24,6 @@ import {
   getWaveDatafromMars,
   getSpectrumWaveDatafromMars,
 } from "@/api/engineer/engineer";
-import { set } from "zod";
-import { create } from "domain";
 
 export const useCreateEngineerReport = () => {
   return useMutation({

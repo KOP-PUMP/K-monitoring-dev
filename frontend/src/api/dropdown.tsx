@@ -1,7 +1,4 @@
-import { promises } from "dns";
-import { axiosInstance } from "./utils";
 import { axiosInstanceProvince } from "./utils";
-import { useQuery } from "@tanstack/react-query";
 import { ThaiProvincesResponse } from "@/types/dropdown";
 
 export const getProvince = async () : Promise<ThaiProvincesResponse[]> => {

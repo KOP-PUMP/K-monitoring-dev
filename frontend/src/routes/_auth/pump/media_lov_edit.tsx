@@ -31,7 +31,7 @@ import {
   useCreateMediaLOV,
   useGetAllUnitLOVData,
 } from "@/hook/pump/pump";
-import { create } from "domain";
+import { MediaLOVResponse } from "@/types/pump/pumps";
 
 function MediaLOVEdit() {
   // Unit form setup
@@ -58,7 +58,7 @@ function MediaLOVEdit() {
   }, []);
 
   const { id } = useSearch({ from: "/_auth/pump/media_lov_edit" });
-  const { data } = useGetMediaLOVData(id);
+  const { data } = useGetMediaLOVData(id) as {data: MediaLOVResponse};
 
   useEffect(() => {
     if (id && data) {
@@ -104,8 +104,6 @@ function MediaLOVEdit() {
     }
   };
 
-  const getFormData = (key: string) =>
-    JSON.parse(localStorage.getItem(key) || "{}");
 
   const { showDescriptions } = useSettings();
 

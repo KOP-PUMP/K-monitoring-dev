@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Combobox, ComboboxItemProps } from "@/components/common/ComboBox";
 
 import { PumpDetailFormSchema } from "@/validators/pump";
 import { useSettings } from "@/lib/settings";
@@ -16,29 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
-
-const frameworks: ComboboxItemProps[] = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
 
 // const frameworks: ComboboxItemProps[] =
 

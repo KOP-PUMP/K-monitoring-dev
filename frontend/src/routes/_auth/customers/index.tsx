@@ -2,21 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/table/DataTable";
 import { useGetAllCustomersDetail } from "@/hook/users/customers";
-import { useSearch } from "@tanstack/react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { CustomerResponse } from "@/types/users/customer";
-import { useGetAllCompaniesDetail} from "@/hook/users/company";
 import { Card } from "@/components/ui/card";
-import { Link } from "@tanstack/react-router";
 
 export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
   TData,
@@ -211,8 +206,7 @@ const CustomerTable = () => {
       id: "action",
       enableHiding: false,
       label: "Action",
-      cell: ({ row }) => {
-        const customer = row.original;
+      cell: (/* { row } */) => {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

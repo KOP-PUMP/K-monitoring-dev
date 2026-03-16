@@ -1,11 +1,8 @@
 import {
-  Line,
   CartesianGrid,
   XAxis,
   YAxis,
-  Legend,
   ResponsiveContainer,
-  ComposedChart,
   ScatterChart,
   LabelList,
   Tooltip,
@@ -66,10 +63,10 @@ export const NpshrFlowGraph = ({
 
     const filteredChartData = chartData
       .filter((point) => point.npshr !== "" && point.flow !== "")
-      .sort((a, b) => a.flow - b.flow);
+      .sort((a, b) => Number(a.flow) - Number(b.flow));
     const transformedData = filteredChartData.map((point) => ({
-      flow: point.flow,
-      npshr: point.npshr,
+      flow: Number(point.flow),
+      npshr: Number(point.npshr),
     }));
 
     const maxFlow = Math.max(...transformedData.map((p) => p.flow));
@@ -99,7 +96,7 @@ export const NpshrFlowGraph = ({
             fill={scatter ? "none" : colors[0]}
             strokeWidth={2}
             shape={(props: any) => {
-              const { cx, cy, isActive } = props;
+              const { cx, cy} = props;
               return (
                 <circle
                   cx={cx}
@@ -117,8 +114,8 @@ export const NpshrFlowGraph = ({
                 if (pointIndex === maxFlowMaxNpshrIndex) {
                   return (
                     <text
-                      x={x + 10}
-                      y={y + 0}
+                      x={Number(x) + 10}
+                      y={Number(y) + 0}
                       fill={colors[0]}
                       fontSize={12}
                       fontWeight="bold"

@@ -8,7 +8,7 @@ import {
 } from "@/types/index";
 import { axiosInstance } from "../utils";
 
-export const getAllUnitLOV = async (): Promise<LOVOut[]> => {
+export const getAllUnitLOV = async (): Promise<any[]> => {
   try {
     const response = await axiosInstance.get("/pump-data/unit-lov");
     return response.data;
@@ -18,7 +18,7 @@ export const getAllUnitLOV = async (): Promise<LOVOut[]> => {
   }
 };
 
-export const getAllPumpLOV = async (): Promise<LOVOut[]> => {
+export const getAllPumpLOV = async (): Promise<any[]> => {
   try {
     const response = await axiosInstance.get("/pump-data/pump-lov");
     return response.data;
@@ -54,7 +54,7 @@ export const getLOVById = async (id: string) => {
   return response.data;
 };
 
-export const createLOV = async (data: LOVOut) => {
+export const createLOV = async (data: any) => {
   const response = await axiosInstance.post("/pump-data/lov", data);
   return response.data;
 };
@@ -64,7 +64,7 @@ export const deleteLOV = async (id: string) => {
   return response.data;
 };
 
-export const updateLOV = async ({ id, data }: { id: string; data: LOVOut }) => {
+export const updateLOV = async ({ id, data }: { id: string; data: any }) => {
   const response = await axiosInstance.put(`/pump-data/lov/${id}`, data);
   return response.data;
 };

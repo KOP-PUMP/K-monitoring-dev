@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
 import { useSearch } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Link } from "@tanstack/react-router";
@@ -11,8 +10,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { pumpData } from "@/data/pump_models";
-import { ChevronDown, ChevronUp, Gauge } from "lucide-react";
+import { ChevronDown, Gauge } from "lucide-react";
 import pumpImage from "/pump_img/36 125X100-400 C34 XXD.png";
 import {
   Collapsible,
@@ -21,13 +19,12 @@ import {
 } from "@/components/ui/collapsible";
 import { useGetPumpDetail } from "@/hook/pump/pump";
 import { useEffect, useState } from "react";
-import { set } from "zod";
 import { useGetCalPumpData } from "@/hook/factory_curve/factory_curve";
 
 const PumpDetail = () => {
   const { id } = useSearch({ from: "/_auth/pump/pump_detail" });
   const { data: pumpDetail } = useGetPumpDetail(id);
-  const { mutate, isPending, isError, error } = useGetCalPumpData();
+  const { mutate, isPending, isError } = useGetCalPumpData();
   const [pumpDetailCalData, setPumpDetailCalData] = useState<any>();
 
   console.log("pumpDetailCalData:", pumpDetailCalData);

@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import { Combobox, ComboboxItemProps } from "@/components/common/ComboBox";
+import { Combobox} from "@/components/common/ComboBox";
 import {
   Sheet,
   SheetClose,
@@ -23,28 +23,27 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { z } from "zod";
 
 import { Input } from "@/components/ui/input";
 import { UserOutSchema } from "@/validators/user";
-import { PECPersonResponse } from "@/types/users/users";
 import { useSettings } from "@/lib/settings";
 import { FormBox } from "@/components/common/FormBox";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Car, CircleX, Key, PlusCircle, Search, User } from "lucide-react";
+import {PlusCircle, Search} from "lucide-react";
 import { useEffect } from "react";
 import { useGetPECPersonByCode, useCreateUser } from "@/hook/users/users";
 import { useGetCompanyDetailByCode } from "@/hook/users/company";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { CreateUserOut, UserProfile } from "@/types/users/users";
-import {jwtDecode} from "jwt-decode";
+import { CreateUserOut} from "@/types/users/users";
 
 function CreateUser() {
   const [SelectedPECCode, setSelectedPECCode] = useState<string>("");
   const [SelectedCompanyCode, setSelectedCompanyCode] = useState<string>("");
   const [PECPersonCode, setPECPersonCode] = useState<string>("");
   const [CompanyCode, setCompanyCode] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState(null);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [isAdd, setIsAdd] = useState(false);
   const { data: companyData } = useGetCompanyDetailByCode(CompanyCode);
   const { data: PECPersonDetail } = useGetPECPersonByCode(PECPersonCode);
@@ -134,22 +133,20 @@ function CreateUser() {
     }
   }, [selectedRole, USERCreateForm]);
 
-  const localStorageUser = window.localStorage.getItem("access_token");
-
 
   const handleSubmit = (values: z.infer<typeof UserOutSchema>) => {
     const data: CreateUserOut = {
       user_email: values.user_email,
       user_username:values.user_username,
       user_password: values.user_password,
-      user_role: values.user_role,
+      user_role: values.user_role as "Engineer" | "Customer",
       profile: {
         user_username: values.user_username,
         user_email: values.user_email,
-        user_mobile: values.user_mobile,
-        user_tel: values.user_tel,
+        user_mobile: values.user_mobile || "",
+        user_tel: values.user_tel || "",
         user_name: values.user_name,
-        user_pec_code: values.user_pec_code,
+        user_pec_code: values.user_company_code,
         user_company_code: values.user_company_code,
         created_at: new Date().toISOString(),
         created_by: userData.user.user_email,

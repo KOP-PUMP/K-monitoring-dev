@@ -22,7 +22,7 @@ import { FormBox } from "./common/FormBox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { CloudCog, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 
 /* import { AddPumpListData, AddUnitListData } from "@/api/pump/pump";
 import { create } from "domain"; */
@@ -41,18 +41,6 @@ export function DataListEdit() {
   const { showDescriptions } = useSettings();
   const localstorage = window.localStorage.getItem("user");
   const userData = localstorage !== null ? JSON.parse(localstorage) : null;
-  const addData = {
-    data_type: "",
-    data_name: "",
-    data_value: "",
-    additional_1: "",
-    additional_2: "",
-    additional_3: "",
-    created_at: new Date().toISOString(),
-    created_by: userData?.email,
-    updated_at: new Date().toISOString(),
-    updated_by: userData?.email,
-  };
   // Submission handlers
   const handlePumpSubmit = (values: z.infer<typeof AddingPumpLOVSchema>) => {
     console.log("Pump Data Submitted:", values);

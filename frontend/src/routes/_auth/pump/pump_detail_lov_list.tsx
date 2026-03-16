@@ -6,16 +6,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { LOVData, PumpLOVData } from "@/types/table";
+import { PumpLOVData } from "@/types/table";
 import { useGetPumpDetailLOV, useDeletePumpDetailLOVById } from "@/hook/pump/pump";
 import { Card } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 
 export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
   TData,
@@ -244,7 +242,7 @@ const PumpLOV = () => {
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() => handleDeleteData(payment.pump_lov_id)}
+                onClick={() => handleDeleteData(payment.pump_lov_id as string)}
               >
                 Delete
               </DropdownMenuItem>

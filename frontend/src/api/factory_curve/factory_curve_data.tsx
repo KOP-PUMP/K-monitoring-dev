@@ -5,7 +5,6 @@ import {
 import { axiosInstance } from "../utils";
 import {
   PumpDetailCalDataOut,
-  PumpDetailCalResponse,
 } from "@/types/factory_curve/factory_curve_data";
 
 export const getFactoryCurveData = async (

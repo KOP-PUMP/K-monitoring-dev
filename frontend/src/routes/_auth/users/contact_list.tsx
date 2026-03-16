@@ -13,7 +13,7 @@ import {
   } from "@/components/ui/dropdown-menu"
   import { Checkbox } from "@/components/ui/checkbox"
   import { Button } from "@/components/ui/button"
-  import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
+  import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 
 const data: Payment[] = [
     {
@@ -163,7 +163,7 @@ const data: Payment[] = [
             Contact Person Data
           </h2>
         </div>
-        <DataTable data={data} columns={columns} />
+        <DataTable data={data} columns={columns} search={""} />
       </div>
     );
   };

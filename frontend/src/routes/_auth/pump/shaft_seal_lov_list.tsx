@@ -6,7 +6,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -220,7 +219,7 @@ const ShaftSealTable = () => {
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() =>handleDeleteData(data.shaft_seal_lov_id)}
+                onClick={() =>handleDeleteData(data.shaft_seal_lov_id || "")}
               >
                 Delete
               </DropdownMenuItem>

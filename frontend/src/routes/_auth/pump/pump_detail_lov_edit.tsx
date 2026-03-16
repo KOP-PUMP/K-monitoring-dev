@@ -10,7 +10,6 @@ import toast from "react-hot-toast";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,7 +17,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PumpDetailLOVSchema } from "@/validators/pump";
-import { useSettings } from "@/lib/settings";
 import { FormBox } from "@/components/common/FormBox";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
@@ -29,7 +27,6 @@ import {
   useUpdatePumpDetailLOV,
   useCreatePumpDetailLOV,
 } from "@/hook/pump/pump";
-import { create } from "domain";
 
 function MediaLOVEdit() {
   // Unit form setup
@@ -125,6 +122,7 @@ function MediaLOVEdit() {
       pump_standard: values.pump_standard || "",
       pump_standard_no: values.pump_standard_no || "",
       pump_impeller_type: values.pump_impeller_type || "",
+      pump_impeller_max_size: values.pump_impeller_max_size || "",
       pump_flange_con_std: values.pump_flange_con_std || "",
       pump_type_name: values.pump_type_name || "",
       pump_stage: values.pump_stage || "",
@@ -169,7 +167,6 @@ function MediaLOVEdit() {
               onSubmit={pumpDetailLOVForm.handleSubmit(
                 handlePumpDetailSubmit,
                 (errors) => {
-                  console.log(object);
                   console.log("Validation Errors:", [
                     errors,
                     pumpDetailLOVForm.getValues(),
@@ -193,6 +190,7 @@ function MediaLOVEdit() {
                                 placeholder="E.g. KOP KDIN125x100-400"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -212,6 +210,7 @@ function MediaLOVEdit() {
                                 placeholder="E.g. KOP"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -230,6 +229,7 @@ function MediaLOVEdit() {
                                 placeholder="E.g. KDIN 125x100-400"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -250,6 +250,7 @@ function MediaLOVEdit() {
                                 placeholder="E.g. 125x100-400"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -270,6 +271,7 @@ function MediaLOVEdit() {
                                 placeholder="E.g. Horizontal End Suction"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -290,6 +292,7 @@ function MediaLOVEdit() {
                                 placeholder="Pump standard"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -310,6 +313,7 @@ function MediaLOVEdit() {
                                 placeholder="Pump standard Number"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -330,6 +334,7 @@ function MediaLOVEdit() {
                                 placeholder="Impeller Type"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -350,6 +355,7 @@ function MediaLOVEdit() {
                                 placeholder="Flange Connecting Standard"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -370,6 +376,7 @@ function MediaLOVEdit() {
                                 placeholder="E.g. KDIN 32-13"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -390,6 +397,7 @@ function MediaLOVEdit() {
                                 placeholder="Pump Type"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                                 type="number"
                               />
                             </FormControl>
@@ -411,6 +419,7 @@ function MediaLOVEdit() {
                                 placeholder="Seal Chamber"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -429,6 +438,7 @@ function MediaLOVEdit() {
                                 placeholder="Oil Seal"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -449,6 +459,7 @@ function MediaLOVEdit() {
                                 placeholder="Pump Max Temperature (°C)"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                                 type="number"
                               />
                             </FormControl>
@@ -470,6 +481,7 @@ function MediaLOVEdit() {
                                 placeholder="Suction ID Size (mm.)"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                                 type="number"
                               />
                             </FormControl>
@@ -491,6 +503,7 @@ function MediaLOVEdit() {
                                 placeholder="Suction OD Size (mm.)"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                                 type="number"
                               />
                             </FormControl>
@@ -512,6 +525,7 @@ function MediaLOVEdit() {
                                 placeholder="Suction rating"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>
@@ -532,6 +546,7 @@ function MediaLOVEdit() {
                                 placeholder="Discharge ID Size (mm.)"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                                 type="number"
                               />
                             </FormControl>
@@ -553,6 +568,7 @@ function MediaLOVEdit() {
                                 placeholder="Discharge OD Size (mm.)"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                                 type="number"
                               />
                             </FormControl>
@@ -574,6 +590,7 @@ function MediaLOVEdit() {
                                 placeholder="Discharge rating"
                                 {...field}
                                 className="h-7"
+                                value={field.value || ""}
                               />
                             </FormControl>
                           </div>

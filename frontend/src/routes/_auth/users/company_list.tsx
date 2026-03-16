@@ -1,20 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/table/DataTable";
-import { useSearch } from "@tanstack/react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import {
   CompaniesResponse,
-  ContactPersonResponse,
 } from "@/types/users/company";
 import { useGetAllCompaniesDetail, useDeleteCompany } from "@/hook/users/company";
 import { Card } from "@/components/ui/card";
@@ -28,7 +25,7 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
 };
 
 const CompanyTable = () => {
-  const { data: companies, isLoading, isError } = useGetAllCompaniesDetail();
+  const { data: companies} = useGetAllCompaniesDetail();
 
   const deleteMutation = useDeleteCompany();
   const handleDeleteData = (code: string) => {
@@ -230,7 +227,7 @@ const CompanyTable = () => {
                 <DropdownMenuItem>View</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() => handleDeleteData(company.customer_code)}
+                onClick={() => handleDeleteData(company.customer_code as string)}
               >
                 Delete
               </DropdownMenuItem>

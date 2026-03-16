@@ -1,13 +1,10 @@
 import {
-  Line,
   CartesianGrid,
   XAxis,
   YAxis,
   Scatter,
-  Legend,
   Tooltip,
   ResponsiveContainer,
-  ComposedChart,
   ScatterChart,
   LabelList,
 } from "recharts";
@@ -76,20 +73,27 @@ export const FlowPowerGraph = ({
       (dia) => dia !== null && dia !== "0" && dia !== undefined && dia !== "",
     );
 
+    const transformedDataImp: {
+      [key: string]: { flow: number; power: number }[];
+    } = uniqueImpDia.reduce(
+      (acc: Record<string, { flow: number; power: number }[]>, dia) => {
+        if (dia !== undefined) {
+          acc[dia] = chartData
+            .filter(
+              (item) =>
+                item.imp_dia?.split(".")[0] === dia && item.kw && item.flow,
+            )
+            .map((item) => ({
+              flow: Number(item.flow),
+              power: Number(item.kw),
+            }))
+            .sort((a, b) => a.flow - b.flow); // Sort by flow
+        }
 
-    const transformedDataImp = uniqueImpDia.reduce((acc, dia) => {
-      acc[dia] = chartData
-        .filter(
-          (item) => item.imp_dia?.split(".")[0] === dia && item.kw && item.flow,
-        )
-        .map((item) => ({
-          flow: parseFloat(item.flow),
-          power: parseFloat(item.kw),
-        }))
-        .sort((a, b) => a.flow - b.flow); // Sort by flow
-      return acc;
-    }, {});
-
+        return acc;
+      },
+      {},
+    );
 
     return (
       <ResponsiveContainer height={400}>
@@ -99,52 +103,55 @@ export const FlowPowerGraph = ({
           <YAxis {...YAxisDefaultProps} />
           <Tooltip cursor={{ strokeDasharray: "3 3" }} />
           {uniqueImpDia.map((dia, index) => {
-            let dataSeries = transformedDataImp[dia];
-            dataSeries = dataSeries.filter((point: any) => !isNaN(point.power));
-            const lastDataPointIndex = dataSeries.length - 1; // Ensure we get last index
-            return (
-              <Scatter
-                key={dia}
-                name={`${dia}mm`}
-                data={transformedDataImp[dia]}
-                line
-                fill={scatter ? "none" : colors[index % colors.length]}
-                strokeWidth={2}
-                shape={(props: any) => {
-                  const { cx, cy, isActive } = props;
-                  return (
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={6}
-                      fill="transparent"
-                      stroke="none"
-                    />
-                  );
-                }}
-              >
-                <LabelList
-                  dataKey="power"
-                  content={({ x, y, index: pointIndex }) => {
-                    if (pointIndex && pointIndex === lastDataPointIndex) {
-                      return (
-                        <text
-                          x={x + 10}
-                          y={y + 0}
-                          fill={colors[index % colors.length]}
-                          fontSize={12}
-                          fontWeight="bold"
-                          textAnchor="start"
-                        >
-                          {`${dia}mm`}
-                        </text>
-                      );
-                    }
-                    return null;
+            if (dia) {
+              let dataSeries = transformedDataImp[dia].filter(
+                (point: any) => !isNaN(point.power),
+              );
+              const lastDataPointIndex = dataSeries.length - 1; // Ensure we get last index
+              return (
+                <Scatter
+                  key={dia}
+                  name={`${dia}mm`}
+                  data={transformedDataImp[dia]}
+                  line
+                  fill={scatter ? "none" : colors[index % colors.length]}
+                  strokeWidth={2}
+                  shape={(props: any) => {
+                    const { cx, cy} = props;
+                    return (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={6}
+                        fill="transparent"
+                        stroke="none"
+                      />
+                    );
                   }}
-                />
-              </Scatter>
-            );
+                >
+                  <LabelList
+                    dataKey="power"
+                    content={({ x, y, index: pointIndex }) => {
+                      if (pointIndex && pointIndex === lastDataPointIndex) {
+                        return (
+                          <text
+                            x={Number(x) + 10}
+                            y={Number(y) + 0}
+                            fill={colors[index % colors.length]}
+                            fontSize={12}
+                            fontWeight="bold"
+                            textAnchor="start"
+                          >
+                            {`${dia}mm`}
+                          </text>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                </Scatter>
+              );
+            }
           })}
         </ScatterChart>
       </ResponsiveContainer>

@@ -3,10 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { Combobox, ComboboxItemProps } from "@/components/common/ComboBoxTest";
 
-import { HeadFlowGraph } from "@/components/chart/HeadFlowGraph";
+/* import { HeadFlowGraph } from "@/components/chart/HeadFlowGraph";
 import { FlowPowerGraph } from "@/components/chart/FlowPowerGraph";
 import { NpshrFlowGraph } from "@/components/chart/NpshrFlowGraph";
-import { EfficiencyHeadFlowGraph } from "@/components/chart/EfficiencyHeadFlowGraph";
+import { EfficiencyHeadFlowGraph } from "@/components/chart/EfficiencyHeadFlowGraph"; */
 
 
 const Analytic = () => {
@@ -51,12 +51,12 @@ const Analytic = () => {
           <label className="block text-sm font-medium text-gray-700">{model}</label>
         </div>
       </div>
-      <div className="flex flex-wrap">
-        <FlowPowerGraph model={model} scatter={displayMode == "scatter" ? true : false} />
-        <HeadFlowGraph model={model} scatter={displayMode == "scatter" ? true : false} />
-        <NpshrFlowGraph model={model} scatter={displayMode == "scatter" ? true : false} />
-        <EfficiencyHeadFlowGraph model={model} scatter={displayMode == "scatter" ? true : false} />
-      </div>
+     {/*  <div className="flex flex-wrap">
+        <FlowPowerGraph chartData={model} scatter={displayMode == "scatter" ? true : false} />
+        <HeadFlowGraph chartData={model} scatter={displayMode == "scatter" ? true : false} />
+        <NpshrFlowGraph chartData={model} scatter={displayMode == "scatter" ? true : false} />
+        <EfficiencyHeadFlowGraph chartData={model} scatter={displayMode == "scatter" ? true : false} />
+      </div> */}
     </div>
   );
 };

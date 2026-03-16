@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AuthService from "@/lib/auth";
 import Logincover from "/portrait-engineers-during-work-hours-job-site_23-2151589548.jpg";
-import { AxiosInstance } from "axios";
 import { axiosInstance } from "@/api/utils";
 
 const LoginSchema = z.object({

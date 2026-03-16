@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
+/* import { Link } from "@tanstack/react-router"; */
 
 const EngineeringDetail = () => {
   return (
@@ -8,7 +8,7 @@ const EngineeringDetail = () => {
         <h2 className="text-3xl font-bold tracking-tight">
           Engineering Analysis
         </h2>
-        <Link to="/analytic/dashboard">Back</Link>
+        {/* <Link to="/analytic/dashboard">Back</Link> */}
       </div>
     </div>
   );

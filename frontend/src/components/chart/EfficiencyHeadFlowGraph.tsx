@@ -1,4 +1,4 @@
-import { Line, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer, ComposedChart } from "recharts";
+import { Line, CartesianGrid, XAxis, YAxis, ResponsiveContainer, ComposedChart } from "recharts";
 import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
 
 export interface EfficiencyHeadFlowGraphProps {
@@ -29,10 +29,6 @@ export const EfficiencyHeadFlowGraph = ({ chartData, scatter = false }: Efficien
     error(...args);
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   if (chartData) {
     const uniqueEfficiencies = [...new Set(chartData.map((item) => item.eff))];
 
@@ -60,10 +56,6 @@ export const EfficiencyHeadFlowGraph = ({ chartData, scatter = false }: Efficien
         </ComposedChart>
       </ResponsiveContainer>
     );
-  }
-
-  if (isError) {
-    return <div>Error</div>;
   }
 
   return null;

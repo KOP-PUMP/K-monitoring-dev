@@ -14,7 +14,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,6 @@ import { Link } from "@tanstack/react-router";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useDeletePump } from "@/hook/pump/pump";
-import { pumpData } from "@/data/pump_models";
 
 export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
   TData,

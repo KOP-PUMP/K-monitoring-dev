@@ -14,7 +14,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -27,7 +26,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { PlusCircle, Search, ChevronsUpDown } from "lucide-react";
+import { PlusCircle} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -36,20 +35,12 @@ import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   useCreateEngineerReportCheck,
-  useDeleteEngineerReport,
   useGetEngineerReportCheckData,
-  useGetEngineerReport,
-  useOpenEngineerReport,
   useGetEngineerReportCheck,
   useDeleteEngineerReportCheck,
   useCreateNewEngineerReport,
 } from "@/hook/engineer/engineer";
-
-import { pumpData } from "@/data/pump_models";
 import { useEffect } from "react";
-import { report } from "process";
-import { set } from "zod";
-import { create } from "domain";
 
 export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
   TData,
@@ -70,8 +61,9 @@ function TotalReport() {
     user_role: "",
     pump_detail: "",
   });
+  console.log(reportDataOut);
   const [reportID, setReportID] = useState<string | null>(null);
-  const [reportIDOpen, setReportIDOpen] = useState<string | null>(null);
+  /* const [reportIDOpen, setReportIDOpen] = useState<string | null>(null); */
   const { data: reportData } = useGetEngineerReportCheckData(reportID);
   const [reportDetail, setReportDetail] = useState<any>({
     doc_customer: "",
@@ -96,9 +88,9 @@ function TotalReport() {
     }
   }, []);
 
-  const handleOpenReport = (id: string) => {
+  /* const handleOpenReport = (id: string) => {
     setReportID(id);
-  };
+  }; */
 
   const handleDeleteData = (id: string) => {
     deleteMutation.mutate(id);

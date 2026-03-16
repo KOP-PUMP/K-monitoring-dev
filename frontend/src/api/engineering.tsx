@@ -1,4 +1,4 @@
-import { PumpDetailIn, PumpDetailOut } from "@/types/pumps";
+/* import { PumpDetailIn, PumpDetailOut } from "@/types/pumps";
 import { ApiResponse, FetchDataResponse } from "@/types/response";
 import { fetchWithAuth } from "./utils";
 
@@ -44,3 +44,4 @@ const deletePumpDetailById = async (pumpId: number): Promise<ApiResponse<PumpDet
 };
 
 export { addPumpDetail, getPumpDetailById, getAllPumpDetails, editPumpDetailById, deletePumpDetailById };
+ */

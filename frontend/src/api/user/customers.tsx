@@ -1,5 +1,3 @@
-import toast from "react-hot-toast";
-import axios from "axios";
 import { axiosInstance } from "../utils";
 
 export const getAllCustomersDetail = async (): Promise<any> => {

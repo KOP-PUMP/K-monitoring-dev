@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, Search, ChevronsUpDown } from "lucide-react";
+import { PlusCircle, Search } from "lucide-react";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -37,9 +36,8 @@ import {
   MechanicalSealDetailFormSchema,
   FlangeAndBearingDetailFormSchema,
 } from "@/validators/pump";
-import { useSettings } from "@/lib/settings";
 import { useEffect, useState } from "react";
-import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { useGetCompanyDetailByCode } from "@/hook/users/company";
 import {
   useGetAllUnitLOVData,
@@ -49,9 +47,7 @@ import {
   useGetShaftSealDetailLOV,
   useGetMotorDetailLOV,
   useGetMediaLOVData,
-  useCreatePumpDetail,
 } from "@/hook/pump/pump";
-import { PumpDetailLOVSchema } from "@/validators/pump";
 import {
   PumpDetailLOVResponse,
   PumpMatLOVResponse,
@@ -59,19 +55,8 @@ import {
   MotorDetailLOVResponse,
   MediaLOVResponse,
 } from "@/types/pump/pumps";
-import CompaniesResponse from "@/types/users/company";
-
-import {
-  useGetFactoryCurveData,
-  useGetCalPumpData,
-} from "@/hook/factory_curve/factory_curve";
-
-import { getCalPumpData } from "@/api/factory_curve/factory_curve_data";
-
-type PumpModelType = {
-  model: string | undefined;
-  speed: string | undefined;
-};
+import { CompaniesResponse } from "@/types/users/company";
+import { useGetCalPumpData } from "@/hook/factory_curve/factory_curve";
 import { HeadFlowGraph } from "@/components/chart/HeadFlowGraph";
 
 export default function PumpList() {
@@ -95,7 +80,6 @@ export default function PumpList() {
     pump_motor_search: "",
   });
   /* fetched data state */
-  const [pumpModel, setPumpModel] = useState<PumpModelType>();
   const [pumpDetailCalData, setPumpDetailCalData] = useState<any>();
   const [pumpLOVData, setPumpLOVData] = useState<ComboboxItemProps[]>([]);
   const [pumpMatLOVData, setPumpMatLOVData] = useState<PumpMatLOVResponse[]>();
@@ -108,17 +92,19 @@ export default function PumpList() {
   const [pumpDetailLOVData, setPumpDetailLOVData] =
     useState<PumpDetailLOVResponse[]>();
   /* Dropdown option from pump data */
-  const { data: mediaData } = useGetMediaLOVData("");
+  const { data: mediaData } = useGetMediaLOVData("") as {
+    data: MediaLOVResponse[];
+  };
   const { data: companyData } = useGetCompanyDetailByCode(CompanyCode);
   const { data: pumpDetailLOVResponse } = useGetPumpDetailLOV("");
-  const { data: pumpMatLOVResponse } = useGetMaterialDetailLOV("");
-  const { data: pumpShaftSealLOVResponse } = useGetShaftSealDetailLOV("");
-  const { data: pumpMotorLOVResponse } = useGetMotorDetailLOV("");
+  const { data: pumpMatLOVResponse } = useGetMaterialDetailLOV("") as { data: PumpMatLOVResponse[] };
+  const { data: pumpShaftSealLOVResponse } = useGetShaftSealDetailLOV("") as {
+    data: PumpShaftSealLOVResponse[];
+  };
+  const { data: pumpMotorLOVResponse } = useGetMotorDetailLOV("") as {data:MotorDetailLOVResponse[]};
   /* Dropdown option from LOV */
   const { data: pumpLOVResponse } = useGetAllPumpLOVData();
   const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();
-
-  const getCalMutation = useGetCalPumpData();
 
   /* Mapping Data for drop down option */
   useEffect(() => {
@@ -210,12 +196,12 @@ export default function PumpList() {
     defaultValues: getFormData("formData5"),
   });
 
-  const flangeAndBearingCurrentValue = formFlangeAndBearingDetail.getValues();
+  /* const flangeAndBearingCurrentValue = formFlangeAndBearingDetail.getValues(); */
 
   const handleNextStep = (
     currentStep: number,
     stepName: number,
-    formName: UseFormReturn<any>
+    formName: UseFormReturn<any>,
   ) => {
     formName.handleSubmit(
       (data) => {
@@ -228,7 +214,7 @@ export default function PumpList() {
       },
       (errors) => {
         console.error("Validation errors:", errors);
-      }
+      },
     )();
   };
 
@@ -372,16 +358,15 @@ export default function PumpList() {
     });
   };
 
-  const createMutation = useCreatePumpDetail();
-  const localstorage = window.localStorage.getItem("user");
-  const userData = localstorage !== null ? JSON.parse(localstorage) : null;
-  const handleDataSubmit = () => {
+  /* const createMutation = useCreatePumpDetail(); */
+  /* const localstorage = window.localStorage.getItem("user"); */
+  /* const userData = localstorage !== null ? JSON.parse(localstorage) : null; */
+  /* const handleDataSubmit = () => {
     const form1 = formPumpGeneralDetail.getValues();
     const form2 = formMaterialDetail.getValues();
     const form3 = formMotorAndCouplingDetail.getValues();
     const form4 = formMechanicalSealDetail.getValues();
     const form5 = formFlangeAndBearingDetail.getValues();
-
     createMutation.mutate({
       ...form1,
       ...form2,
@@ -393,9 +378,9 @@ export default function PumpList() {
       updated_at: new Date().toISOString(),
       updated_by: userData?.user.user_email,
     });
-  };
+  }; */
 
-  const { mutate, isPending, isError, error } = useGetCalPumpData();
+  const { mutate, isPending, isError} = useGetCalPumpData();
 
   const handleCalculateClick = () => {
     const calculateFormSchema = z.object({
@@ -428,13 +413,13 @@ export default function PumpList() {
         formPumpGeneralDetail.getValues("design_head_unit") ?? "",
       media_name: formPumpGeneralDetail.getValues("media_name") ?? "",
       media_density: formPumpGeneralDetail.getValues("media_density") ?? "",
-      media_density_unit: formPumpGeneralDetail.getValues("media_density_unit") ?? "",
+      media_density_unit:
+        formPumpGeneralDetail.getValues("media_density_unit") ?? "",
     };
-    
+
     const result = calculateFormSchema.safeParse(formValues);
-    console.log(result)
     if (!result.success) {
-      const errors = result.error.flatten().fieldErrors;
+      const errors: { [key: string]: any } = result.error.flatten().fieldErrors;
 
       Object.keys(formValues).forEach((key) => {
         if (errors[key]) {
@@ -448,12 +433,9 @@ export default function PumpList() {
       return;
     }
 
-    
-
     Object.keys(formValues).forEach((key) => {
       formPumpGeneralDetail.clearErrors(key as any);
     });
-
 
     mutate(formValues, {
       onSuccess: (data) => {
@@ -485,22 +467,38 @@ export default function PumpList() {
     if (pumpDetailCalData) {
       formPumpGeneralDetail.reset({
         ...generalDetailCurrentValue,
-        min_flow: pumpDetailCalData.min_flow_point.point_flow.toFixed(2),
-        min_head: pumpDetailCalData.min_flow_point.point_head.toFixed(2),
-        max_flow: pumpDetailCalData.max_flow_point.point_flow.toFixed(2),
-        max_head: pumpDetailCalData.max_flow_point.point_head.toFixed(2),
-        bep_flow: pumpDetailCalData.bep_point.point_flow.toFixed(2),
-        bep_head: pumpDetailCalData.bep_point.point_head.toFixed(2),
-        shut_off_head: pumpDetailCalData.shut_off_head.toFixed(2),
-        npshr: pumpDetailCalData.npshr.toFixed(2),
-        pump_efficiency: pumpDetailCalData.operation_point.eff.toFixed(2),
-        hyd_power: pumpDetailCalData.hydraulic_power_kW.toFixed(2),
-        power_min_flow: pumpDetailCalData.power_min_flow_kW.toFixed(2),
-        power_max_flow: pumpDetailCalData.power_max_flow_kW.toFixed(2),
-        power_required_cal: pumpDetailCalData.power_required_cal_kW.toFixed(2),
-        power_bep_flow: pumpDetailCalData.power_bep_kW.toFixed(2),
-        pump_efficiency_unit: pumpDetailCalData.units.unit_eff,
-        shut_off_head_unit: pumpDetailCalData.units.unit_head,
+        min_flow: pumpDetailCalData.min_flow_point.point_flow
+          .toFixed(2)
+          .toString(),
+        min_head: pumpDetailCalData.min_flow_point.point_head
+          .toFixed(2)
+          .toString(),
+        max_flow: pumpDetailCalData.max_flow_point.point_flow
+          .toFixed(2)
+          .toString(),
+        max_head: pumpDetailCalData.max_flow_point.point_head
+          .toFixed(2)
+          .toString(),
+        bep_flow: pumpDetailCalData.bep_point.point_flow.toFixed(2).toString(),
+        bep_head: pumpDetailCalData.bep_point.point_head.toFixed(2).toString(),
+        shut_off_head: pumpDetailCalData.shut_off_head.toFixed(2).toString(),
+        npshr: pumpDetailCalData.npshr.toFixed(2).toString(),
+        pump_efficiency: pumpDetailCalData.operation_point.eff
+          .toFixed(2)
+          .toString(),
+        hyd_power: pumpDetailCalData.hydraulic_power_kW.toFixed(2).toString(),
+        power_min_flow: pumpDetailCalData.power_min_flow_kW
+          .toFixed(2)
+          .toString(),
+        power_max_flow: pumpDetailCalData.power_max_flow_kW
+          .toFixed(2)
+          .toString(),
+        power_required_cal: pumpDetailCalData.power_required_cal_kW
+          .toFixed(2)
+          .toString(),
+        power_bep_flow: pumpDetailCalData.power_bep_kW.toFixed(2).toString(),
+        pump_efficiency_unit: pumpDetailCalData.units.unit_eff.toString(),
+        shut_off_head_unit: pumpDetailCalData.units.unit_head.toString(),
       });
     }
   }, [pumpDetailCalData]);
@@ -704,7 +702,7 @@ export default function PumpList() {
                                                   type="button"
                                                   onClick={() => {
                                                     handleResetCompanyDetailLOV(
-                                                      companyData
+                                                      companyData,
                                                     );
                                                   }}
                                                 >
@@ -718,7 +716,7 @@ export default function PumpList() {
                                             onClick={() => {
                                               const input =
                                                 document.getElementById(
-                                                  "input_company_code"
+                                                  "input_company_code",
                                                 ) as HTMLInputElement;
                                               setCompanyCode(input?.value);
                                             }}
@@ -1069,7 +1067,7 @@ export default function PumpList() {
                                                   (data) =>
                                                     data.pump_model
                                                       ?.toLowerCase()
-                                                      .includes(searchValue)
+                                                      .includes(searchValue),
                                                 );
                                               setSearchKey({
                                                 ...searchKey,
@@ -1089,7 +1087,7 @@ export default function PumpList() {
                                                     className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
                                                     onClick={() =>
                                                       handleResetPumpDetailLOV(
-                                                        data
+                                                        data,
                                                       )
                                                     }
                                                   >
@@ -1115,7 +1113,7 @@ export default function PumpList() {
                                                       </p>
                                                     </div>
                                                   </SheetClose>
-                                                )
+                                                ),
                                               )
                                             ) : pumpDetailLOVData &&
                                               pumpDetailLOVData?.length > 0 ? (
@@ -1129,7 +1127,7 @@ export default function PumpList() {
                                                       pump_lov_search: "",
                                                     });
                                                     handleResetPumpDetailLOV(
-                                                      data
+                                                      data,
                                                     );
                                                   }}
                                                 >
@@ -1300,7 +1298,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "pump_standard",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       }
                                       label={
@@ -1458,7 +1456,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "pump_status",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       }
                                       label={
@@ -1503,7 +1501,7 @@ export default function PumpList() {
                                         field.onChange(value); // Update form state
                                         if (value) {
                                           const selectedMedia = mediaData?.find(
-                                            (item) => item.media_name === value
+                                            (item) => item.media_name === value,
                                           );
                                           if (selectedMedia) {
                                             handleResetMediaLOV(selectedMedia);
@@ -1570,15 +1568,15 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_density",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
                                           formPumpGeneralDetail.getValues(
-                                            "media_density_unit"
+                                            "media_density_unit",
                                           )
                                             ? formPumpGeneralDetail.getValues(
-                                                "media_density_unit"
+                                                "media_density_unit",
                                               )
                                             : "Select"
                                         }
@@ -1630,15 +1628,15 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_viscosity",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
                                           formPumpGeneralDetail.getValues(
-                                            "media_viscosity_unit"
+                                            "media_viscosity_unit",
                                           )
                                             ? formPumpGeneralDetail.getValues(
-                                                "media_viscosity_unit"
+                                                "media_viscosity_unit",
                                               )
                                             : "Select"
                                         }
@@ -1694,7 +1692,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_pres",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -1759,7 +1757,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "solid_type",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       }
                                       label={
@@ -1913,7 +1911,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_speed",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -1970,7 +1968,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_flow",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -2029,7 +2027,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_head",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -2100,7 +2098,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .pump_efficiency
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).pump_efficiency
                                                         : ""
                                                     }
@@ -2112,16 +2110,10 @@ export default function PumpList() {
                                             <FormControl className="md:max-w-[500px]">
                                               <Combobox
                                                 className="min-w-[86px]"
-                                                defaultValue={
-                                                  getFormData("formData1")
-                                                    ? getFormData("formData1")
-                                                        .pump_efficiency_unit
-                                                    : ""
-                                                }
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_efficiency",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -2172,7 +2164,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .shut_off_head
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).shut_off_head
                                                         : ""
                                                     }
@@ -2187,7 +2179,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_head",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -2240,7 +2232,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .npshr
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).npshr
                                                         : ""
                                                     }
@@ -2255,7 +2247,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_npshr",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -2306,7 +2298,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .hyd_power
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).hyd_power
                                                         : ""
                                                     }
@@ -2321,7 +2313,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_power",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -2372,7 +2364,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .power_required_cal
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).power_required_cal
                                                         : ""
                                                     }
@@ -2387,7 +2379,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_power",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -2442,7 +2434,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .bep_flow
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).bep_flow
                                                         : ""
                                                     }
@@ -2457,7 +2449,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_flow",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -2508,7 +2500,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .bep_head
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).bep_head
                                                         : ""
                                                     }
@@ -2522,7 +2514,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_flow",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -2570,10 +2562,10 @@ export default function PumpList() {
                                                           readOnly
                                                           defaultValue={
                                                             getFormData(
-                                                              "formData1"
+                                                              "formData1",
                                                             ).power_bep_flow
                                                               ? getFormData(
-                                                                  "formData1"
+                                                                  "formData1",
                                                                 ).power_bep_flow
                                                               : ""
                                                           }
@@ -2588,14 +2580,14 @@ export default function PumpList() {
                                                       items={
                                                         handleLOVDataFilter(
                                                           "unit_power",
-                                                          "pump_unit"
+                                                          "pump_unit",
                                                         ) || []
                                                       } // Dropdown options
                                                       label={
                                                         getFormData("formData1")
                                                           .power_bep_flow_unit
                                                           ? getFormData(
-                                                              "formData1"
+                                                              "formData1",
                                                             )
                                                               .power_bep_flow_unit
                                                           : pumpDetailCalData
@@ -2647,7 +2639,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .min_flow
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).min_flow
                                                         : ""
                                                     }
@@ -2661,7 +2653,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_flow",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -2711,7 +2703,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .min_head
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).min_head
                                                         : ""
                                                     }
@@ -2725,7 +2717,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_head",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -2776,7 +2768,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .power_min_flow
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).power_min_flow
                                                         : ""
                                                     }
@@ -2791,7 +2783,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_power",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -2845,7 +2837,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .max_flow
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).max_flow
                                                         : ""
                                                     }
@@ -2859,7 +2851,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_flow",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 }
                                                 label={
@@ -2908,7 +2900,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .max_head
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).max_head
                                                         : ""
                                                     }
@@ -2922,7 +2914,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_flow",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 }
                                                 label={
@@ -2973,7 +2965,7 @@ export default function PumpList() {
                                                       getFormData("formData1")
                                                         .power_max_flow
                                                         ? getFormData(
-                                                            "formData1"
+                                                            "formData1",
                                                           ).power_max_flow
                                                         : ""
                                                     }
@@ -2988,7 +2980,7 @@ export default function PumpList() {
                                                 items={
                                                   handleLOVDataFilter(
                                                     "unit_power",
-                                                    "pump_unit"
+                                                    "pump_unit",
                                                   ) || []
                                                 } // Dropdown options
                                                 label={
@@ -3103,7 +3095,7 @@ export default function PumpList() {
                                                   (data) =>
                                                     data.casing_mat
                                                       ?.toLowerCase()
-                                                      .includes(searchValue)
+                                                      .includes(searchValue),
                                                 );
                                               setSearchKey({
                                                 ...searchKey,
@@ -3137,7 +3129,7 @@ export default function PumpList() {
                                                       {data.casing_cover_mat}
                                                     </div>
                                                   </SheetClose>
-                                                )
+                                                ),
                                               )
                                             ) : pumpMatLOVData &&
                                               pumpMatLOVData?.length > 0 ? (
@@ -3459,7 +3451,7 @@ export default function PumpList() {
                                                   (data) =>
                                                     data.motor_model
                                                       ?.toLowerCase()
-                                                      .includes(searchValue)
+                                                      .includes(searchValue),
                                                 );
                                               setSearchKey({
                                                 ...searchKey,
@@ -3496,7 +3488,7 @@ export default function PumpList() {
                                                       {data.motor_standard}
                                                     </div>
                                                   </SheetClose>
-                                                )
+                                                ),
                                               )
                                             ) : pumpMotorLOVData &&
                                               pumpMotorLOVData?.length > 0 ? (
@@ -3749,7 +3741,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_speed",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -3758,10 +3750,10 @@ export default function PumpList() {
                                             ? getFormData("formData3")
                                                 .motor_speed_unit
                                             : formMotorAndCouplingDetail.getValues(
-                                                  "motor_speed_unit"
+                                                  "motor_speed_unit",
                                                 )
                                               ? formMotorAndCouplingDetail.getValues(
-                                                  "motor_speed_unit"
+                                                  "motor_speed_unit",
                                                 )
                                               : "Select"
                                         }
@@ -3817,7 +3809,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_power",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -3826,10 +3818,10 @@ export default function PumpList() {
                                             ? getFormData("formData3")
                                                 .motor_rated_unit
                                             : formMotorAndCouplingDetail.getValues(
-                                                  "motor_rated_unit"
+                                                  "motor_rated_unit",
                                                 )
                                               ? formMotorAndCouplingDetail.getValues(
-                                                  "motor_rated_unit"
+                                                  "motor_rated_unit",
                                                 )
                                               : "Select"
                                         }
@@ -3969,7 +3961,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_efficiency",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -3978,10 +3970,10 @@ export default function PumpList() {
                                             ? getFormData("formData3")
                                                 .motor_efficiency_unit
                                             : formMotorAndCouplingDetail.getValues(
-                                                  "motor_efficiency_unit"
+                                                  "motor_efficiency_unit",
                                                 )
                                               ? formMotorAndCouplingDetail.getValues(
-                                                  "motor_efficiency_unit"
+                                                  "motor_efficiency_unit",
                                                 )
                                               : "Select"
                                         }
@@ -4037,7 +4029,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_power",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -4046,10 +4038,10 @@ export default function PumpList() {
                                             ? getFormData("formData3")
                                                 .motor_rated_current_unit
                                             : formMotorAndCouplingDetail.getValues(
-                                                  "motor_rated_current_unit"
+                                                  "motor_rated_current_unit",
                                                 )
                                               ? formMotorAndCouplingDetail.getValues(
-                                                  "motor_rated_current_unit"
+                                                  "motor_rated_current_unit",
                                                 )
                                               : "Select"
                                         }
@@ -4101,7 +4093,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_power",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -4109,10 +4101,10 @@ export default function PumpList() {
                                             ? getFormData("formData3")
                                                 .voltage_unit
                                             : formMotorAndCouplingDetail.getValues(
-                                                  "voltage_unit"
+                                                  "voltage_unit",
                                                 )
                                               ? formMotorAndCouplingDetail.getValues(
-                                                  "voltage_unit"
+                                                  "voltage_unit",
                                                 )
                                               : "Select"
                                         }
@@ -4141,7 +4133,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "coup_type",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       }
                                       label={
@@ -4258,7 +4250,7 @@ export default function PumpList() {
                                                   (data) =>
                                                     data.shaft_seal_code_name
                                                       ?.toLowerCase()
-                                                      .includes(searchValue)
+                                                      .includes(searchValue),
                                                 );
                                               setSearchKey({
                                                 ...searchKey,
@@ -4267,7 +4259,7 @@ export default function PumpList() {
                                               });
 
                                               setPumpShaftSealLOVData(
-                                                filterData
+                                                filterData,
                                               );
                                             }}
                                           />
@@ -4281,7 +4273,7 @@ export default function PumpList() {
                                                     className="p-3 border rounded-md cursor-pointer hover:bg-muted flex flex-col w-full"
                                                     onClick={() => {
                                                       handleResetMechanicalSealLOV(
-                                                        data
+                                                        data,
                                                       );
                                                     }}
                                                   >
@@ -4301,7 +4293,7 @@ export default function PumpList() {
                                                       }
                                                     </div>
                                                   </SheetClose>
-                                                )
+                                                ),
                                               )
                                             ) : pumpShaftSealData &&
                                               pumpShaftSealData?.length > 0 ? (
@@ -4316,7 +4308,7 @@ export default function PumpList() {
                                                         "",
                                                     });
                                                     handleResetMechanicalSealLOV(
-                                                      data
+                                                      data,
                                                     );
                                                   }}
                                                 >
@@ -4502,15 +4494,15 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_size",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
                                           formMechanicalSealDetail.getValues(
-                                            "mech_size_unit"
+                                            "mech_size_unit",
                                           )
                                             ? formMechanicalSealDetail.getValues(
-                                                "mech_size_unit"
+                                                "mech_size_unit",
                                               )
                                             : "Select"
                                         }
@@ -4618,7 +4610,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_pressure",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -4627,10 +4619,10 @@ export default function PumpList() {
                                             ? getFormData("formData4")
                                                 .mech_main_pre_unit
                                             : formMechanicalSealDetail.getValues(
-                                                  "mech_main_pre_unit"
+                                                  "mech_main_pre_unit",
                                                 )
                                               ? formMechanicalSealDetail.getValues(
-                                                  "mech_main_pre_unit"
+                                                  "mech_main_pre_unit",
                                                 )
                                               : "Select"
                                         }
@@ -4729,7 +4721,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "pump_flang_con_std",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -4737,10 +4729,10 @@ export default function PumpList() {
                                           ? getFormData("formData5")
                                               .flang_con_std
                                           : formFlangeAndBearingDetail.getValues(
-                                                "flang_con_std"
+                                                "flang_con_std",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "flang_con_std"
+                                                "flang_con_std",
                                               )
                                             : "Select"
                                       }
@@ -4770,7 +4762,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "pump_flange_rating",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -4779,10 +4771,10 @@ export default function PumpList() {
                                           ? getFormData("formData5")
                                               .pump_suction_rating
                                           : formFlangeAndBearingDetail.getValues(
-                                                "pump_suction_rating"
+                                                "pump_suction_rating",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "pump_suction_rating"
+                                                "pump_suction_rating",
                                               )
                                             : "Select"
                                       }
@@ -4811,7 +4803,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "pump_flange_size",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -4820,10 +4812,10 @@ export default function PumpList() {
                                           ? getFormData("formData5")
                                               .pump_suction_size
                                           : formFlangeAndBearingDetail.getValues(
-                                                "pump_suction_size"
+                                                "pump_suction_size",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "pump_suction_size"
+                                                "pump_suction_size",
                                               )
                                             : "Select"
                                       }
@@ -4852,7 +4844,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "pump_flange_pipe_sch",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -4861,10 +4853,10 @@ export default function PumpList() {
                                           ? getFormData("formData5")
                                               .suction_pipe_sch
                                           : formFlangeAndBearingDetail.getValues(
-                                                "suction_pipe_sch"
+                                                "suction_pipe_sch",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "suction_pipe_sch"
+                                                "suction_pipe_sch",
                                               )
                                             : "Select"
                                       }
@@ -4894,7 +4886,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "pipe_size",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -4953,7 +4945,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_size",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -4962,10 +4954,10 @@ export default function PumpList() {
                                             ? getFormData("formData5")
                                                 .suction_pipe_id_unit
                                             : formFlangeAndBearingDetail.getValues(
-                                                  "suction_pipe_id_unit"
+                                                  "suction_pipe_id_unit",
                                                 )
                                               ? formFlangeAndBearingDetail.getValues(
-                                                  "suction_pipe_id_unit"
+                                                  "suction_pipe_id_unit",
                                                 )
                                               : "Select"
                                         }
@@ -5019,7 +5011,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_size",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -5028,10 +5020,10 @@ export default function PumpList() {
                                             ? getFormData("formData5")
                                                 .suction_pipe_length_unit
                                             : formFlangeAndBearingDetail.getValues(
-                                                  "suction_pipe_length_unit"
+                                                  "suction_pipe_length_unit",
                                                 )
                                               ? formFlangeAndBearingDetail.getValues(
-                                                  "suction_pipe_length_unit"
+                                                  "suction_pipe_length_unit",
                                                 )
                                               : "Select"
                                         }
@@ -5238,7 +5230,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_head",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -5247,10 +5239,10 @@ export default function PumpList() {
                                             ? getFormData("formData5")
                                                 .suction_head_unit
                                             : formFlangeAndBearingDetail.getValues(
-                                                  "suction_head_unit"
+                                                  "suction_head_unit",
                                                 )
                                               ? formFlangeAndBearingDetail.getValues(
-                                                  "suction_head_unit"
+                                                  "suction_head_unit",
                                                 )
                                               : "Select"
                                         }
@@ -5304,7 +5296,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_velocity",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -5313,10 +5305,10 @@ export default function PumpList() {
                                             ? getFormData("formData5")
                                                 .suction_velo_unit
                                             : formFlangeAndBearingDetail.getValues(
-                                                  "suction_velo_unit"
+                                                  "suction_velo_unit",
                                                 )
                                               ? formFlangeAndBearingDetail.getValues(
-                                                  "suction_velo_unit"
+                                                  "suction_velo_unit",
                                                 )
                                               : "Select"
                                         }
@@ -5353,7 +5345,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "pump_flange_rating",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -5362,10 +5354,10 @@ export default function PumpList() {
                                           ? getFormData("formData5")
                                               .pump_discharge_rating
                                           : formFlangeAndBearingDetail.getValues(
-                                                "pump_discharge_rating"
+                                                "pump_discharge_rating",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "pump_discharge_rating"
+                                                "pump_discharge_rating",
                                               )
                                             : "Select"
                                       }
@@ -5394,7 +5386,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "pump_flange_size",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -5403,10 +5395,10 @@ export default function PumpList() {
                                           ? getFormData("formData5")
                                               .pump_discharge_size
                                           : formFlangeAndBearingDetail.getValues(
-                                                "pump_discharge_size"
+                                                "pump_discharge_size",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "pump_discharge_size"
+                                                "pump_discharge_size",
                                               )
                                             : "Select"
                                       }
@@ -5435,7 +5427,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "pump_flange_pipe_sch",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -5444,10 +5436,10 @@ export default function PumpList() {
                                           ? getFormData("formData5")
                                               .discharge_pipe_sch
                                           : formFlangeAndBearingDetail.getValues(
-                                                "discharge_pipe_sch"
+                                                "discharge_pipe_sch",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "discharge_pipe_sch"
+                                                "discharge_pipe_sch",
                                               )
                                             : "Select"
                                       }
@@ -5500,7 +5492,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_size",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -5509,10 +5501,10 @@ export default function PumpList() {
                                             ? getFormData("formData5")
                                                 .discharge_pipe_id_unit
                                             : formFlangeAndBearingDetail.getValues(
-                                                  "discharge_pipe_id_unit"
+                                                  "discharge_pipe_id_unit",
                                                 )
                                               ? formFlangeAndBearingDetail.getValues(
-                                                  "discharge_pipe_id_unit"
+                                                  "discharge_pipe_id_unit",
                                                 )
                                               : "Select"
                                         }
@@ -5566,7 +5558,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_size",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -5575,10 +5567,10 @@ export default function PumpList() {
                                             ? getFormData("formData5")
                                                 .discharge_pipe_length_h_unit
                                             : formFlangeAndBearingDetail.getValues(
-                                                  "discharge_pipe_length_h_unit"
+                                                  "discharge_pipe_length_h_unit",
                                                 )
                                               ? formFlangeAndBearingDetail.getValues(
-                                                  "discharge_pipe_length_h_unit"
+                                                  "discharge_pipe_length_h_unit",
                                                 )
                                               : "Select"
                                         }
@@ -5632,7 +5624,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_size",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -5641,10 +5633,10 @@ export default function PumpList() {
                                             ? getFormData("formData5")
                                                 .discharge_pipe_length_h_unit
                                             : formFlangeAndBearingDetail.getValues(
-                                                  "discharge_pipe_length_v_unit"
+                                                  "discharge_pipe_length_v_unit",
                                                 )
                                               ? formFlangeAndBearingDetail.getValues(
-                                                  "discharge_pipe_length_v_unit"
+                                                  "discharge_pipe_length_v_unit",
                                                 )
                                               : "Select"
                                         }
@@ -5851,7 +5843,7 @@ export default function PumpList() {
                                         items={
                                           handleLOVDataFilter(
                                             "unit_velocity",
-                                            "pump_unit"
+                                            "pump_unit",
                                           ) || []
                                         } // Dropdown options
                                         label={
@@ -5860,10 +5852,10 @@ export default function PumpList() {
                                             ? getFormData("formData5")
                                                 .discharge_velo_unit
                                             : formFlangeAndBearingDetail.getValues(
-                                                  "discharge_velo_unit"
+                                                  "discharge_velo_unit",
                                                 )
                                               ? formFlangeAndBearingDetail.getValues(
-                                                  "discharge_velo_unit"
+                                                  "discharge_velo_unit",
                                                 )
                                               : "Select"
                                         }
@@ -6044,7 +6036,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "lubric_type",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -6053,10 +6045,10 @@ export default function PumpList() {
                                           ? getFormData("formData5")
                                               .bearing_lubric_type
                                           : formFlangeAndBearingDetail.getValues(
-                                                "bearing_lubric_type"
+                                                "bearing_lubric_type",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "bearing_lubric_type"
+                                                "bearing_lubric_type",
                                               )
                                             : "Select"
                                       }
@@ -6086,7 +6078,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "lubric_brand",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -6095,10 +6087,10 @@ export default function PumpList() {
                                           ? getFormData("formData5")
                                               .bearing_lubric_brand
                                           : formFlangeAndBearingDetail.getValues(
-                                                "bearing_lubric_brand"
+                                                "bearing_lubric_brand",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "bearing_lubric_brand"
+                                                "bearing_lubric_brand",
                                               )
                                             : "Select"
                                       }
@@ -6128,7 +6120,7 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "lubric_no",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
@@ -6137,10 +6129,10 @@ export default function PumpList() {
                                           ? getFormData("formData5")
                                               .bearing_lubric_no
                                           : formFlangeAndBearingDetail.getValues(
-                                                "bearing_lubric_no"
+                                                "bearing_lubric_no",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "bearing_lubric_no"
+                                                "bearing_lubric_no",
                                               )
                                             : "Select"
                                       }
@@ -6170,17 +6162,17 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "oil_seal",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
                                         getFormData("formData5").oil_seal
                                           ? getFormData("formData5").oil_seal
                                           : formFlangeAndBearingDetail.getValues(
-                                                "oil_seal"
+                                                "oil_seal",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "oil_seal"
+                                                "oil_seal",
                                               )
                                             : "Select"
                                       }
@@ -6210,17 +6202,17 @@ export default function PumpList() {
                                       items={
                                         handleLOVDataFilter(
                                           "rotation_de",
-                                          "pump_data"
+                                          "pump_data",
                                         ) || []
                                       } // Dropdown options
                                       label={
                                         getFormData("formData5").rotation_de
                                           ? getFormData("formData5").rotation_de
                                           : formFlangeAndBearingDetail.getValues(
-                                                "rotation_de"
+                                                "rotation_de",
                                               )
                                             ? formFlangeAndBearingDetail.getValues(
-                                                "rotation_de"
+                                                "rotation_de",
                                               )
                                             : "Select"
                                       }
@@ -6252,7 +6244,7 @@ export default function PumpList() {
                         onClick={(e) => {
                           console.log(formFlangeAndBearingDetail.getValues());
                           e.preventDefault();
-                          handleDataSubmit();
+                          /* handleDataSubmit(); */
                         }}
                       >
                         <PlusCircle className="h-3.5 w-3.5" />

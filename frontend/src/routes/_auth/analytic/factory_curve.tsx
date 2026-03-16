@@ -8,8 +8,6 @@ import {
 import { HeadFlowGraph } from "@/components/chart/HeadFlowGraph";
 import { FlowPowerGraph } from "@/components/chart/FlowPowerGraph";
 import { NpshrFlowGraph } from "@/components/chart/NpshrFlowGraph";
-import { EfficiencyHeadFlowGraph } from "@/components/chart/EfficiencyHeadFlowGraph";
-import { set } from "zod";
 
 const FactoryCurve = () => {
   const [factoryNumber, setFactoryNumber] = useState<string>("");

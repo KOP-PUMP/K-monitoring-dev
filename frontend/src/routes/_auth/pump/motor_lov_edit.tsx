@@ -10,7 +10,6 @@ import toast from "react-hot-toast";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -21,7 +20,6 @@ import { ComboboxItemProps } from "@/components/common/ComboBox";
 import { Combobox } from "@/components/common/ComboBox";
 import { Input } from "@/components/ui/input";
 import { MotorDetailLOVSchema } from "@/validators/pump";
-import { useSettings } from "@/lib/settings";
 import { FormBox } from "@/components/common/FormBox";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
@@ -33,8 +31,7 @@ import {
   useCreateMotorLOV,
   useGetAllUnitLOVData,
 } from "@/hook/pump/pump";
-import { create } from "domain";
-import { pumpData } from "@/data/pump_models";
+import { MotorDetailLOVResponse } from "@/types/pump/pumps";
 
 function MotorLOVEdit() {
   // Unit form setup
@@ -62,7 +59,7 @@ function MotorLOVEdit() {
   };
 
   const { id } = useSearch({ from: "/_auth/pump/motor_lov_edit" });
-  const { data: motorData } = useGetMotorDetailLOV(id);
+  const { data: motorData } = useGetMotorDetailLOV(id) as {data: MotorDetailLOVResponse};
 
   useEffect(() => {
     if (id && motorData) {

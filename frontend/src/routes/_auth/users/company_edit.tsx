@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +36,7 @@ import { CompanyOutSchema, ContactOutSchema } from "@/validators/user";
 import { useSettings } from "@/lib/settings";
 import { FormBox } from "@/components/common/FormBox";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Car, CircleX, Key, PlusCircle, Search } from "lucide-react";
+import {CircleX, PlusCircle, Search } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
@@ -115,8 +116,8 @@ function CompanyEdit() {
         sales_area: "",
       });
       setCompanyCode("");
-      setPecCompanyData("");
-      setPecContactData("");
+      setPecCompanyData(undefined);
+      setPecContactData(undefined);
     }
   }, [pecCompanyData, CompanyForm, isCLearClick]);
 

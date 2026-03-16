@@ -10,18 +10,12 @@ import toast from "react-hot-toast";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
-import { useState } from "react";
-import { ComboboxItemProps } from "@/components/common/ComboBox";
-import { Combobox } from "@/components/common/ComboBox";
 import { Input } from "@/components/ui/input";
 import { ShaftSealLOVSchema } from "@/validators/pump";
-import { useSettings } from "@/lib/settings";
 import { FormBox } from "@/components/common/FormBox";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
@@ -32,8 +26,8 @@ import {
   useUpdateShaftSealLOV,
   useCreateShaftSealLOV,
 } from "@/hook/pump/pump";
-import { create } from "domain";
-import { pumpData } from "@/data/pump_models";
+
+import { PumpShaftSealLOVResponse } from "@/types";
 
 function ShaftSealLOVEdit() {
   // Unit form setup
@@ -45,7 +39,7 @@ function ShaftSealLOVEdit() {
 
 
   const { id } = useSearch({ from: "/_auth/pump/shaft_seal_lov_edit" });
-  const { data: shaftSealData } = useGetShaftSealDetailLOV(id);
+  const { data: shaftSealData } = useGetShaftSealDetailLOV(id) as { data : PumpShaftSealLOVResponse };
 
   useEffect(() => {
     if (id && shaftSealData) {

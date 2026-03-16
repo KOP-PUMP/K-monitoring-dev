@@ -1,6 +1,4 @@
-import { Axios, AxiosInstance } from "axios";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { AxiosInstance } from "axios";
 import { axiosInstancePEC, axiosInstance } from "../utils";
 import { CreateUserOut } from "@/types/users/users";
 

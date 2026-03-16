@@ -6,7 +6,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
 };
 
 const MediaTable = () => {
-  const { data, isLoading, isError } = useGetMediaLOVData("");
+  const { data} = useGetMediaLOVData("");
 
   const deleteMutation = useDeleteMediaLOVById();
   const handleDeleteData = (id : string) => {
@@ -223,7 +222,7 @@ const MediaTable = () => {
                 <DropdownMenuItem>Edit</DropdownMenuItem>
               </Link>
               <DropdownMenuItem
-                onClick={() =>handleDeleteData(data.media_lov_id)}
+                onClick={() =>handleDeleteData(data.media_lov_id as string)}
               >
                 Delete
               </DropdownMenuItem>
