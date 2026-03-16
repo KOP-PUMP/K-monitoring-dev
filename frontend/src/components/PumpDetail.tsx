@@ -63,14 +63,14 @@ export default function PumpList() {
   /* Setup state and variable */
   /* page state */
   const [step, setStep] = useState({
-    1: false,
-    2: false,
-    3: false,
-    4: false,
-    5: false,
+    "1": false,
+    "2": false,
+    "3": false,
+    "4": false,
+    "5": false,
   });
 
-  const [stepName, setStepName] = useState(1);
+  const [stepName, setStepName] = useState<string>("1");
   /* data filter state */
   const [CompanyCode, setCompanyCode] = useState<string>("");
   const [searchKey, setSearchKey] = useState({
@@ -97,11 +97,15 @@ export default function PumpList() {
   };
   const { data: companyData } = useGetCompanyDetailByCode(CompanyCode);
   const { data: pumpDetailLOVResponse } = useGetPumpDetailLOV("");
-  const { data: pumpMatLOVResponse } = useGetMaterialDetailLOV("") as { data: PumpMatLOVResponse[] };
+  const { data: pumpMatLOVResponse } = useGetMaterialDetailLOV("") as {
+    data: PumpMatLOVResponse[];
+  };
   const { data: pumpShaftSealLOVResponse } = useGetShaftSealDetailLOV("") as {
     data: PumpShaftSealLOVResponse[];
   };
-  const { data: pumpMotorLOVResponse } = useGetMotorDetailLOV("") as {data:MotorDetailLOVResponse[]};
+  const { data: pumpMotorLOVResponse } = useGetMotorDetailLOV("") as {
+    data: MotorDetailLOVResponse[];
+  };
   /* Dropdown option from LOV */
   const { data: pumpLOVResponse } = useGetAllPumpLOVData();
   const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();
@@ -199,8 +203,8 @@ export default function PumpList() {
   /* const flangeAndBearingCurrentValue = formFlangeAndBearingDetail.getValues(); */
 
   const handleNextStep = (
-    currentStep: number,
-    stepName: number,
+    currentStep: string,
+    nextName: string,
     formName: UseFormReturn<any>,
   ) => {
     formName.handleSubmit(
@@ -210,7 +214,7 @@ export default function PumpList() {
           ...prev,
           [currentStep]: true,
         }));
-        setStepName(stepName);
+        setStepName(nextName);
       },
       (errors) => {
         console.error("Validation errors:", errors);
@@ -218,10 +222,12 @@ export default function PumpList() {
     )();
   };
 
-  const handlePreviousStep = (currentStep: number, stepName: number) => {
+  console.log(stepName);
+
+  const handlePreviousStep = (currentStep: string, stepName: string) => {
     setStep((prev) => ({
       ...prev,
-      [currentStep - 1]: false,
+      [Number(currentStep) - 1]: false,
       [currentStep]: false,
     }));
     setStepName(stepName);
@@ -380,7 +386,7 @@ export default function PumpList() {
     });
   }; */
 
-  const { mutate, isPending, isError} = useGetCalPumpData();
+  const { mutate, isPending, isError } = useGetCalPumpData();
 
   const handleCalculateClick = () => {
     const calculateFormSchema = z.object({
@@ -509,46 +515,46 @@ export default function PumpList() {
         <div className="flex items-center ">
           <TabsList className="w-full h-auto flex justify-between bg-white ">
             <TabsTrigger
-              value={1}
-              className={`rounded-full ${step[1] && "bg-primary text-white"}`}
+              value="1"
+              className={`rounded-full ${step["1"] && "bg-primary text-white"}`}
             >
-              {step[1] ? <Check className="w-[12px] h-[20px]" /> : "1"}
+              {step["1"] ? <Check className="w-[12px] h-[20px]" /> : "1"}
             </TabsTrigger>
             <hr
-              className={`border-[1px] w-[20%] ${step[1] ? "border-primary" : "border-neutral-300"}`}
+              className={`border-[1px] w-[20%] ${step["1"] ? "border-primary" : "border-neutral-300"}`}
             />
             <TabsTrigger
-              value={2}
-              className={`rounded-full ${step[2] && "bg-primary text-white"}`}
+              value="2"
+              className={`rounded-full ${step["2"] && "bg-primary text-white"}`}
             >
-              {step[2] ? <Check className="w-[12px] h-[20px]" /> : "2"}
+              {step["2"] ? <Check className="w-[12px] h-[20px]" /> : "2"}
             </TabsTrigger>
             <hr
-              className={`border-[1px] w-[20%] ${step[2] ? "border-primary" : "border-neutral-300"}`}
+              className={`border-[1px] w-[20%] ${step["2"] ? "border-primary" : "border-neutral-300"}`}
             />
             <TabsTrigger
-              value={3}
-              className={`rounded-full ${step[3] && "bg-primary text-white"}`}
+              value="3"
+              className={`rounded-full ${step["3"] && "bg-primary text-white"}`}
             >
-              {step[3] ? <Check className="w-[12px] h-[20px]" /> : "3"}
+              {step["3"] ? <Check className="w-[12px] h-[20px]" /> : "3"}
             </TabsTrigger>
             <hr
-              className={`border-[1px] w-[20%] ${step[3] ? "border-primary" : "border-neutral-300"}`}
+              className={`border-[1px] w-[20%] ${step["3"] ? "border-primary" : "border-neutral-300"}`}
             />
             <TabsTrigger
-              value={4}
-              className={`rounded-full ${step[4] && "bg-primary text-white"}`}
+              value="4"
+              className={`rounded-full ${step["4"] && "bg-primary text-white"}`}
             >
-              {step[4] ? <Check className="w-[12px] h-[20px]" /> : "4"}
+              {step["4"] ? <Check className="w-[12px] h-[20px]" /> : "4"}
             </TabsTrigger>
             <hr
-              className={`border-[1px] w-[20%] ${step[4] ? "border-primary" : "border-neutral-300"}`}
+              className={`border-[1px] w-[20%] ${step["4"] ? "border-primary" : "border-neutral-300"}`}
             />
             <TabsTrigger
-              value={5}
-              className={`rounded-full ${step[5] && "bg-primary text-white"}`}
+              value="5"
+              className={`rounded-full ${step["5"] && "bg-primary text-white"}`}
             >
-              {step[5] ? <Check className="w-[12px] h-[20px]" /> : "5"}
+              {step["5"] ? <Check className="w-[12px] h-[20px]" /> : "5"}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -556,7 +562,7 @@ export default function PumpList() {
           <CardContent>
             {/* Pump Details */}
             <TabsContent
-              value={1}
+              value="1"
               className="container flex-auto space-x-2 space-y-3 py-3"
             >
               <Form {...formPumpGeneralDetail}>
@@ -3018,8 +3024,7 @@ export default function PumpList() {
                         type="button"
                         className="gap-1 m-4 w-32"
                         onClick={() => {
-                          console.log(formPumpGeneralDetail.getValues());
-                          handleNextStep(1, 2, formPumpGeneralDetail);
+                          handleNextStep("1", "2", formPumpGeneralDetail);
                         }}
                       >
                         <PlusCircle className="h-3.5 w-3.5" />
@@ -3032,7 +3037,7 @@ export default function PumpList() {
             </TabsContent>
             {/*Material and Impeller Details*/}
             <TabsContent
-              value={2}
+              value="2"
               className="container flex-auto space-x-2 space-y-3 py-3"
             >
               <h2 className="w-full text-2xl font-bold flex items-center justify-center">
@@ -3357,7 +3362,7 @@ export default function PumpList() {
                           size="sm"
                           variant={"outline"}
                           className="w-32"
-                          onClick={() => handlePreviousStep(2, 1)}
+                          onClick={() => handlePreviousStep("2", "1")}
                         >
                           Back
                         </Button>
@@ -3366,7 +3371,7 @@ export default function PumpList() {
                           className="w-32 gap-2"
                           onClick={() => {
                             console.log(formMaterialDetail.getValues());
-                            handleNextStep(2, 3, formMaterialDetail);
+                            handleNextStep("2", "3", formMaterialDetail);
                           }}
                         >
                           <PlusCircle className="h-3.5 w-3.5" />
@@ -3380,7 +3385,7 @@ export default function PumpList() {
             </TabsContent>
             {/* Motor and Coupling Details */}
             <TabsContent
-              value={3}
+              value="3"
               className="container flex-auto space-x-2 space-y-3 py-3"
             >
               <h2 className="w-full text-2xl font-bold flex items-center justify-center">
@@ -4157,7 +4162,7 @@ export default function PumpList() {
                         size="sm"
                         variant={"outline"}
                         className="w-32"
-                        onClick={() => handlePreviousStep(3, 2)}
+                        onClick={() => handlePreviousStep("3", "2")}
                       >
                         Back
                       </Button>
@@ -4166,7 +4171,7 @@ export default function PumpList() {
                         className="w-32 gap-2"
                         onClick={() => {
                           console.log(formMotorAndCouplingDetail.getValues());
-                          handleNextStep(3, 4, formMotorAndCouplingDetail);
+                          handleNextStep("3", "4", formMotorAndCouplingDetail);
                         }}
                       >
                         <PlusCircle className="h-3.5 w-3.5" />
@@ -4179,7 +4184,7 @@ export default function PumpList() {
             </TabsContent>
             {/* Mechanical Seal Details */}
             <TabsContent
-              value={4}
+              value="4"
               className="container flex-auto space-x-2 space-y-3 py-3"
             >
               <h2 className="w-full text-2xl font-bold flex items-center justify-center">
@@ -4671,7 +4676,7 @@ export default function PumpList() {
                         size="sm"
                         variant={"outline"}
                         className="w-32"
-                        onClick={() => handlePreviousStep(4, 3)}
+                        onClick={() => handlePreviousStep("4", "3")}
                       >
                         Back
                       </Button>
@@ -4680,7 +4685,7 @@ export default function PumpList() {
                         className="w-32 gap-2"
                         onClick={() => {
                           console.log(formMechanicalSealDetail.getValues());
-                          handleNextStep(4, 5, formMechanicalSealDetail);
+                          handleNextStep("4", "5", formMechanicalSealDetail);
                         }}
                       >
                         <PlusCircle className="h-3.5 w-3.5" />
@@ -4693,7 +4698,7 @@ export default function PumpList() {
             </TabsContent>
             {/* Flange and Bearing Details */}
             <TabsContent
-              value={5}
+              value="5"
               className="container flex-auto space-x-2 space-y-3 py-3"
             >
               <h2 className="w-full text-2xl font-bold flex items-center justify-center">
@@ -6234,7 +6239,7 @@ export default function PumpList() {
                         size="sm"
                         variant={"outline"}
                         className="w-32"
-                        onClick={() => handlePreviousStep(5, 4)}
+                        onClick={() => handlePreviousStep("5", "4")}
                       >
                         Back
                       </Button>
