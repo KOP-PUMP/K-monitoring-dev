@@ -1,17 +1,17 @@
-version: "3.9"
-
 services:
-
-  backend:
-    build: ./backend
-    container_name: kmonitor_backend
-    restart: always
-    ports:
-      - "127.0.0.1:8000:8000"
-
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
     container_name: kmonitor_frontend
-    restart: always
+    restart: unless-stopped
     ports:
       - "127.0.0.1:3000:80"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: kmonitor_backend
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - ./backend/.env
