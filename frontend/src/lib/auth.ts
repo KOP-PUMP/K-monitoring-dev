@@ -1,11 +1,11 @@
 import { TokenResponse, LoginRequest, RefreshRequest, VerifyRequest } from "@/types/auth";
 
-const API_PUBLIC_BASE_URL = import.meta.env.VITE_API_PUBLIC_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 const API_BASE_LOCAL_URL = import.meta.env.VITE_API_BASE_LOCAL_URL as string;
 
 const API_URL =
   window.location.origin.includes("k-monitor")
-    ? API_PUBLIC_BASE_URL
+    ? API_BASE_URL
     : API_BASE_LOCAL_URL;
 
 const login = async (email: string, password: string): Promise<TokenResponse> => {
