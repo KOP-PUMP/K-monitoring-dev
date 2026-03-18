@@ -6,16 +6,13 @@ import {
 } from "@/types/auth";
 import { FetchDataResponse } from "@/types/response";
 
-const API_PUBLIC_BASE_URL = import.meta.env.VITE_API_PUBLIC_BASE_URL as string;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 const API_BASE_LOCAL_URL = import.meta.env.VITE_API_BASE_LOCAL_URL as string;
 
 const API_URL =
-  window.location.origin === "http://pecsystem.ddns.net:5173"
-    ? API_PUBLIC_BASE_URL
-    : window.location.origin === "http://192.168.1.177:5173"
-      ? API_BASE_URL
-      : API_BASE_LOCAL_URL;
+  window.location.origin.includes("k-monitor")
+    ? API_BASE_URL
+    : API_BASE_LOCAL_URL;
 
 export const login = async (
   credentials: LoginRequest
