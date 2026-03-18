@@ -9,7 +9,7 @@ const API_URL =
     : API_BASE_LOCAL_URL;
 
 const login = async (email: string, password: string): Promise<TokenResponse> => {
-  const response = await fetch(API_URL + "/token/pair", {
+  const response = await fetch(`${API_URL}/token/pair`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -43,7 +43,6 @@ function LoginForm() {
   const handleLogin = async (data: LoginFormValues) => {
     setLoading(true);
     setError(null);
-    console.log(data);
     try {
       await AuthService.login(data.email, data.password);
       navigate({ to: "/" });
