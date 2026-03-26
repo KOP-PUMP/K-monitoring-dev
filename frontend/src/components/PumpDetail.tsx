@@ -510,8 +510,11 @@ export default function PumpList() {
   }, [pumpDetailCalData]);
 
   return (
-    <div className="container mx-auto p-4 items-center">
-      <Tabs value={stepName}>
+    <Tabs
+        value={stepName}
+        onValueChange={setStepName}
+        className="container mx-auto p-4 items-center"
+      >
         <div className="flex items-center ">
           <TabsList className="w-full h-auto flex justify-between bg-white ">
             <TabsTrigger
@@ -6263,6 +6266,5 @@ export default function PumpList() {
           </CardContent>
         </Card>
       </Tabs>
-    </div>
   );
 }

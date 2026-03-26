@@ -61,7 +61,7 @@ function TotalReport() {
     user_role: "",
     pump_detail: "",
   });
-  console.log(reportDataOut);
+  console.log("Report Data Out",reportDataOut);
   const [reportID, setReportID] = useState<string | null>(null);
   /* const [reportIDOpen, setReportIDOpen] = useState<string | null>(null); */
   const { data: reportData } = useGetEngineerReportCheckData(reportID);
