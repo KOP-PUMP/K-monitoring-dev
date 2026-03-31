@@ -3,47 +3,107 @@ import {
   MarsEquipmentDataOut,
   MarsMeasureDataOut,
   MarsWaveDataOut,
+  ReportCheckFileCreateOut,
 } from "@/types/amalytic/report_check_data";
 
-export const createEngineerReport = async (data: any) => {
-  const response = await axiosInstance.post("/engineer/report", data);
-  return response.data;
+// Report File
+
+export const createEngineerReportFile = async ({
+  id,
+  email,
+  data,
+}: {
+  id: string;
+  email: string;
+  data: ReportCheckFileCreateOut;
+}) => {
+  const response = await axiosInstance.post(
+    `/engineer/report?id=${id}&user=${email}`,
+    data,
+    {
+      responseType: "blob", // 🔥 สำคัญมาก
+    },
+  );
+
+  const blob = new Blob([response.data], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+
+  let filename = "report.xlsx";
+  const contentDisposition = response.headers["content-disposition"];
+
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+    if (match?.[1]) {
+      filename = match[1];
+    }
+  }
+
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.URL.revokeObjectURL(url);
+
+  return true;
 };
 
-export const getEngineerReport = async ({
-  user,
-  user_role,
-  pump_detail,
-}: {
-  user: string;
-  user_role: string;
-  pump_detail: string;
-}) => {
-  const query = `?user=${user}&user_role=${user_role}&pump_detail=${pump_detail}`;
+export const getEngineerReportFile = async (id: string | null) => {
   try {
-    const response = await axiosInstance.get(`/engineer/report${query}`);
+    const response = await axiosInstance.get(`/engineer/report?id=${id}`);
     return response.data;
   } catch (error) {
     console.log(error);
   }
 };
 
-export const openEngineerReport = async (id: string) => {
+export const downloadEngineerReportFile = async (id: string | null) => {
   const response = await axiosInstance.get(
     `/engineer/report/download?id=${id}`,
+    {
+      responseType: "blob",
+    }
   );
+
+  const blob = new Blob([response.data], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+
+  let filename = "report.xlsx";
+  const contentDisposition = response.headers["content-disposition"];
+
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+    if (match?.[1]) {
+      filename = match[1];
+    }
+  }
+
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+
+  return true;
+};
+
+export const deleteEngineerReportFile = async (id: string) => {
+  const response = await axiosInstance.delete(`/engineer/report?id=${id}`);
   return response.data;
 };
 
-export const createNewEngineerReport = async (data: any) => {
-  const response = await axiosInstance.post("/engineer/report-create", data);
-  return response.data;
-};
+// Report Detail In Database
 
-export const deleteEngineerReport = async (id: string) => {
-  const response = await axiosInstance.delete(`/engineer/report/${id}`);
-  return response.data;
-};
 
 export const getEngineerReportCheck = async (id: string | null) => {
   try {
@@ -70,6 +130,8 @@ export const deleteEngineerReportCheck = async (id: string) => {
   const response = await axiosInstance.delete(`/engineer/report-check/${id}`);
   return response.data;
 };
+
+// Report Check List Detail
 
 export const createEngineerReportCalCheck = async (data: any) => {
   const response = await axiosInstance.post("/engineer/report-check-cal", data);

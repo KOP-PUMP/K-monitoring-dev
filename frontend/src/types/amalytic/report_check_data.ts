@@ -7,6 +7,11 @@ export interface ReportCheckCalResponse {
     bearing_temp_result : string
 }
 
+export interface ReportCheckFileCreateOut {
+    report_detail ?: string | undefined
+    remark ?: string | undefined
+}
+
 export interface MarsEquipmentDataOut {
     node_code : string
     node_id : string

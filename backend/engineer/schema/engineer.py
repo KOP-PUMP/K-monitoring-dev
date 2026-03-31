@@ -6,13 +6,8 @@ from uuid import UUID , uuid4
 from pydantic import Field
 
 class EngineerReportPayLoad_schema(Schema):
-    report_id : Optional[UUID]=Field(default_factory=uuid4)
-    pump_detail : Optional[UUID]=None
-    user_detail : Optional[str]=None
-    created_at: Optional[datetime] = None
-    created_by: Optional[str] = None
-    updated_at: datetime
-    updated_by: Optional[str] = None
+    report_detail : Optional[str]=None
+    remark : Optional[str]=None
 
 class EngineerReport_schema(Schema):
     pump_detail : Optional[str]=None

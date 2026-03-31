@@ -7,6 +7,11 @@ export const EngineerReportCheckSchema = z.object({
     timestamp : z.string().optional(),
 })
 
+export const EngineerReportFileCreateSchema = z.object({
+    report_detail : z.string().optional(),
+    remark : z.string().optional(),
+})
+
 export const EngineerReportCheckCalSchema = z.object({
     check_id : z.string().optional().nullable(),
     test_speed : z.coerce.number().optional().nullable(),
