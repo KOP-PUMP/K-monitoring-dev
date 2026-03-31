@@ -181,7 +181,6 @@ const ReportCreate = ({
       report_detail: values.report_detail || "",
       remark: values.remark || "",
     };
-    console.log({ id, email: email, data });
     createFileMutation.mutate(
       {
         id,

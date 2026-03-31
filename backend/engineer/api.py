@@ -29,7 +29,7 @@ class ReportController:
     def create_report(self, request, payload: EngineerReportPayLoad_schema):
         try:
             id = request.GET.get('id')
-            user = request.GET.get('user')
+            user = request.GET.get('email')
             #return JsonResponse({"massage": payload.dict()}, status=400)
             # Construct the absolute path
             
