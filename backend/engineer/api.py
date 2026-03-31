@@ -15,6 +15,8 @@ from openpyxl import Workbook, load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.core import serializers
+from io import BytesIO
+from django.core.files.base import ContentFile
 import json
 import uuid
 import os
@@ -24,11 +26,14 @@ from factory_curve.schema.factory_curve import CalPumpPayload_schema
 @api_controller('/engineer', tags=['Report'])
 class ReportController:
     @http_post('/report')
-    def create_report_lov(self, request, payload: EngineerReportPayLoad_schema):
+    def create_report(self, request, payload: EngineerReportPayLoad_schema):
         try:
+            id = request.GET.get('id')
+            user = request.GET.get('user')
             #return JsonResponse({"massage": payload.dict()}, status=400)
             # Construct the absolute path
-            template_path = os.path.join(os.path.dirname(__file__),'report_templates', 'engineer_form.xlsx')
+            
+            template_path = os.path.join(settings.REPORT_TEMPLATE_DIR, 'engineer_form.xlsx')
 
             # Load workbook and access the active sheet
             wb = load_workbook(template_path)
@@ -38,109 +43,39 @@ class ReportController:
             sheet3 = wb.worksheets[2]
             sheet4 = wb.worksheets[3]
 
-            pump_detail_dict = payload.dict()
+            #pump_detail_dict = payload.dict()
+            
+            report_check_instance = EngineerReportCheck.objects.get(check_id=id)
+            if not report_check_instance:
+                return JsonResponse({"error": "Report not found"}, status=404)
+
+            payload_dict = payload.dict()
+            
+            data_cal = EngineerReportCheckCal.objects.filter(check_id=report_check_instance).first() or {}
+            data_vibe = EngineerReportCheckVibration.objects.filter(check_id=report_check_instance).first() or {}
+            data_visual = EngineerReportCheckVisual.objects.filter(check_id=report_check_instance).first() or {}
+            data_result = EngineerReportCheckResult.objects.filter(check_id=report_check_instance).first() or {}
+            user_instance = UserProfile.objects.filter(user__user_email=user).first()
+            pump_instance = report_check_instance.pump_id
+            
+            pump_data = model_to_dict(pump_instance)
+
+            #data_cal = pump_detail_dict.get('data_cal')
+            #data_vibe = pump_detail_dict.get('data_vibe')
+            #data_visual = pump_detail_dict.get('data_visual')
+            #data_result = pump_detail_dict.get('data_result')
+            #pump_data = pump_detail_dict.get('pump_data')
+            #user_data = pump_detail_dict.get('user_data')
+            
+            #pump_instance = PumpDetail.objects.get(pump_id=pump_data.get('pump_id'))
+            #user_instance = UserProfile.objects.get(user__user_email=user_data)
+            
+            #if not user_instance or not pump_instance:
+            #    return JsonResponse({"error": "User/Pump instance not found"}, status=404)
             
             # Fill cells using the dictionary
-            sheet1['G6'] = pump_detail_dict.get('company_name_en', 'Advanced Biochemical (Thailand) Co., Ltd.')
-            sheet1['G7'] = pump_detail_dict.get('company_name_en', 'Advanced Biochemical (Thailand) Co., Ltd.')
-            sheet1['G8'] = pump_detail_dict.get('pump_brand', 'KOP')
-            sheet1['G9'] = pump_detail_dict.get('motor_brand', 'Siemens')
-            sheet1['G10'] = pump_detail_dict.get('suggest_motor', '30.03')
-            sheet1['Q10'] = pump_detail_dict.get('voltage', '400')
-            sheet1['U8'] = pump_detail_dict.get('pump_model', 'KOP KDIN 150-20')
-            sheet1['U9'] = pump_detail_dict.get('motor_model', '1LE0021-2AB4')
-            sheet1['AJ7'] = pump_detail_dict.get('tag_no', '40151503AS21')
-            sheet1['AJ8'] = pump_detail_dict.get('serial_no', '45903-1007-0123')
-            sheet1['AJ9'] = pump_detail_dict.get('motor_serial_no', 'LMH-2209/800028751851/004')
-            sheet1['AE10'] = pump_detail_dict.get('pump_stage', '1')
-            sheet1['AL10'] = pump_detail_dict.get('pump_speed', '1450')
-            sheet1['AJ6'] = datetime.now().strftime("%Y-%m-%d")
             
-            sheet2['G6'] = pump_detail_dict.get('company_name_en', 'Advanced Biochemical (Thailand) Co., Ltd.')
-            sheet2['G7'] = pump_detail_dict.get('company_name_en', 'Advanced Biochemical (Thailand) Co., Ltd.')
-            sheet2['G8'] = pump_detail_dict.get('pump_brand', 'KOP')
-            sheet2['G9'] = pump_detail_dict.get('motor_brand', 'Siemens')
-            sheet2['G10'] = pump_detail_dict.get('suggest_motor', '30.03')
-            sheet2['Q10'] = pump_detail_dict.get('voltage', '400')
-            sheet2['U8'] = pump_detail_dict.get('pump_model', 'KOP KDIN 150-20')
-            sheet2['U9'] = pump_detail_dict.get('motor_model', '1LE0021-2AB4')
-            sheet2['AJ7'] = pump_detail_dict.get('tag_no', '40151503AS21')
-            sheet2['AJ8'] = pump_detail_dict.get('serial_no', '45903-1007-0123')
-            sheet2['AJ9'] = pump_detail_dict.get('motor_serial_no', 'LMH-2209/800028751851/004')
-            sheet2['AE10'] = pump_detail_dict.get('pump_stage', '1')
-            sheet2['AL10'] = pump_detail_dict.get('pump_speed', '1450')
-            sheet2['AJ6'] = datetime.now().strftime("%Y-%m-%d")
-
-            sheet3['G6'] = pump_detail_dict.get('company_name_en', 'Advanced Biochemical (Thailand) Co., Ltd.')
-            sheet3['G7'] = pump_detail_dict.get('company_name_en', 'Advanced Biochemical (Thailand) Co., Ltd.')
-            sheet3['G8'] = pump_detail_dict.get('pump_brand', 'KOP')
-            sheet3['G9'] = pump_detail_dict.get('motor_brand', 'Siemens')
-            sheet3['G10'] = pump_detail_dict.get('suggest_motor', '30.03')
-            sheet3['Q10'] = pump_detail_dict.get('voltage', '400')
-            sheet3['U8'] = pump_detail_dict.get('pump_model', 'KOP KDIN 150-20')
-            sheet3['U9'] = pump_detail_dict.get('motor_model', '1LE0021-2AB4')
-            sheet3['AJ7'] = pump_detail_dict.get('tag_no', '40151503AS21')
-            sheet3['AJ8'] = pump_detail_dict.get('serial_no', '45903-1007-0123')
-            sheet3['AJ9'] = pump_detail_dict.get('motor_serial_no', 'LMH-2209/800028751851/004')
-            sheet3['AE10'] = pump_detail_dict.get('pump_stage', '1')
-            sheet3['AL10'] = pump_detail_dict.get('pump_speed', '1450')
-            sheet3['AJ6'] = datetime.now().strftime("%Y-%m-%d")
             
-
-            current_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-            filename = f"report_{current_time}.xlsx"
-            file_path = os.path.join(os.path.dirname(__file__),'report', filename)
-            wb.save(file_path)
-
-
-            pump_instance = PumpDetail.objects.get(pump_id=pump_detail_dict.get('pump_detail'))
-            user_instance = UserProfile.objects.get(user__user_email=payload.user_detail)
-            
-            new_report = EngineerReport.objects.create(
-                pump_detail=pump_instance,
-                user_detail=user_instance,
-                report_name=filename,
-                report_file=file_path,
-                created_by=payload.created_by,
-                updated_by=payload.updated_by
-            )    
-
-            return JsonResponse({"Success": "Report created successfully and saved"}, status=200)
-        
-        except Exception as e:
-            return JsonResponse({"error": {"error": str(e)}}, status=400)
-    
-    @http_post('/report-create')
-    def create_report(self, request, payload : EngineerReportData_schema):
-        try:
-            #return JsonResponse({"massage": payload.dict()}, status=400)
-            # Construct the absolute path
-            template_path = os.path.join(os.path.dirname(__file__),'report_templates', 'engineer_form.xlsx')
-
-            # Load workbook and access the active sheet
-            wb = load_workbook(template_path)
-            ws = wb.active
-            sheet1 = wb.worksheets[0]
-            sheet2 = wb.worksheets[1]
-            sheet3 = wb.worksheets[2]
-            sheet4 = wb.worksheets[3]
-
-            pump_detail_dict = payload.dict()
-            
-            data_cal = pump_detail_dict.get('data_cal')
-            data_vibe = pump_detail_dict.get('data_vibe')
-            data_visual = pump_detail_dict.get('data_visual')
-            data_result = pump_detail_dict.get('data_result')
-            pump_data = pump_detail_dict.get('pump_data')
-            user_data = pump_detail_dict.get('user_data')
-            
-            pump_instance = PumpDetail.objects.get(pump_id=pump_data.get('pump_id'))
-            user_instance = UserProfile.objects.get(user__user_email=user_data)
-            
-            if not user_instance or not pump_instance:
-                return JsonResponse({"error": "User/Pump instance not found"}, status=404)
-            
-            # Fill cells using the dictionary
             sheet1['G6'] = pump_data.get('company_name_en', "")
             sheet1['G7'] = pump_data.get('company_name_en', "")
             sheet1['G8'] = pump_data.get('pump_brand', "")
@@ -257,100 +192,95 @@ class ReportController:
             sheet1['AH53'] = ""
             sheet1['AK53'] = ""
             
+            buffer = BytesIO()
+            wb.save(buffer)
+            buffer.seek(0)
 
             current_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             filename = f"report_{current_time}.xlsx"
-            file_path = os.path.join(os.path.dirname(__file__),'report', filename)
-            wb.save(file_path)
             
-            EngineerReport.objects.create(
+            new_report =EngineerReport.objects.create(
+                report_check_id=report_check_instance,
                 pump_detail=pump_instance,
                 user_detail=user_instance,
                 report_name=filename,
-                report_file=file_path,
-                created_by=user_data,
-                updated_by=user_data
-            )    
+                report_detail=payload_dict.get('report_detail') or "",
+                remark=payload_dict.get('remark') or "",
+                created_at=datetime.now(),
+                created_by=user,
+                updated_at=datetime.now(),
+                updated_by=user
+            )
+            
+            file_bytes = buffer.getvalue()
+            new_report.report_file.save(filename, ContentFile(file_bytes), save=False)
+            new_report.save()    
+            
+            download_buffer = BytesIO(file_bytes)
+            download_buffer.seek(0)
 
-            return JsonResponse({"Success": "Report created successfully and saved"}, status=200)
-        
+            return FileResponse(
+                        download_buffer,
+                        as_attachment=True,
+                        filename=filename,
+                        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    )
+            
         except Exception as e:
             return JsonResponse({"error": {"error": str(e)}}, status=400)
         
-    @http_get('/report-open', response=list[EngineerReport_schema])
+    @http_get('/report', response=list[EngineerReport_schema])
     def get_report(self, request):
-        access_user = request.GET.get('user')
-        access_user_role = request.GET.get('user_role')
-        pump_detail = request.GET.get('pump_detail')
-
-        user = get_object_or_404(CustomUser, user_email=access_user, user_role=access_user_role)
-        if user is None:
-            return JsonResponse({"error": "Not allowed"}, status=404)
-
-        try:
-            if user.user_role in ["Engineer", "Admin", "Developer"]:
-                report = EngineerReport.objects.filter(pump_detail=pump_detail)
-            elif user.user_role == "Customer":
-                report = EngineerReport.objects.filter(
-                    pump_detail=pump_detail,
-                    user_detail__user__user_email=user.user_email
-                )
-            else:
-                return JsonResponse({"error": "Report not found"}, status=404)
-
-            result = []
-            for r_obj in report:
-                r = {
-                    "report_id": str(r_obj.report_id),
-                    "pump_detail": str(r_obj.pump_detail_id) if r_obj.pump_detail else None,
-                    "user_detail": r_obj.user_detail_id if r_obj.user_detail else None,
-                    "report_name": r_obj.report_name,
-                    "report_detail": r_obj.report_detail,
-                    "remark": r_obj.remark,
-                    "report_file": r_obj.report_file.url if r_obj.report_file else None,
-                    "created_at": r_obj.created_at.isoformat(),
-                    "created_by": r_obj.created_by,
-                    "updated_at": r_obj.updated_at.isoformat(),
-                    "updated_by": r_obj.updated_by,
-                }
-                result.append(r)
-
-            return JsonResponse(result, safe=False, status=200)
-
-        except EngineerReport.DoesNotExist:
+        id = request.GET.get('id')
+        report_check_instance = EngineerReportCheck.objects.get(check_id=id)
+        
+        if not report_check_instance:
             return JsonResponse({"error": "Report not found"}, status=404)
+        
+        report_files = EngineerReport.objects.filter(report_check_id=report_check_instance).order_by('-created_at')
+
+        result = list(report_files.values())
+        return JsonResponse(result, safe=False, status=200)
+
 
     @http_get('/report/download')
-    def open_report(self, request):
+    def download_report(self, request):
         report_id = request.GET.get('id')
         #report_id = "514bbdca-8bf0-4374-8091-a1662887bb36"
         #return JsonResponse({"report_id": report_id}, status=200)
-        if report_id is None:
+        if not report_id:
             return JsonResponse({"error": "Report ID is required"}, status=400)
         
         report = get_object_or_404(EngineerReport, pk=report_id)
 
-        try:
-            file_path = report.report_file.path
-
-            print(file_path)
-
-            if not os.path.exists(file_path):
-                raise FileNotFoundError
-
-            os.system(f'open "{file_path}"')
-
-            return JsonResponse({"message": "File opened successfully"}, status=200)
-
-        except FileNotFoundError:
-            raise Http404("File not found")
+        if not report.report_file:
+            raise Http404("Report not found")
         
-    @http_delete('/report/{id}')
-    def delete_report(self, request, id: str):
-        uuid_id = UUID(id)
-        data = get_object_or_404(EngineerReport, pk=uuid_id)
-        data.delete()
-        return JsonResponse({"success": True, "message": "Report deleted successfully"}, status=200)
+        return FileResponse(
+        report.report_file.open('rb'),
+        as_attachment=True,
+        filename=report.report_name
+    )
+        
+    @http_delete('/report')
+    def delete_report(self, request):
+        report_id = request.GET.get('id')
+        
+        report = get_object_or_404(EngineerReport, pk=report_id)
+        
+        if not report_id: 
+            return JsonResponse({"error": "Report ID is required"}, status=400)
+        
+        try:
+            if report.report_file:
+                report.report_file.delete(save=False)
+
+            report.delete()
+
+            return JsonResponse({"message": "Report deleted successfully"}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
     
     @http_get('/report-check')
     def get_report_check(self, request):
@@ -388,7 +318,6 @@ class ReportController:
                 updated_at = payload.updated_at,
                 updated_by = payload.updated_by,
             )
-
             return JsonResponse({"success": True, "message": "Report created successfully"}, status=200)
         
         except Exception as e:

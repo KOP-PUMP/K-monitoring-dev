@@ -29,7 +29,11 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
+            set -e
             cd /var/www/myproject/K-monitoring-dev
             git pull origin main
             docker compose up -d --build
+            docker compose exec -T backend python manage.py migrate
+            docker compose exec -T backend python manage.py collectstatic --noinput
             sudo systemctl reload nginx
+            docker compose ps

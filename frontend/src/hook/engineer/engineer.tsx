@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import {
-  createEngineerReport,
-  getEngineerReport,
-  openEngineerReport,
-  deleteEngineerReport,
+  createEngineerReportFile,
+  getEngineerReportFile,
+  downloadEngineerReportFile,
+  deleteEngineerReportFile,
   getEngineerReportCheck,
   createEngineerReportCheck,
   deleteEngineerReportCheck,
@@ -17,7 +17,6 @@ import {
   updateEngineerReportResultCheck,
   updateEngineerReportVibeCheck,
   updateEngineerReportVisualCheck,
-  createNewEngineerReport,
   getEquipmentFromMars,
   getAllMeasureDataFromMars,
   getMeasureDataFromMars,
@@ -25,14 +24,22 @@ import {
   getSpectrumWaveDatafromMars,
 } from "@/api/engineer/engineer";
 
-export const useCreateEngineerReport = () => {
+
+import { ReportCheckFileCreateOut } from "@/types/amalytic/report_check_data";
+
+export const useCreateEngineerReportFile = () => {
   return useMutation({
-    mutationFn: createEngineerReport,
+    mutationFn: ({
+      id,
+      email,
+      data
+    }: {
+      id: string;
+      email: string;
+      data: ReportCheckFileCreateOut;
+    }) => createEngineerReportFile({ id, email, data }),
     onSuccess: () => {
-      toast.success("Engineer Report created successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      toast.success("Download started");
     },
     onError: () => {
       toast.error("Error creating engineer report");
@@ -40,62 +47,33 @@ export const useCreateEngineerReport = () => {
   });
 };
 
-export const useCreateNewEngineerReport = () => {
-  return useMutation({
-    mutationFn: createNewEngineerReport,
-    onSuccess: () => {
-      toast.success("Engineer Report created successfully");
-      /* setTimeout(() => {
-        window.location.reload();
-      }, 2000); */
-    },
-    onError: () => {
-      toast.error("Error creating engineer report");
-    },
-  });
-};
-export const useGetEngineerReport = ({
-  user,
-  user_role,
-  pump_detail,
-}: {
-  user: string;
-  user_role: string;
-  pump_detail: string;
-}) => {
+
+export const useGetEngineerReportFile = (id: string | null) => {
   return useQuery({
-    queryKey: ["engineer", "report", user, user_role, pump_detail],
-    queryFn: () => getEngineerReport({ user, user_role, pump_detail }),
-    enabled: !!user && !!user_role && !!pump_detail,
-  });
-};
-
-export const useOpenEngineerReport = (id: string) => {
-  const { data, error } = useQuery({
-    queryKey: ["engineer", "report", "open", id],
-    queryFn: () => openEngineerReport(id),
+    queryKey: ["engineer", "report", "file", id],
+    queryFn: () => getEngineerReportFile(id),
     enabled: !!id,
   });
-
-  if (error) {
-    toast.error("Error opening engineer report");
-  }
-
-  if (data) {
-    toast.success("Engineer Report opened successfully");
-    setTimeout(() => {
-      window.location.reload();
-    }, 2000);
-  }
-  return { data, error };
 };
 
-export const useDeleteEngineerReport = () => {
+export const useDownloadEngineerReportFile = () => {
+  return useMutation({
+    mutationFn: (id: string | null) => downloadEngineerReportFile(id),
+    onSuccess: () => {
+      toast.success("Download started");
+    },
+    onError: () => {
+      toast.error("Error downloading engineer report");
+    },
+  })
+};
+
+export const useDeleteEngineerReportFile = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => deleteEngineerReport(id),
+    mutationFn: (id: string) => deleteEngineerReportFile(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["engineer", "report"] });
+      queryClient.invalidateQueries({ queryKey: ["engineer", "report", "file"] });
       toast.success("Report deleted successfully");
     },
     onError: (error) => {
@@ -225,7 +203,7 @@ export const useCreateEngineerReportVisualCheck = () => {
       console.error("Update Error:", error);
     },
   });
-}; 
+};
 
 export const useUpdateEngineerReportVisualCheck = () => {
   return useMutation({

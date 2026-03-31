@@ -8,6 +8,8 @@ services:
       - "127.0.0.1:3000:80"
 
   backend:
+    volumes:
+      - /var/www/myproject/storage:/var/www/myproject/storage
     build:
       context: ./backend
     container_name: kmonitor_backend

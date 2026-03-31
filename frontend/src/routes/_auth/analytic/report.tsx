@@ -17,6 +17,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogDescription,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Sheet,
   SheetClose,
   SheetContent,
@@ -26,7 +34,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { PlusCircle} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { PlusCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -35,12 +51,26 @@ import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   useCreateEngineerReportCheck,
-  useGetEngineerReportCheckData,
   useGetEngineerReportCheck,
-  useDeleteEngineerReportCheck,
-  useCreateNewEngineerReport,
+  useCreateEngineerReportFile,
+  useGetEngineerReportFile,
+  useDeleteEngineerReportFile,
+  useDownloadEngineerReportFile,
 } from "@/hook/engineer/engineer";
-import { useEffect } from "react";
+import { z } from "zod";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { EngineerReportFileCreateSchema } from "@/validators/engineer";
 
 export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
   TData,
@@ -49,22 +79,191 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
   label?: string; // Add the label property
 };
 
+const ReportFileList = ({
+  reports,
+  onClose,
+}: {
+  reports: any;
+  onClose: () => void;
+}) => {
+  const deleteFileMutation = useDeleteEngineerReportFile();
+  const downloadFileMutation = useDownloadEngineerReportFile();
+
+  const handleDeleteReportFile = (id: string) => {
+    deleteFileMutation.mutate(id);
+  };
+
+  const handleDownloadReportFile = (id: string) => {
+    downloadFileMutation.mutate(id);
+  };
+
+  return (
+    <>
+      <DialogHeader className="flex flex-row justify-between ">
+        <div className="flex flex-col gap-2">
+          <DialogTitle>Report File Create</DialogTitle>
+          <DialogDescription>
+            Create new report file for this report check or download existing
+            report file.
+          </DialogDescription>
+        </div>
+        <DialogClose onClick={onClose} className="hover:text-red-500">
+          Close
+        </DialogClose>
+      </DialogHeader>
+      {reports.length > 0 ? (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="w-[150px]">Detail</TableHead>
+              <TableHead className="w-[150px]">Remark</TableHead>
+              <TableHead className="w-[100px]">Updated At</TableHead>
+              <TableHead className="w-[100px]">Updated By</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {reports.map((report: any) => (
+              <TableRow key={report.id}>
+                <TableCell className="font-medium flex flex-col justify-center align-middle gap-1 pt-2">
+                  <Button
+                    onClick={() => handleDownloadReportFile(report.report_id)}
+                  >
+                    Download
+                  </Button>
+                  <Button
+                    onClick={() => handleDeleteReportFile(report.report_id)}
+                    variant="destructive"
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+                <TableCell className="font-medium overflow-x-auto max-w-[50px]">
+                  {report.report_detail || "-"}
+                </TableCell>
+                <TableCell className="font-medium overflow-x-auto max-w-[50px]">
+                  {report.remark || "-"}
+                </TableCell>
+                <TableCell className="font-medium">
+                  {new Date(report.updated_at).toLocaleString()}
+                </TableCell>
+                <TableCell className="font-medium">
+                  {report.updated_by}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <div className="text-center py-10">No Report Found</div>
+      )}
+    </>
+  );
+};
+
+const ReportCreate = ({
+  form,
+  id,
+  email,
+  onClose,
+}: {
+  form: any;
+  id: string;
+  email: string;
+  onClose: () => void;
+}) => {
+  const createFileMutation = useCreateEngineerReportFile();
+
+  const handleCreateReportFile = (
+    values: z.infer<typeof EngineerReportFileCreateSchema>,
+  ) => {
+    const data = {
+      report_detail: values.report_detail || "",
+      remark: values.remark || "",
+    };
+    console.log({ id, email: email, data });
+    createFileMutation.mutate(
+      {
+        id,
+        email,
+        data,
+      },
+      {
+        onSuccess: () => {
+          onClose();
+          form.reset();
+        },
+        onError: (error) => {
+          console.error("Create failed:", error);
+          onClose();
+        },
+      },
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <DialogHeader className="flex flex-row justify-between">
+        <div className="flex flex-col gap-2">
+          <DialogTitle>Report File Create</DialogTitle>
+          <DialogDescription>
+            Please add detail and remark for this report file.
+          </DialogDescription>
+        </div>
+
+        <DialogClose onClick={onClose} className="hover:text-red-500">
+          Close
+        </DialogClose>
+      </DialogHeader>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleCreateReportFile)}
+          className="space-y-4"
+        >
+          <FormField
+            control={form.control}
+            name="report_detail"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Detail</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="remark"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Remark</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className="w-full">
+            Generate new report file
+          </Button>
+        </form>
+      </Form>
+    </div>
+  );
+};
+
 function TotalReport() {
   const localstorage = window.localStorage.getItem("user");
   const userData = localstorage !== null ? JSON.parse(localstorage) : null;
   const createMutation = useCreateEngineerReportCheck();
-  const deleteMutation = useDeleteEngineerReportCheck();
-  const createNewEngineerReport = useCreateNewEngineerReport();
   const { id } = useSearch({ from: "/_auth/analytic/report" });
-  const [reportDataOut, setReportDataOut] = useState<any>({
-    user: "",
-    user_role: "",
-    pump_detail: "",
-  });
-  console.log(reportDataOut);
-  const [reportID, setReportID] = useState<string | null>(null);
-  /* const [reportIDOpen, setReportIDOpen] = useState<string | null>(null); */
-  const { data: reportData } = useGetEngineerReportCheckData(reportID);
+  const [openFileAction, setOpenFileAction] = useState(false);
+  const [reportFileID, setReportFileID] = useState<string | null>(null);
+  const [isCreateReportFile, setIsCreateReportFile] = useState(false);
+  const { data: reportFileData } = useGetEngineerReportFile(reportFileID);
   const [reportDetail, setReportDetail] = useState<any>({
     doc_customer: "",
     doc_no: "",
@@ -78,23 +277,13 @@ function TotalReport() {
 
   const { data: reportCheckData } = useGetEngineerReportCheck(id);
 
-  useEffect(() => {
-    if (id && userData) {
-      setReportDataOut({
-        user: userData.user.user_email,
-        user_role: userData.user.user_role,
-        pump_detail: id,
-      });
-    }
-  }, []);
-
   /* const handleOpenReport = (id: string) => {
     setReportID(id);
   }; */
 
-  const handleDeleteData = (id: string) => {
+  /* const handleDeleteReport = (id: string) => {
     deleteMutation.mutate(id);
-  };
+  }; */
 
   const handleCreateReportCheck = (e: any) => {
     e.preventDefault();
@@ -112,16 +301,21 @@ function TotalReport() {
     /* console.log(reportDetail); */
   };
 
-  useEffect(() => {
+  const reportFileCreateForm = useForm<
+    z.infer<typeof EngineerReportFileCreateSchema>
+  >({
+    resolver: zodResolver(EngineerReportFileCreateSchema),
+  });
+
+  /* useEffect(() => {
     if (reportData) {
       const reportDataOut = {
         ...reportData,
         user_data: userData.user.user_email,
       };
-      console.log(reportDataOut);
       createNewEngineerReport.mutate(reportDataOut);
     }
-  }, [reportData]);
+  }, [reportData]); */
 
   const columns: ExtendedColumnDef<any>[] = [
     {
@@ -147,20 +341,28 @@ function TotalReport() {
               {company.status !== "New" && (
                 <>
                   <DropdownMenuItem
-                    onClick={() => setReportID(company.check_id)}
+                    onClick={() => {
+                      setReportFileID(company.check_id);
+                      setOpenFileAction(true);
+                      setIsCreateReportFile(true);
+                    }}
                   >
                     Create Report
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => setReportID(company.check_id)}
+                    onClick={() => {
+                      setReportFileID(company.check_id);
+                      setIsCreateReportFile(false);
+                      setOpenFileAction(true);
+                    }}
                   >
-                    Open Report
+                    All Report (Dialog)
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleDeleteData(company.check_id)}
+                  {/* <DropdownMenuItem
+                  onClick={() => handleDeleteReportFile(company.check_id)}
                   >
                     Delete Report
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                 </>
               )}
             </DropdownMenuContent>
@@ -321,6 +523,13 @@ function TotalReport() {
       ),
     },
   ];
+
+  const handleClose = () => {
+    setOpenFileAction(false);
+    setReportFileID("");
+    reportFileCreateForm.reset();
+  };
+
   return (
     <div className="w-full space-y-4 p-0 md:p-8 md:pt-6">
       <div className="flex items-center justify-between">
@@ -463,6 +672,29 @@ function TotalReport() {
             <div>Error</div>
           )}
         </Card>
+        <Dialog open={openFileAction} onOpenChange={setOpenFileAction}>
+          <DialogContent
+            className="p-6 max-w-4xl"
+            onPointerDownOutside={(e) => {
+              e.preventDefault();
+            }}
+            onEscapeKeyDown={(e) => {
+              e.preventDefault();
+            }}
+          >
+            {/* Your report list or logic goes here */}
+            {isCreateReportFile === false && reportFileData ? (
+              <ReportFileList reports={reportFileData} onClose={handleClose} />
+            ) : (
+              <ReportCreate
+                form={reportFileCreateForm}
+                id={reportFileID as string}
+                email={userData?.user.user_email as string}
+                onClose={handleClose}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

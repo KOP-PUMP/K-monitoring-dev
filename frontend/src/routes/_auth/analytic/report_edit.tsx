@@ -1,4 +1,4 @@
-import { createFileRoute} from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { ReportCheckCalResponse } from "@/types/amalytic/report_check_data";
 import {
   LineChart,
@@ -32,7 +32,7 @@ import {
   EngineerReportCheckVisualSchema,
   EngineerReportCheckResultSchema,
 } from "@/validators/engineer";
-import {ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import {
@@ -74,10 +74,8 @@ import {
 import {
   useGetAllUnitLOVData,
   useGetAllPumpLOVData,
-  useGetMediaLOVData,
 } from "@/hook/pump/pump";
 import { useEffect, useState } from "react";
-import { MediaLOVResponse } from "@/types/pump/pumps";
 
 function ReportEdit() {
   /* const { data: pumpDetail } = useGetPumpDetail(null); */
@@ -136,8 +134,6 @@ function ReportEdit() {
   const { id } = useSearch({ from: "/_auth/analytic/report_edit" });
   const [pumpLOVData, setPumpLOVData] = useState<ComboboxItemProps[]>([]);
   const [pumpUnitLOVData, setPumpUnitLOVData] = useState<ComboboxItemProps[]>();
-  const [mediaLOVData, setMediaLOVData] = useState<ComboboxItemProps[]>();
-  console.log(mediaLOVData);
   /* useState for MARS system data out */
   const [MARSEquipmentData, setMARSEquipmentData] = useState<any>(null);
   const [MARSMeasureData, setMARSMeasureData] = useState<any>(null);
@@ -153,11 +149,7 @@ function ReportEdit() {
 
   const { data: pumpLOVResponse } = useGetAllPumpLOVData();
   const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();
-  const { data: mediaData } = useGetMediaLOVData(null) as {
-    data: MediaLOVResponse[];
-  };
   const { data: reportCheckData } = useGetEngineerReportCheckData(id);
-
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -284,7 +276,7 @@ function ReportEdit() {
   };
 
   useEffect(() => {
-    if (pumpLOVResponse && pumpUnitLOVResponse && mediaData) {
+    if (pumpLOVResponse && pumpUnitLOVResponse) {
       const newPumpLOVData = pumpLOVResponse.map((data) => {
         return {
           type_name: data.type_name,
@@ -301,20 +293,11 @@ function ReportEdit() {
           label: data.data_value,
         };
       });
-      const newMediaLOVData = mediaData.map((data) => {
-        return {
-          type_name: "media",
-          product_name: "media",
-          value: data.media_name,
-          label: data.media_name,
-        };
-      });
 
       setPumpLOVData(newPumpLOVData);
       setPumpUnitLOVData(newPumpUnitLOVData);
-      setMediaLOVData(newMediaLOVData);
     }
-  }, [pumpLOVResponse, mediaData, pumpUnitLOVResponse]);
+  }, [pumpLOVResponse, pumpUnitLOVResponse]);
 
   /* const handleDataSubmit = () => {
     const addData = {
@@ -359,7 +342,7 @@ function ReportEdit() {
           npshr_npsha_result: response.npshr_npsha_result,
           pump_standard_result: response.pump_standard_result,
           power_result: response.power_result,
-          fulid_temp_result: response.fulid_temp_result,
+          fluid_temp_result: response.fluid_temp_result,
           bearing_temp_result: response.bearing_temp_result,
         });
       }
@@ -400,11 +383,11 @@ function ReportEdit() {
   const handleReportResultSubmit = () => {
     let report_result_data = engineerReportCheckResultForm.getValues();
     report_result_data["check_id"] = id ?? "";
-    const report_result_id = String(reportCheckData.data_result.key);
-    if (report_result_id) {
+    const check_result_id = reportCheckData.data_result?.check_result_id;
+    if (check_result_id && check_result_id !== "") {
       updateEngineerReportResultCheck.mutate({
         data: report_result_data,
-        id: report_result_id,
+        id: check_result_id,
       });
     } else {
       createEngineerReportResultCheck.mutate(report_result_data);
@@ -547,6 +530,265 @@ function ReportEdit() {
       console.log(error);
     } finally {
       setDialogOpen({ ...dialogOpen, [axis]: false });
+    }
+  };
+
+  const handleVisualCheckListRender = (pump_type: string) => {
+    const visual_check_list = [
+      {
+        check: "bolt_check",
+        remark: "bolt_remark",
+        label: "Bolt",
+      },
+      {
+        check: "electrical_check",
+        remark: "electrical_remark",
+        label: "Electrical",
+      },
+      {
+        check: "corrosion_check",
+        remark: "corrosion_remark",
+        label: "Corrosion",
+      },
+      {
+        check: "oil_grease_check",
+        remark: "oil_grease_remark",
+        label: "Oil & Grease",
+      },
+      { check: "oil_check", remark: "oil_remark", label: "Oil" },
+      {
+        check: "painting_check",
+        remark: "painting_remark",
+        label: "Painting",
+      },
+      {
+        check: "cleanness_check",
+        remark: "cleanness_remark",
+        label: "Cleanness",
+      },
+      {
+        check: "chemical_clogging_check",
+        remark: "chemical_clogging_remark",
+        label: "Chemical Clogging",
+      },
+      {
+        check: "suction_valve_check",
+        remark: "suction_valve_remark",
+        label: "Suction Valve",
+      },
+      {
+        check: "discharge_valve_check",
+        remark: "discharge_valve_remark",
+        label: "Discharge Valve",
+      },
+      {
+        check: "hydraulic_air_check",
+        remark: "hydraulic_air_remark",
+        label: "Hydraulic Air",
+      },
+      {
+        check: "air_supply_check",
+        remark: "air_supply_remark",
+        label: "Air Supply",
+      },
+      {
+        check: "air_filter_check",
+        remark: "air_filter_remark",
+        label: "Air Filter",
+      },
+      {
+        check: "air_filter_condense_check",
+        remark: "air_filter_condense_remark",
+        label: "Air Filter Condense",
+      },
+      {
+        check: "mechanical_check",
+        remark: "mechanical_remark",
+        label: "Mechanical",
+      },
+      {
+        check: "coupling_check",
+        remark: "coupling_remark",
+        label: "Coupling",
+      },
+      {
+        check: "gap_check",
+        remark: "gap_remark",
+        label: "Gap",
+      },
+      {
+        check: "seal_check",
+        remark: "seal_remark",
+        label: "Seal",
+      },
+      {
+        check: "alignment_check",
+        remark: "alignment_remark",
+        label: "Alignment",
+      },
+      {
+        check: "rotate_hand_check",
+        remark: "rotate_hand_remark",
+        label: "Rotate by Hand",
+      },
+      {
+        check: "rotating_check",
+        remark: "rotating_remark",
+        label: "Rotating",
+      },
+      {
+        check: "noise_run_check",
+        remark: "noise_run_remark",
+        label: "Noise (Run)",
+      },
+      {
+        check: "noise_check",
+        remark: "noise_remark",
+        label: "Noise",
+      },
+      {
+        check: "oil_run_check",
+        remark: "oil_run_remark",
+        label: "Oil (Run)",
+      },
+      {
+        check: "leakage_run_check",
+        remark: "leakage_run_remark",
+        label: "Leakage (Run)",
+      },
+      {
+        check: "impeller_stutter_check",
+        remark: "impeller_stutter_remark",
+        label: "Impeller Stutter",
+      },
+      {
+        check: "cavitation_run_check",
+        remark: "cavitation_run_remark",
+        label: "Cavitation (Run)",
+      },
+      {
+        check: "other_leakage_check",
+        remark: "other_leakage_remark",
+        label: "Other Leakage",
+      },
+      {
+        check: "non_re_valve_check",
+        remark: "non_re_valve_remark",
+        label: "Non-Return Valve",
+      },
+    ] as const;
+
+    switch (pump_type) {
+      case "Agitator":
+        return visual_check_list.filter((item) =>
+          [
+            "bolt_check",
+            "corrosion_check",
+            "oil_grease_check",
+            "painting_check",
+            "cleanness_check",
+            "chemical_clogging_check",
+            "mechanical_check",
+            "coupling_check",
+            "seal_check",
+            "noise_run_check",
+            "leakage_run_check",
+            "impeller_stutter_check",
+          ].includes(item.check),
+        );
+
+      case "Centrifugal":
+      case "Gear":
+      case "Have": // Grouping similar types
+        return visual_check_list.filter((item) =>
+          [
+            "bolt_check",
+            "corrosion_check",
+            "oil_grease_check",
+            "painting_check",
+            "cleanness_check",
+            "mechanical_check",
+            "coupling_check",
+            "gap_check",
+            "seal_check",
+            "alignment_check",
+            "rotate_hand_check",
+            "noise_run_check",
+            "leakage_run_check",
+            "cavitation_run_check",
+          ].includes(item.check),
+        );
+
+      case "Metering Hydraulic":
+        return visual_check_list.filter((item) =>
+          [
+            "bolt_check",
+            "corrosion_check",
+            "painting_check",
+            "cleanness_check",
+            "chemical_clogging_check",
+            "suction_valve_check",
+            "discharge_valve_check",
+            "hydraulic_air_check",
+            "seal_check",
+            "noise_run_check",
+            "other_leakage_check",
+          ].includes(item.check),
+        );
+
+      case "Metering Mechanical":
+        return visual_check_list.filter((item) =>
+          [
+            "bolt_check",
+            "corrosion_check",
+            "painting_check",
+            "cleanness_check",
+            "chemical_clogging_check",
+            "suction_valve_check",
+            "discharge_valve_check",
+            "air_supply_check",
+            "air_filter_check",
+            "air_filter_condense_check",
+            "seal_check",
+            "noise_run_check",
+            "other_leakage_check",
+          ].includes(item.check),
+        );
+
+      case "Submersible":
+        return visual_check_list.filter((item) =>
+          [
+            "electrical_check",
+            "corrosion_check",
+            "cleanness_check",
+            "mechanical_check",
+          ].includes(item.check),
+        );
+
+      case "Vacuum":
+        return visual_check_list.filter((item) =>
+          [
+            "bolt_check",
+            "corrosion_check",
+            "oil_grease_check",
+            "painting_check",
+            "cleanness_check",
+            "air_filter_condense_check",
+            "mechanical_check",
+            "coupling_check",
+            "gap_check",
+            "seal_check",
+            "rotate_hand_check",
+            "noise_run_check",
+            "leakage_run_check",
+            "cavitation_run_check",
+            "other_leakage_check",
+            "non_re_valve_check",
+          ].includes(item.check),
+        );
+
+      default:
+        return [];
     }
   };
 
@@ -1230,7 +1472,7 @@ function ReportEdit() {
                       />
                       <FormField
                         control={engineerReportCheckCalForm.control}
-                        name="hyd_power_meassure_unit"
+                        name="hyd_power_measure_unit"
                         render={({ field: field }) => (
                           <FormItem>
                             <div className="w-full flex items-center">
@@ -1241,7 +1483,7 @@ function ReportEdit() {
                                 {/* Input for density */}
                                 <FormField
                                   control={engineerReportCheckCalForm.control}
-                                  name="hyd_power_meassure"
+                                  name="hyd_power_measure"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
                                       <Input
@@ -1264,7 +1506,7 @@ function ReportEdit() {
                                     } // Dropdown options
                                     label={
                                       engineerReportCheckCalForm.getValues(
-                                        "hyd_power_meassure_unit",
+                                        "hyd_power_measure_unit",
                                       ) ?? "Select"
                                     }
                                     onChange={(value) => {
@@ -4317,212 +4559,12 @@ function ReportEdit() {
                     <div className="space-y-2">
                       <FormField
                         control={engineerReportCheckVisualForm.control}
-                        name="alignment_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Alignment Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "alignment_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="alignment_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="coupling_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Coupling Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "coupling_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="coupling_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="suction_valve_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Suction Valve Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "suction_valve_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="suction_valve_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="rotate_hand_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Rotation Hand Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "rotate_hand_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="rotating_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
                         name="axial_hand_check"
                         render={({ field: field }) => (
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Axial Hand Check
+                                Axial Hand
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -4567,212 +4609,12 @@ function ReportEdit() {
                       />
                       <FormField
                         control={engineerReportCheckVisualForm.control}
-                        name="gap_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Gap Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "gap_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="gap_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="discharge_valve_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Discharge Valve Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "discharge_valve_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="discharge_valve_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="bolt_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Bolt Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "bolt_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="bolt_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="oil_grease_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Oil / Grease Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "oil_grease_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="oil_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
                         name="electricity_check"
                         render={({ field: field }) => (
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Electricity Check
+                                Electricity
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -4822,7 +4664,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Service Check
+                                Service
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -4872,7 +4714,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Leakage Check
+                                Leakage
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -4915,206 +4757,7 @@ function ReportEdit() {
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="corrosion_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Corrosion Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "corrosion_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="corrosion_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="painting_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Painting Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "painting_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="painting_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="noise_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Noise Check
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "noise_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="noise_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="noise_run_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Noise Check (Running)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "noise_run_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="noise_run_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+
                       <FormField
                         control={engineerReportCheckVisualForm.control}
                         name="oil_grease_run_check"
@@ -5122,7 +4765,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Oil / Grease Check (Running)
+                                Oil/Grease (Run)
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -5148,57 +4791,7 @@ function ReportEdit() {
                                   control={
                                     engineerReportCheckVisualForm.control
                                   }
-                                  name="noise_run_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
-                        name="leakage_run_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Leakage Check (Running)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "leakage_run_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="leakage_remark"
+                                  name="oil_grease_run_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
                                       <Input
@@ -5222,7 +4815,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Mechanical Check (Running)
+                                Mechanical (Run)
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -5267,62 +4860,12 @@ function ReportEdit() {
                       />
                       <FormField
                         control={engineerReportCheckVisualForm.control}
-                        name="cavitation_run_check"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Cavitation Check (Running)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "visual_check",
-                                        "report_data",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVisualForm.getValues(
-                                        "cavitation_run_check",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormField
-                                  control={
-                                    engineerReportCheckVisualForm.control
-                                  }
-                                  name="cavitation_run_remark"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Remark"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVisualForm.control}
                         name="corrosion_run_check"
                         render={({ field: field }) => (
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Corrosion Check (Running)
+                                Corrosion (Run)
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -5372,7 +4915,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Suction Valve Check (Running)
+                                Suction Valve (Run)
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -5422,7 +4965,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Discharge Valve Check (Running)
+                                Discharge Valve (Run)
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -5472,7 +5015,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Painting Check (Running)
+                                Painting (Run)
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -5522,7 +5065,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Electric Connectivity Check (Running)
+                                Electric Connectivity (Run)
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -5572,7 +5115,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Service Piping Check (Running)
+                                Service Piping (Run)
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -5622,7 +5165,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Bolt / Nut Check (Running)
+                                Bolt & Nut (Run)
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -5672,7 +5215,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Barrier Fluid Pressure (Running)
+                                Barrier Fluid (Run)
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 <FormControl className="md:max-w-[500px]">
@@ -5718,23 +5261,88 @@ function ReportEdit() {
                       <FormField
                         control={engineerReportCheckVisualForm.control}
                         name="remarks_check"
-                        render={({ field }) => (
+                        render={({ field: field }) => (
                           <FormItem>
-                            <div className="w-full flex sm:flex-row flex-col gap-4 sm:gap-0 sm:items-center">
+                            <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Remarks
+                                Remark
                               </FormLabel>
                               <FormControl className="w-full">
                                 <Input
-                                  placeholder="Remarks"
+                                  placeholder="Remark"
                                   {...field}
                                   value={field.value || ""} // Ensure the value is never undefined
                                 />
                               </FormControl>
                             </div>
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
+
+                      {/* Varies check items by pump type can be added here following the same pattern */}
+
+                      {handleVisualCheckListRender(
+                        reportCheckData?.pump_data.pump_type_name,
+                      ).map((item) => {
+                        if (item.check) {
+                          return (
+                            <FormField
+                              control={engineerReportCheckVisualForm.control}
+                              name={item.check}
+                              render={({ field: field }) => (
+                                <FormItem>
+                                  <div
+                                    className="w-full flex items-center"
+                                    key={item.check}
+                                  >
+                                    <FormLabel className="w-32 lg:w-44">
+                                      {item.label}
+                                    </FormLabel>
+                                    <div className="w-full flex gap-2">
+                                      <FormControl className="md:max-w-[500px]">
+                                        <Combobox
+                                          className="min-w-[86px]"
+                                          items={
+                                            handleLOVDataFilter(
+                                              "visual_check",
+                                              "report_data",
+                                            ) || []
+                                          } // Dropdown options
+                                          label={
+                                            engineerReportCheckVisualForm.getValues(
+                                              item.check,
+                                            ) ?? "Select"
+                                          }
+                                          onChange={(value) => {
+                                            field.onChange(value); // Update form state
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <FormField
+                                        control={
+                                          engineerReportCheckVisualForm.control
+                                        }
+                                        name={item.remark}
+                                        render={({ field: field }) => (
+                                          <FormControl className="w-full">
+                                            <Input
+                                              placeholder="Remark"
+                                              {...field}
+                                              value={field.value || ""} // Ensure the value is never undefined
+                                            />
+                                          </FormControl>
+                                        )}
+                                      />
+                                    </div>
+                                  </div>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          );
+                        }
+                      })}
                     </div>
                   </FormBox>
                 </div>
@@ -6131,7 +5739,7 @@ function ReportEdit() {
                                   control={
                                     engineerReportCheckResultForm.control
                                   }
-                                  name="fulid_temp_remark"
+                                  name="pump_standard_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
                                       <Input
@@ -6207,7 +5815,7 @@ function ReportEdit() {
                       />
                       <FormField
                         control={engineerReportCheckResultForm.control}
-                        name="fulid_temp_result"
+                        name="fluid_temp_result"
                         render={({ field: field }) => (
                           <FormItem>
                             <div className="w-full flex items-start">
@@ -6226,7 +5834,7 @@ function ReportEdit() {
                                   control={
                                     engineerReportCheckResultForm.control
                                   }
-                                  name="fulid_temp_suggest"
+                                  name="fluid_temp_suggest"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
                                       <Input
@@ -6241,7 +5849,7 @@ function ReportEdit() {
                                   control={
                                     engineerReportCheckResultForm.control
                                   }
-                                  name="fulid_temp_remark"
+                                  name="fluid_temp_remark"
                                   render={({ field: field }) => (
                                     <FormControl className="w-full">
                                       <Input
