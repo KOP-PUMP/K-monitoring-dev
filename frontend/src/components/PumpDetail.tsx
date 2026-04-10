@@ -47,6 +47,7 @@ import {
   useGetShaftSealDetailLOV,
   useGetMotorDetailLOV,
   useGetMediaLOVData,
+  useCreatePumpDetail,
 } from "@/hook/pump/pump";
 import {
   PumpDetailLOVResponse,
@@ -364,16 +365,16 @@ export default function PumpList() {
     });
   };
 
-  /* const createMutation = useCreatePumpDetail(); */
-  /* const localstorage = window.localStorage.getItem("user"); */
-  /* const userData = localstorage !== null ? JSON.parse(localstorage) : null; */
-  /* const handleDataSubmit = () => {
+  const createMutation = useCreatePumpDetail();
+  const localstorage = window.localStorage.getItem("user");
+  const userData = localstorage !== null ? JSON.parse(localstorage) : null;
+  const handleDataSubmit = () => {
     const form1 = formPumpGeneralDetail.getValues();
     const form2 = formMaterialDetail.getValues();
     const form3 = formMotorAndCouplingDetail.getValues();
     const form4 = formMechanicalSealDetail.getValues();
     const form5 = formFlangeAndBearingDetail.getValues();
-    createMutation.mutate({
+    const data = {
       ...form1,
       ...form2,
       ...form3,
@@ -383,8 +384,9 @@ export default function PumpList() {
       created_by: userData?.user.user_email,
       updated_at: new Date().toISOString(),
       updated_by: userData?.user.user_email,
-    });
-  }; */
+    }
+    createMutation.mutate(data);
+  };
 
   const { mutate, isPending, isError } = useGetCalPumpData();
 
@@ -6250,9 +6252,8 @@ export default function PumpList() {
                         size="sm"
                         className="w-32 gap-2"
                         onClick={(e) => {
-                          console.log(formFlangeAndBearingDetail.getValues());
                           e.preventDefault();
-                          /* handleDataSubmit(); */
+                          handleDataSubmit();
                         }}
                       >
                         <PlusCircle className="h-3.5 w-3.5" />

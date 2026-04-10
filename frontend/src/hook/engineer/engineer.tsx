@@ -19,7 +19,6 @@ import {
   updateEngineerReportVisualCheck,
   getEquipmentFromMars,
   getAllMeasureDataFromMars,
-  getMeasureDataFromMars,
   getWaveDatafromMars,
   getSpectrumWaveDatafromMars,
 } from "@/api/engineer/engineer";
@@ -281,14 +280,6 @@ export const useGetAllMeasureDataFromMars = () => {
   });
 };
 
-export const useGetMeasureDataFromMars = () => {
-  return useMutation({
-    mutationFn: getMeasureDataFromMars,
-    onError: () => {
-      toast.error("Error : Cannot get measure data from MARS");
-    },
-  });
-};
 export const useGetWaveDataFromMars = () => {
   return useMutation({
     mutationFn: getWaveDatafromMars,

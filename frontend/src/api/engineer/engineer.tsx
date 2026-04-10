@@ -1,4 +1,4 @@
-import { axiosInstance, axiosInstanceMars } from "../utils";
+import { axiosInstance} from "../utils";
 import {
   MarsEquipmentDataOut,
   MarsMeasureDataOut,
@@ -215,31 +215,21 @@ export const getEngineerReportCheckData = async (id: string | null) => {
 /* Retrive data from MARS system */
 
 export const getEquipmentFromMars = async (data: MarsEquipmentDataOut) => {
-  const response = await axiosInstanceMars.post("/latest_data", data);
-  const cordinate_id = {
-    x_id: response.data[0]?.asset_id,
-    y_id: response.data[1]?.asset_id,
-    z_id: response.data[2]?.asset_id,
-  };
-  return cordinate_id;
-};
-
-export const getAllMeasureDataFromMars = async (data: MarsMeasureDataOut) => {
-  const response = await axiosInstanceMars.post("/history_data", data);
+  const response = await axiosInstance.post("/mars/equipment", data);
   return response.data;
 };
 
-export const getMeasureDataFromMars = async (data: MarsMeasureDataOut) => {
-  const response = await axiosInstanceMars.post("/history_data", data);
+export const getAllMeasureDataFromMars = async (data: MarsMeasureDataOut) => {
+  const response = await axiosInstance.post("/mars/measurements", data);
   return response.data;
 };
 
 export const getWaveDatafromMars = async (data: MarsWaveDataOut) => {
-  const response = await axiosInstanceMars.post("/wave", data);
+  const response = await axiosInstance.post("/mars/wave", data);
   return response.data;
 };
 
 export const getSpectrumWaveDatafromMars = async (data: MarsWaveDataOut) => {
-  const response = await axiosInstanceMars.post("/spectrum_wave", data);
+  const response = await axiosInstance.post("/mars/spectrum_wave", data);
   return response.data;
 };

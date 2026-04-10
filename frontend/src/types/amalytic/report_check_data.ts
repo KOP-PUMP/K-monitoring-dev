@@ -49,6 +49,8 @@ export interface EngineerReportCheckVisual {
     service_remark : string
     leakage_check : string
     leakage_remark : string
+
+
     oil_grease_run_check : string
     oil_grease_run_remark : string
     mechanical_run_check : string
@@ -113,20 +115,22 @@ export interface EngineerReportCheckVisual {
     rotate_hand_remark : string
     rotating_check : string
     rotating_remark : string
-    noise_run_check : string
-    noise_run_remark : string
     noise_check : string
     noise_remark : string
-    oil_run_check : string
-    oil_run_remark : string
-    leakage_run_check : string
-    leakage_run_remark : string
     impeller_stutter_check : string
     impeller_stutter_remark : string
-    cavitation_run_check : string
-    cavitation_run_remark : string
     other_leakage_check : string
     other_leakage_remark : string
     non_re_valve_check : string
     non_re_valve_remark : string
+
+
+    noise_run_check : string
+    noise_run_remark : string
+    oil_run_check : string
+    oil_run_remark : string
+    leakage_run_check : string
+    leakage_run_remark : string
+    cavitation_run_check : string
+    cavitation_run_remark : string
 }

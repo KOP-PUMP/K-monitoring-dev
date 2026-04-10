@@ -691,9 +691,9 @@ function ReportEdit() {
             "mechanical_check",
             "coupling_check",
             "seal_check",
+            "impeller_stutter_check",
             "noise_run_check",
             "leakage_run_check",
-            "impeller_stutter_check",
           ].includes(item.check),
         );
 
@@ -750,8 +750,8 @@ function ReportEdit() {
             "air_filter_check",
             "air_filter_condense_check",
             "seal_check",
-            "noise_run_check",
             "other_leakage_check",
+            "noise_run_check",
           ].includes(item.check),
         );
 
@@ -779,11 +779,11 @@ function ReportEdit() {
             "gap_check",
             "seal_check",
             "rotate_hand_check",
+            "other_leakage_check",
+            "non_re_valve_check",
             "noise_run_check",
             "leakage_run_check",
             "cavitation_run_check",
-            "other_leakage_check",
-            "non_re_valve_check",
           ].includes(item.check),
         );
 

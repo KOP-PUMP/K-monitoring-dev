@@ -4,7 +4,6 @@ import {
   MotorDetailLOVResponse,
   PumpMatLOVResponse,
   PumpShaftSealLOVResponse,
-  PumpDetailResponse
 } from "@/types/index";
 import { axiosInstance } from "../utils";
 
@@ -30,7 +29,7 @@ export const getAllPumpLOV = async (): Promise<any[]> => {
 
 /* Pump Detail */
 
-export const createPumpDetail = async (data: PumpDetailResponse) => {
+export const createPumpDetail = async (data: any) => {
   const response = await axiosInstance.post("/pump-data/pump-detail", data);
   return response.data;
 }

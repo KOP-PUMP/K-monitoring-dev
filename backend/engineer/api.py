@@ -21,7 +21,12 @@ import json
 import uuid
 import os
 from factory_curve.schema.factory_curve import CalPumpPayload_schema
+from engineer.report_generate import ReportMapper
+import requests
+from dotenv import load_dotenv
+from engineer.schema.engineer import MARSEquipmentDataOut_schema, MARSMeasurementDataOut_schema, MARSWaveSpectrumDataOut_schema
 
+load_dotenv()
 
 @api_controller('/engineer', tags=['Report'])
 class ReportController:
@@ -37,18 +42,12 @@ class ReportController:
 
             # Load workbook and access the active sheet
             wb = load_workbook(template_path)
-            ws = wb.active
-            sheet1 = wb.worksheets[0]
-            sheet2 = wb.worksheets[1]
-            sheet3 = wb.worksheets[2]
-            sheet4 = wb.worksheets[3]
-
-            #pump_detail_dict = payload.dict()
             
             report_check_instance = EngineerReportCheck.objects.get(check_id=id)
             if not report_check_instance:
                 return JsonResponse({"error": "Report not found"}, status=404)
 
+            report_check_data = model_to_dict(report_check_instance)
             payload_dict = payload.dict()
             
             data_cal = EngineerReportCheckCal.objects.filter(check_id=report_check_instance).first() or {}
@@ -60,137 +59,23 @@ class ReportController:
             
             pump_data = model_to_dict(pump_instance)
 
-            #data_cal = pump_detail_dict.get('data_cal')
-            #data_vibe = pump_detail_dict.get('data_vibe')
-            #data_visual = pump_detail_dict.get('data_visual')
-            #data_result = pump_detail_dict.get('data_result')
-            #pump_data = pump_detail_dict.get('pump_data')
-            #user_data = pump_detail_dict.get('user_data')
+            data_cal_dict = model_to_dict(data_cal)
+            data_vibe_dict = model_to_dict(data_vibe)
+            data_visual_dict = model_to_dict(data_visual)
+            data_result_dict = model_to_dict(data_result)
             
-            #pump_instance = PumpDetail.objects.get(pump_id=pump_data.get('pump_id'))
-            #user_instance = UserProfile.objects.get(user__user_email=user_data)
+            #Call mapping function
+            mapper = ReportMapper(
+                wb=wb, 
+                pump_data=model_to_dict(report_check_instance.pump_id),
+                report_check_data=report_check_data,
+                data_cal_dict=data_cal_dict,
+                data_vibe_dict=data_vibe_dict,
+                data_visual_dict=data_visual_dict,
+                data_result_dict=data_result_dict
+            )
             
-            #if not user_instance or not pump_instance:
-            #    return JsonResponse({"error": "User/Pump instance not found"}, status=404)
-            
-            # Fill cells using the dictionary
-            
-            
-            sheet1['G6'] = pump_data.get('company_name_en', "")
-            sheet1['G7'] = pump_data.get('company_name_en', "")
-            sheet1['G8'] = pump_data.get('pump_brand', "")
-            sheet1['G9'] = pump_data.get('motor_brand', "")
-            sheet1['G10'] = pump_data.get('suggest_motor', "")
-            sheet1['Q10'] = pump_data.get('voltage', "")
-            sheet1['U8'] = pump_data.get('pump_model', "")
-            sheet1['U9'] = pump_data.get('motor_model', "")
-            sheet1['AJ7'] = pump_data.get('tag_no', "")
-            sheet1['AJ8'] = pump_data.get('serial_no', "")
-            sheet1['AJ9'] = pump_data.get('motor_serial_no', "")
-            sheet1['AE10'] = pump_data.get('pump_stage', "")
-            sheet1['AL10'] = pump_data.get('pump_speed', "")
-            sheet1['AJ6'] = datetime.now().strftime("%Y-%m-%d")
-            
-            sheet2['G6'] = pump_data.get('company_name_en', "")
-            sheet2['G7'] = pump_data.get('company_name_en', "")
-            sheet2['G8'] = pump_data.get('pump_brand', "")
-            sheet2['G9'] = pump_data.get('motor_brand', "")
-            sheet2['G10'] = pump_data.get('suggest_motor', "")
-            sheet2['Q10'] = pump_data.get('voltage', "")
-            sheet2['U8'] = pump_data.get('pump_model', "")
-            sheet2['U9'] = pump_data.get('motor_model', "")
-            sheet2['AJ7'] = pump_data.get('tag_no', "")
-            sheet2['AJ8'] = pump_data.get('serial_no', "")
-            sheet2['AJ9'] = pump_data.get('motor_serial_no', "")
-            sheet2['AE10'] = pump_data.get('pump_stage', "")
-            sheet2['AL10'] = pump_data.get('pump_speed', "")
-            sheet2['AJ6'] = datetime.now().strftime("%Y-%m-%d")
-
-            sheet3['G6'] = pump_data.get('company_name_en', "")
-            sheet3['G7'] = pump_data.get('company_name_en', "")
-            sheet3['G8'] = pump_data.get('pump_brand', "")
-            sheet3['G9'] = pump_data.get('motor_brand', "")
-            sheet3['G10'] = pump_data.get('suggest_motor', "")
-            sheet3['Q10'] = pump_data.get('voltage', "")
-            sheet3['U8'] = pump_data.get('pump_model', "")
-            sheet3['U9'] = pump_data.get('motor_model', "")
-            sheet3['AJ7'] = pump_data.get('tag_no', "")
-            sheet3['AJ8'] = pump_data.get('serial_no', "")
-            sheet3['AJ9'] = pump_data.get('motor_serial_no', "")
-            sheet3['AE10'] = pump_data.get('pump_stage', "")
-            sheet3['AL10'] = pump_data.get('pump_speed', "")
-            sheet3['AJ6'] = datetime.now().strftime("%Y-%m-%d")
-            
-            #visual check
-            #pump stop condition
-            sheet1['A43'] = "1"
-            sheet1['L43'] = ""
-            sheet1['O43'] = ""
-            sheet1['A44'] = "2"
-            sheet1['L44'] = ""
-            sheet1['O44'] = ""
-            sheet1['A45'] = "3"
-            sheet1['L45'] = ""
-            sheet1['O45'] = ""
-            sheet1['A46'] = "4"
-            sheet1['L46'] = ""
-            sheet1['O46'] = ""
-            sheet1['A47'] = "5"
-            sheet1['L47'] = ""
-            sheet1['O47'] = ""
-            sheet1['A48'] = "6"
-            sheet1['L48'] = ""
-            sheet1['O48'] = ""
-            sheet1['A49'] = "7"
-            sheet1['L49'] = ""
-            sheet1['O49'] = ""
-            sheet1['A50'] = "8"
-            sheet1['L50'] = ""
-            sheet1['O50'] = ""
-            sheet1['A51'] = "9"
-            sheet1['L51'] = ""
-            sheet1['O51'] = ""
-            sheet1['A52'] = "10"
-            sheet1['L52'] = ""
-            sheet1['O52'] = ""
-            sheet1['A53'] = "11"
-            sheet1['L53'] = ""
-            sheet1['O53'] = ""
-
-            #pump running condition
-            sheet1['V43'] = "1"
-            sheet1['AH43'] = ""
-            sheet1['AK43'] = ""
-            sheet1['V44'] = "2"
-            sheet1['AH44'] = ""
-            sheet1['AK44'] = ""
-            sheet1['V45'] = "3"
-            sheet1['AH45'] = ""
-            sheet1['AK45'] = ""
-            sheet1['V46'] = "4"
-            sheet1['AH46'] = ""
-            sheet1['AK46'] = ""
-            sheet1['V47'] = "5"
-            sheet1['AH47'] = ""
-            sheet1['AK47'] = ""
-            sheet1['V48'] = "6"
-            sheet1['AH48'] = ""
-            sheet1['AK48'] = ""
-            sheet1['V49'] = "7"
-            sheet1['AH49'] = ""
-            sheet1['AK49'] = ""
-            sheet1['V50'] = "8"
-            sheet1['AH50'] = ""
-            sheet1['AK50'] = ""
-            sheet1['V51'] = "9"
-            sheet1['AH51'] = ""
-            sheet1['AK51'] = ""
-            sheet1['V52'] = "10"
-            sheet1['AH52'] = ""
-            sheet1['AK52'] = ""
-            sheet1['V53'] = "11"
-            sheet1['AH53'] = ""
-            sheet1['AK53'] = ""
+            mapper.map_all()
             
             buffer = BytesIO()
             wb.save(buffer)
@@ -696,4 +581,87 @@ class ReportController:
             return JsonResponse({"error": "Pump data not found"}, status=404)
     
         return JsonResponse(check_data, status=200)
+    
+        
+@api_controller('/mars', tags=['sensors'])
+class MarsController:
+    @http_post('/equipment')
+    def get_equipment_from_mars(self, payload: MARSEquipmentDataOut_schema):
+        try:
+            response = requests.post(
+                f"{os.getenv('URL_MARS')}/latest_data",
+                json=payload.dict(),
+                timeout=10
+            )
+            if response.status_code == 200:
+                data = response.json() 
+                coordinate_id = {
+                    "x_id": data[0].get("asset_id"),
+                    "y_id": data[1].get("asset_id"),
+                    "z_id": data[2].get("asset_id"),
+                }
+    
+                return JsonResponse(coordinate_id, safe=False)
+    
+            else:
+                return JsonResponse(
+                    {"error": "Mars API error", "detail": response.text},
+                    status=response.status_code
+                )
+    
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+        
+    @http_post('/measurements')
+    def get_all_measurement_from_mars(self, payload: MARSMeasurementDataOut_schema):
+        try:
+            response = requests.post(
+                f"{os.getenv('URL_MARS')}/history_data",
+                json=payload.dict(),
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json() 
+                return JsonResponse(data, safe=False)
+            else:
+                return JsonResponse({"error": "No data received from MARS"}, status=500)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+        
+    
+    @http_post('/wave')
+    def get_wave_data_from_mars(self, payload: MARSWaveSpectrumDataOut_schema):
+        try:
+            response = requests.post(
+                f"{os.getenv('URL_MARS')}/wave",
+                json=payload.dict(),
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return JsonResponse(data, safe=False)
+            else:
+                return JsonResponse({"error": "No data received from MARS"}, status=500)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+        
+    @http_post('/spectrum_wave')
+    def get_spectrum_data_from_mars(self, payload: MARSWaveSpectrumDataOut_schema):
+        try:
+            response = requests.post(
+                f"{os.getenv('URL_MARS')}/spectrum_wave",
+                json=payload.dict(),
+                timeout=10
+            )
+            print(f"Request payload: {payload.dict()}")
+            print(f"MARS response status: {response.status_code}")
+            if response.status_code == 200:
+                data = response.json()
+                return JsonResponse(data, safe=False)
+            else:
+                return JsonResponse({"error": "No data received from MARS"}, status=500)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
     

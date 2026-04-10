@@ -5,6 +5,7 @@ from ninja import Schema
 from uuid import UUID , uuid4
 from pydantic import Field
 
+
 class EngineerReportPayLoad_schema(Schema):
     report_detail : Optional[str]=None
     remark : Optional[str]=None
@@ -505,3 +506,26 @@ class EngineerReportData_schema(Schema):
     data_result : Optional[EngineerReportCheckResult_schema] = None
     pump_data : Optional[PumpDetail_schema] = None
     user_data : Optional[str] = None
+    
+class MARSEquipmentDataOut_schema(Schema):
+    node_code : str
+    node_id : str
+    data_index : int
+    start_time : str
+    end_time : str
+    
+class MARSMeasurementDataOut_schema(Schema):
+    node_code : str
+    node_id : str
+    data_index : int
+    start_time : str
+    end_time : str
+    page_index : int
+    page_size : int
+    
+class MARSWaveSpectrumDataOut_schema(Schema):
+    node_code : str
+    node_id : str
+    data_index : int
+    time : str
+    
