@@ -35,6 +35,8 @@ class ReportController:
         try:
             id = request.GET.get('id')
             user = request.GET.get('email')
+            
+            print(f"Received data: {id}, {user}")
             #return JsonResponse({"massage": payload.dict()}, status=400)
             # Construct the absolute path
             
@@ -42,39 +44,50 @@ class ReportController:
 
             # Load workbook and access the active sheet
             wb = load_workbook(template_path)
-            
+            print("start get report check instance")
             report_check_instance = EngineerReportCheck.objects.get(check_id=id)
             if not report_check_instance:
                 return JsonResponse({"error": "Report not found"}, status=404)
-
+            print("start get report instance")
             report_check_data = model_to_dict(report_check_instance)
             payload_dict = payload.dict()
             
-            data_cal = EngineerReportCheckCal.objects.filter(check_id=report_check_instance).first() or {}
-            data_vibe = EngineerReportCheckVibration.objects.filter(check_id=report_check_instance).first() or {}
-            data_visual = EngineerReportCheckVisual.objects.filter(check_id=report_check_instance).first() or {}
-            data_result = EngineerReportCheckResult.objects.filter(check_id=report_check_instance).first() or {}
+            print("Start get all data")
+            print("get data cal")
+            data_cal = EngineerReportCheckCal.objects.filter(check_id=report_check_instance).first()
+            print("get data vibe")
+            data_vibe = EngineerReportCheckVibration.objects.filter(check_id=report_check_instance).first()
+            print("get data visual")
+            data_visual = EngineerReportCheckVisual.objects.filter(check_id=report_check_instance).first()
+            print("get data result")
+            data_result = EngineerReportCheckResult.objects.filter(check_id=report_check_instance).first()
+            print("get data user instance")
             user_instance = UserProfile.objects.filter(user__user_email=user).first()
             pump_instance = report_check_instance.pump_id
             
-            pump_data = model_to_dict(pump_instance)
-
-            data_cal_dict = model_to_dict(data_cal)
-            data_vibe_dict = model_to_dict(data_vibe)
-            data_visual_dict = model_to_dict(data_visual)
-            data_result_dict = model_to_dict(data_result)
+            print("start dict pump data")
+            pump_data = model_to_dict(pump_instance) if pump_instance else {}
+            print("start dict cal data")
+            data_cal_dict = model_to_dict(data_cal) if data_cal else {}
+            print("start dict vibe data")
+            data_vibe_dict = model_to_dict(data_vibe) if data_vibe else {}
+            print("start dict visual data")
+            data_visual_dict = model_to_dict(data_visual) if data_visual else {}
+            print("start dict result data")
+            data_result_dict = model_to_dict(data_result) if data_result else {}
             
+            print("start mapping")
             #Call mapping function
             mapper = ReportMapper(
                 wb=wb, 
-                pump_data=model_to_dict(report_check_instance.pump_id),
+                pump_data=pump_data,
                 report_check_data=report_check_data,
                 data_cal_dict=data_cal_dict,
                 data_vibe_dict=data_vibe_dict,
                 data_visual_dict=data_visual_dict,
                 data_result_dict=data_result_dict
             )
-            
+            print("call map all")
             mapper.map_all()
             
             buffer = BytesIO()

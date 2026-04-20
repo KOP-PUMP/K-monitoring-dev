@@ -1,18 +1,20 @@
 from datetime import datetime
 
 class ReportMapper:
-    def __init__(self, wb, pump_data, report_check_data, data_cal_dict, data_vibe_dict, data_visual_dict, data_result_dict):
+    def __init__(self, wb, pump_data, report_check_data, data_cal_dict, data_vibe_dict,data_visual_dict, data_result_dict):
         self.wb = wb
         self.pump_data = pump_data
         self.report_check_data = report_check_data
         self.data_cal_dict = data_cal_dict
         self.data_vibe_dict = data_vibe_dict
-        self.data_visual_dict = self.data_visual_dict
+        self.data_visual_dict = data_visual_dict
         self.data_result_dict = data_result_dict
         self.today = datetime.now().strftime("%Y-%m-%d")
     
     def map_all(self):
+        print("start map header")
         self.map_sheet_common_headers()
+        print("start map sheet 1")
         self.map_sheet_one()
         # Call other mapping functions for sheet 2 and sheet 3 if needed
         
@@ -83,6 +85,8 @@ class ReportMapper:
         #pump stop condition
         ws['A43'] = "1"
         ws['B43'] = "Check Axial hand"
+        
+        print("mapping visual check")
         ws['M43'] = self.data_visual_dict.get('axial_hand_check', "")
         ws['O43'] = self.data_visual_dict.get('axial_hand_remark', "")
         
