@@ -15,4 +15,5 @@ class Migration(migrations.Migration):
             name='report_file',
             field=models.FileField(upload_to='reports/'),
         ),
+        
     ]

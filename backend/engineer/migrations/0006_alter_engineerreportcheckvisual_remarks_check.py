@@ -15,4 +15,5 @@ class Migration(migrations.Migration):
             name='remarks_check',
             field=models.TextField(blank=True, null=True),
         ),
+        
     ]

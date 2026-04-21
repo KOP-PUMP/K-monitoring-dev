@@ -16,4 +16,5 @@ class Migration(migrations.Migration):
             name='report_check_id',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='engineer.engineerreportcheck'),
         ),
+        
     ]
