@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import {useSendLineNotification} from "@/hook/line_notification";
+/* import {useSendLineNotification} from "@/hook/line_notification"; */
 import {
   GearIcon,
   PersonIcon,
@@ -14,11 +14,11 @@ import { PumpMaintenanceChart } from "@/components/chart/PumpMaintenanceChart";
 import { PumpStatusChart } from "@/components/chart/PumpStatusChart";
 
 const DashboardPage = () => {
-  const { mutate: sendLineNotification } = useSendLineNotification();
+  /* const { mutate: sendLineNotification } = useSendLineNotification(); */
 
-  const handleNotificationClick = () => {
+  /* const handleNotificationClick = () => {
   sendLineNotification();
-};
+}; */
 
   return (
     <>

@@ -158,6 +158,8 @@ function ReportEdit() {
     null,
   );
 
+  setVibeData(null)
+
   const { data: pumpLOVResponse } = useGetAllPumpLOVData();
   const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();
   const { data: reportCheckData } = useGetEngineerReportCheckData(id);
