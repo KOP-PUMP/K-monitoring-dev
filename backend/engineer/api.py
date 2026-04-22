@@ -551,38 +551,25 @@ class ReportController:
     def get_report_check_data(self, request):
         uuid_id = request.GET.get('id')
         check_data = {}
-        place_holder = {}
-        try:
-            data_cal = EngineerReportCheckCal.objects.get(check_id=uuid_id)
-            place_holder = json.loads(serializers.serialize('json', [data_cal]))[0]
-            check_data['data_cal'] = place_holder["fields"]
-            check_data['data_cal']['check_cal_id'] = place_holder["pk"]
-        except EngineerReportCheckCal.DoesNotExist:
-            check_data['data_cal'] = {}
-    
-        try:
-            data_vibe = EngineerReportCheckVibration.objects.get(check_id=uuid_id)
-            place_holder = json.loads(serializers.serialize('json', [data_vibe]))[0]
-            check_data['data_vibe'] = place_holder["fields"]
-            check_data['data_vibe']['check_vibration_id'] = place_holder["pk"]
-        except EngineerReportCheckVibration.DoesNotExist:
-            check_data['data_vibe'] = {}
-    
-        try:
-            data_visual = EngineerReportCheckVisual.objects.get(check_id=uuid_id)
-            place_holder = json.loads(serializers.serialize('json', [data_visual]))[0]
-            check_data['data_visual'] = place_holder["fields"]
-            check_data['data_visual']['check_visual_id'] = place_holder["pk"]
-        except EngineerReportCheckVisual.DoesNotExist:
-            check_data['data_visual'] = {}
-    
-        try:
-            data_result = EngineerReportCheckResult.objects.get(check_id=uuid_id)
-            place_holder = json.loads(serializers.serialize('json', [data_result]))[0]
-            check_data['data_result'] = place_holder["fields"]
-            check_data['data_result']['check_result_id'] = place_holder["pk"]
-        except EngineerReportCheckResult.DoesNotExist:
-            check_data['data_result'] = {}
+        
+        def get_model_data(model, key, pk_name):
+            try:
+                # .filter().first() prevents the MultipleObjectsReturned error
+                # It just takes the most recent/first one found
+                instance = model.objects.filter(check_id=uuid_id).first()
+                if instance:
+                    place_holder = json.loads(serializers.serialize('json', [instance]))[0]
+                    data = place_holder["fields"]
+                    data[pk_name] = place_holder["pk"]
+                    return data
+                return {}
+            except Exception:
+                return {}
+        
+        check_data['data_cal'] = get_model_data(EngineerReportCheckCal, 'data_cal', 'check_cal_id')
+        check_data['data_vibe'] = get_model_data(EngineerReportCheckVibration, 'data_vibe', 'check_vibration_id')
+        check_data['data_visual'] = get_model_data(EngineerReportCheckVisual, 'data_visual', 'check_visual_id')
+        check_data['data_result'] = get_model_data(EngineerReportCheckResult, 'data_result', 'check_result_id')
     
         try:
             report_check = EngineerReportCheck.objects.get(check_id=uuid_id)
