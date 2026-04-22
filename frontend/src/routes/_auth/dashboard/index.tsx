@@ -31,7 +31,7 @@ const DashboardPage = () => {
             <Link to="/pump/detail">
               <Button>Add Pump</Button>
             </Link>
-            <Button onClick={handleNotificationClick}>Test Line Notification</Button>
+            {/* <Button onClick={handleNotificationClick}>Test Line Notification</Button> */}
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

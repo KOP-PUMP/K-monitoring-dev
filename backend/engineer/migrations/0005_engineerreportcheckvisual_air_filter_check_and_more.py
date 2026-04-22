@@ -109,6 +109,5 @@ class Migration(migrations.Migration):
             options={
                 'db_table': 'tbl_engineer_report_check_visual',
             },
-            
         ),
     ]

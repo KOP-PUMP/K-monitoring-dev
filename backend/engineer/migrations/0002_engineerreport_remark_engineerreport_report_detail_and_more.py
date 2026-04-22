@@ -269,5 +269,4 @@ class Migration(migrations.Migration):
                 'db_table': 'tbl_engineer_report_check_vibration',
             },
         ),
-        
     ]

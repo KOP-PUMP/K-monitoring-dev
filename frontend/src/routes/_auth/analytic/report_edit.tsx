@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ReportCheckCalResponse } from "@/types/amalytic/report_check_data";
+import {
+  ReportCheckCalResponse,
+  EngineerReportCheckVibe,
+} from "@/types/amalytic/report_check_data";
 import {
   LineChart,
   Line,
@@ -71,11 +74,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  useGetAllUnitLOVData,
-  useGetAllPumpLOVData,
-} from "@/hook/pump/pump";
+import { useGetAllUnitLOVData, useGetAllPumpLOVData } from "@/hook/pump/pump";
 import { useEffect, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 function ReportEdit() {
   /* const { data: pumpDetail } = useGetPumpDetail(null); */
@@ -146,6 +154,9 @@ function ReportEdit() {
     y: false,
     z: false,
   });
+  const [vibeData, setVibeData] = useState<EngineerReportCheckVibe | null>(
+    null,
+  );
 
   const { data: pumpLOVResponse } = useGetAllPumpLOVData();
   const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();
@@ -208,24 +219,24 @@ function ReportEdit() {
             </DialogDescription>
           </DialogHeader>
 
-          <table className="table-auto w-full">
-            <thead>
-              <tr>
-                <th className="w-2/4 outline outline-1 outline-gray-300">
+          <Table className="table-auto w-full">
+            <TableHead>
+              <TableRow>
+                <TableCell className="w-2/4 outline outline-1 outline-gray-300">
                   Time
-                </th>
-                <th className="w-1/4 outline outline-1 outline-gray-300">
+                </TableCell>
+                <TableCell className="w-1/4 outline outline-1 outline-gray-300">
                   Value (m/s²)
-                </th>
-                <th className="w-1/4 outline outline-1 outline-gray-300">
+                </TableCell>
+                <TableCell className="w-1/4 outline outline-1 outline-gray-300">
                   Action
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {measureData && measureData.length > 0 ? (
                 measureData.map((data, index) => (
-                  <tr key={index}>
+                  <TableRow key={index}>
                     <td className="outline outline-1 outline-gray-300 text-center">
                       {data.time}
                     </td>
@@ -241,7 +252,7 @@ function ReportEdit() {
                         Get
                       </Button>
                     </td>
-                  </tr>
+                  </TableRow>
                 ))
               ) : (
                 <tr className="text-center w-full">
@@ -253,8 +264,8 @@ function ReportEdit() {
                   </td>
                 </tr>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
 
           <DialogFooter>
             <DialogClose asChild>
@@ -2617,11 +2628,12 @@ function ReportEdit() {
                                   </Button>
                                 </PopoverTrigger>
                                 <PopoverContent
-                                  className="bg-white overflow-hidden p-0"
+                                  className="bg-white overflow-hidden p-2"
                                   align="start"
                                 >
                                   <Calendar
                                     mode="single"
+                                    className="w-full"
                                     selected={new Date(pickDate ?? "")}
                                     captionLayout="dropdown"
                                     onSelect={(date: any) => {
@@ -2673,273 +2685,6 @@ function ReportEdit() {
                                   onGetData={handleGetVibrationData}
                                   onSelectTrigger={handleSelectCordinate}
                                 />
-                                {/* <Dialog
-                                  key={MARSEquipmentData.x_id}
-                                  open={dialogOpen.x}
-                                  onOpenChange={() =>
-                                    setDialogOpen({ ...dialogOpen, x: true })
-                                  }
-                                >
-                                  <DialogTrigger asChild>
-                                    <Button>HorizontalX</Button>
-                                  </DialogTrigger>
-                                  <DialogContent
-                                    key={MARSEquipmentData.x_id}
-                                    className="sm:max-w-[425px]"
-                                  >
-                                    <DialogHeader>
-                                      <DialogTitle>Record</DialogTitle>
-                                      <DialogDescription>
-                                        Vibration check record from sensor
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <table className="table-auto w-full">
-                                      <thead className="w-full">
-                                        <tr className="w-full">
-                                          <th className="w-2/4 outline outline-1 outline-gray-300">
-                                            Time
-                                          </th>
-                                          <th className="w-1/4 outline outline-1 outline-gray-300">
-                                            Value (m/s²)
-                                          </th>
-                                          <th className="w-1/4 outline outline-1 outline-gray-300">
-                                            Action
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {MARSMeasureData !== null &&
-                                        MARSMeasureData.length > 0 ? (
-                                          MARSMeasureData.map(
-                                            (data: any, index: number) => (
-                                              <tr key={index}>
-                                                <td className="outline outline-1 outline-gray-300 text-center">
-                                                  {data.time}
-                                                </td>
-                                                <td className="outline outline-1 outline-gray-300 text-center">
-                                                  {data.value.toFixed(4)}
-                                                </td>
-                                                <td className="outline outline-1 outline-gray-300 text-center">
-                                                  <Button
-                                                    type="button"
-                                                    variant="link"
-                                                    onClick={() =>
-                                                      handleGetVibrationData(
-                                                        MARSEquipmentData.x_id,
-                                                        data.time,
-                                                        "x",
-                                                      )
-                                                    }
-                                                  >
-                                                    Get
-                                                  </Button>
-                                                </td>
-                                              </tr>
-                                            ),
-                                          )
-                                        ) : (
-                                          <tr className="text-center w-full">
-                                            <td
-                                              colSpan={3}
-                                              className="outline outline-1 p-4 outline-gray-300"
-                                            >
-                                              No Data
-                                            </td>
-                                          </tr>
-                                        )}
-                                      </tbody>
-                                    </table>
-                                    <DialogFooter>
-                                      <DialogClose asChild>
-                                        <Button>Close</Button>
-                                      </DialogClose>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                                <Dialog
-                                  key={MARSEquipmentData.y_id}
-                                  open={dialogOpen.y}
-                                  onOpenChange={() =>
-                                    setDialogOpen({ ...dialogOpen, y: true })
-                                  }
-                                >
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      onClick={() =>
-                                        handleSelectCordinate(
-                                          MARSEquipmentData.y_id,
-                                        )
-                                      }
-                                      type="button"
-                                    >
-                                      AxialY
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent
-                                    key={MARSEquipmentData.y_id}
-                                    className="sm:max-w-[425px]"
-                                  >
-                                    <DialogHeader>
-                                      <DialogTitle>Record</DialogTitle>
-                                      <DialogDescription>
-                                        Vibration check record from sensor
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <table className="table-auto w-full">
-                                      <thead className="w-full">
-                                        <tr className="w-full">
-                                          <th className="w-2/4 outline outline-1 outline-gray-300">
-                                            Time
-                                          </th>
-                                          <th className="w-1/4 outline outline-1 outline-gray-300">
-                                            Value (m/s²)
-                                          </th>
-                                          <th className="w-1/4 outline outline-1 outline-gray-300">
-                                            Action
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {MARSMeasureData !== null &&
-                                        MARSMeasureData.length > 0 ? (
-                                          MARSMeasureData.map(
-                                            (data: any, index: number) => (
-                                              <tr key={index}>
-                                                <td className="outline outline-1 outline-gray-300 text-center">
-                                                  {data.time}
-                                                </td>
-                                                <td className="outline outline-1 outline-gray-300 text-center">
-                                                  {data.value.toFixed(4)}
-                                                </td>
-                                                <td className="outline outline-1 outline-gray-300 text-center">
-                                                  <Button
-                                                    type="button"
-                                                    variant="link"
-                                                    onClick={() =>
-                                                      handleGetVibrationData(
-                                                        MARSEquipmentData.y_id,
-                                                        data.time,
-                                                        "y",
-                                                      )
-                                                    }
-                                                  >
-                                                    Get
-                                                  </Button>
-                                                </td>
-                                              </tr>
-                                            ),
-                                          )
-                                        ) : (
-                                          <tr className="text-center w-full">
-                                            <td
-                                              colSpan={3}
-                                              className="outline outline-1 p-4 outline-gray-300"
-                                            >
-                                              No Data
-                                            </td>
-                                          </tr>
-                                        )}
-                                      </tbody>
-                                    </table>
-                                    <DialogFooter>
-                                      <DialogClose asChild>
-                                        <Button>Close</Button>
-                                      </DialogClose>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                                <Dialog
-                                  key={MARSEquipmentData.z_id}
-                                  open={dialogOpen.z}
-                                  onOpenChange={() =>
-                                    setDialogOpen({ ...dialogOpen, z: true })
-                                  }
-                                >
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      onClick={() =>
-                                        handleSelectCordinate(
-                                          MARSEquipmentData.z_id,
-                                        )
-                                      }
-                                      type="button"
-                                    >
-                                      VerticalZ
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent
-                                    key={MARSEquipmentData.z_id}
-                                    className="sm:max-w-[425px]"
-                                  >
-                                    <DialogHeader>
-                                      <DialogTitle>Record</DialogTitle>
-                                      <DialogDescription>
-                                        Vibration check record from sensor
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <table className="table-auto w-full">
-                                      <thead className="w-full">
-                                        <tr className="w-full">
-                                          <th className="w-2/4 outline outline-1 outline-gray-300">
-                                            Time
-                                          </th>
-                                          <th className="w-1/4 outline outline-1 outline-gray-300">
-                                            Value (m/s²)
-                                          </th>
-                                          <th className="w-1/4 outline outline-1 outline-gray-300">
-                                            Action
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {MARSMeasureData !== null &&
-                                        MARSMeasureData.length > 0 ? (
-                                          MARSMeasureData.map(
-                                            (data: any, index: number) => (
-                                              <tr key={index}>
-                                                <td className="outline outline-1 outline-gray-300 text-center">
-                                                  {data.time}
-                                                </td>
-                                                <td className="outline outline-1 outline-gray-300 text-center">
-                                                  {data.value.toFixed(4)}
-                                                </td>
-                                                <td className="outline outline-1 outline-gray-300 text-center">
-                                                  <Button
-                                                    type="button"
-                                                    variant="link"
-                                                    onClick={() =>
-                                                      handleGetVibrationData(
-                                                        MARSEquipmentData.z_id,
-                                                        data.time,
-                                                        "z",
-                                                      )
-                                                    }
-                                                  >
-                                                    Get
-                                                  </Button>
-                                                </td>
-                                              </tr>
-                                            ),
-                                          )
-                                        ) : (
-                                          <tr className="text-center w-full">
-                                            <td
-                                              colSpan={3}
-                                              className="outline outline-1 p-4 outline-gray-300"
-                                            >
-                                              No Data
-                                            </td>
-                                          </tr>
-                                        )}
-                                      </tbody>
-                                    </table>
-                                    <DialogFooter>
-                                      <DialogClose asChild>
-                                        <Button>Close</Button>
-                                      </DialogClose>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog> */}
                               </div>
                             </div>
                           </div>
@@ -2991,1283 +2736,324 @@ function ReportEdit() {
                             </div>
                           </div>
                         )}
+                      <div className="w-full flex md:flex-row sm:flex-col gap-4 py-4">
+                        <Table className="border-r">
+                          <TableHeader>
+                            <TableRow className="border border-none hover:bg-transparent">
+                              <TableHead
+                                colSpan={1}
+                                className="w-8"
+                              ></TableHead>
+                              <TableHead
+                                colSpan={1}
+                                className="w-[150px]"
+                              ></TableHead>
+                              <TableHead colSpan={2} className="text-center border">
+                                Pump
+                              </TableHead>
+                            </TableRow>
+                            <TableRow className="hover:bg-transparent">
+                              <TableCell colSpan={1}></TableCell>
+                              <TableHead colSpan={1}></TableHead>
+                              <TableHead colSpan={1} className="text-center border-x">
+                                PE (NDE)
+                              </TableHead>
+                              <TableHead colSpan={1} className="text-center">
+                                CE (DE)
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody className="border">
+                            <TableCell
+                              rowSpan={4}
+                              className="text-center align-middle border-r"
+                            >
+                              <div className="rotate-[-90deg] whitespace-nowrap">
+                                Axial
+                              </div>
+                            </TableCell>
+                            <TableRow>
+                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
 
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_pump_de_h_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump drive end vibration (horizontal)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_pump_de_h"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump drive end vibration (horizontal)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_pump_de_h_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
+                              <TableCell className="text-start align-middle border-r">
+                                Acceleration (m/s²)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_pump_nde_a || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_pump_de_a || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Velocity (mm/s)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_pump_nde_a || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_pump_de_a || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Displacement (µm)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_pump_nde_a || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_pump_de_a || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableCell
+                              rowSpan={4}
+                              className="text-center align-middle border-r"
+                            >
+                              <div className="rotate-[-90deg] whitespace-nowrap text-center align-middle">
+                                Horizontal
                               </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_pump_de_v_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump drive end vibration (vertical)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_pump_de_v"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump drive end vibration (vertical)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_pump_de_v_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_pump_de_a_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump drive end vibration (axial)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_pump_de_a"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump drive end vibration (axial)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_pump_de_a_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_pump_nde_h_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump non-drive end vibration (horizontal)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_pump_nde_h"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump non-drive end vibration (horizontal)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_pump_nde_h_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_pump_nde_v_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump non-drive end vibration (vertical)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_pump_nde_v"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump non-drive end vibration (vertical)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_pump_nde_v_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_pump_nde_a_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump non-drive end vibration (axial)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_pump_nde_a"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump non-drive end vibration (axial)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_pump_nde_a_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_motor_de_h_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor drive end vibration (horizontal)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_motor_de_h"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor drive end vibration (horizontal)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_motor_de_h_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_motor_de_v_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor drive end vibration (vertical)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_motor_de_v"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor drive end vibration (vertical)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_motor_de_v_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_motor_de_a_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor drive end vibration (axial)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_motor_de_a"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor drive end vibration (axial)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_motor_de_a_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_motor_nde_h_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor non-drive end Vibration (horizontal)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_motor_nde_h"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor non-drive end Vibration (horizontal)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_motor_nde_h_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_motor_nde_v_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor non-drive end Vibration (vertical)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_motor_nde_v"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor non-drive end Vibration (vertical)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_motor_nde_v_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="v_motor_nde_a_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor non-drive end Vibration (axial)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="v_motor_nde_a"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor non-drive end Vibration (axial)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "v_motor_nde_a_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_pump_de_h_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump drive end acceleration (horizontal)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_pump_de_h"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump drive end acceleration (horizontal)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_pump_de_h_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_pump_de_v_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump drive end acceleration (vertical)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_pump_de_v"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump drive end acceleration (vertical)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_pump_de_v_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_pump_de_a_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump drive end acceleration (axial)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_pump_de_a"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump drive end acceleration (axial)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_pump_de_a_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_pump_nde_h_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump non-drive end acceleration (horizontal)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_pump_nde_h"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump non-drive end acceleration (horizontal)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_pump_nde_h_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_pump_nde_v_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump non-drive end acceleration (vertical)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_pump_nde_v"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump non-drive end acceleration (vertical)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_pump_nde_v_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_pump_nde_a_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump non-drive end acceleration (axial)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_pump_nde_a"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump non-drive end acceleration (axial)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_pump_nde_a_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                            </TableCell>
+                            <TableRow>
+                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
 
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_motor_de_h_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor drive end acceleration (horizontal)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_motor_de_h"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor drive end acceleration (horizontal)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_motor_de_h_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
+                              <TableCell className="text-start align-middle border-r">
+                                Acceleration (m/s²)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_pump_nde_h || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_pump_de_h || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Velocity (mm/s)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_pump_nde_h || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_pump_de_h || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Displacement (µm)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_pump_nde_h || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_pump_de_h || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableCell
+                              rowSpan={4}
+                              className="text-center align-middle border-r"
+                            >
+                              <div className="rotate-[-90deg] whitespace-nowrap text-center align-middle">
+                                Vertical
                               </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_motor_de_v_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor drive end acceleration (vertical)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_motor_de_v"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor drive end acceleration (vertical)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_motor_de_v_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
+                            </TableCell>
+                            <TableRow>
+                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
+
+                              <TableCell className="text-start align-middle border-r">
+                                Acceleration (m/s²)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_pump_nde_v || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_pump_de_v || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Velocity (mm/s)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_pump_nde_v || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_pump_de_v || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Displacement (µm)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_pump_nde_v || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_pump_de_v || "-"}
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <Table className="border-r">
+                          <TableHeader>
+                            <TableRow className="border border-none hover:bg-transparent">
+                              <TableHead
+                                colSpan={1}
+                                className="w-8"
+                              ></TableHead>
+                              <TableHead
+                                colSpan={1}
+                                className="w-[150px]"
+                              ></TableHead>
+                              <TableHead colSpan={2} className="text-center border ">
+                                Motor
+                              </TableHead>
+                            </TableRow>
+                            <TableRow className="hover:bg-transparent">
+                              <TableHead colSpan={1}></TableHead>
+                              <TableHead colSpan={1}></TableHead>
+                              <TableHead colSpan={1} className="text-center border-x">
+                                NDE
+                              </TableHead>
+                              <TableHead colSpan={1} className="text-center border-r">
+                                DE
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody className="border">
+                            <TableCell
+                              rowSpan={4}
+                              className="text-center align-middle border-r"
+                            >
+                              <div className="rotate-[-90deg] whitespace-nowrap">
+                                Axial
                               </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_motor_de_a_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor drive end acceleration (axial)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_motor_de_a"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor drive end acceleration (axial)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_motor_de_a_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
+                            </TableCell>
+                            <TableRow>
+                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
+
+                              <TableCell className="text-start align-middle border-r">
+                                Acceleration (m/s²)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_motor_nde_a || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_motor_de_a || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Velocity (mm/s)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_motor_nde_a || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_motor_de_a || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Displacement (µm)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_motor_nde_a || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_motor_de_a || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableCell
+                              rowSpan={4}
+                              className="text-center align-middle border-r"
+                            >
+                              <div className="rotate-[-90deg] whitespace-nowrap text-center align-middle">
+                                Horizontal
                               </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_motor_nde_h_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor non-drive end acceleration (horizontal)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_motor_nde_h"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor non-drive end acceleration (horizontal)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_motor_nde_h_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
+                            </TableCell>
+                            <TableRow>
+                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
+
+                              <TableCell className="text-start align-middle border-r">
+                                Acceleration (m/s²)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_motor_nde_h || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_motor_de_h || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Velocity (mm/s)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_motor_nde_h || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_motor_de_h || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Displacement (µm)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_motor_nde_h || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_motor_de_h || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableCell
+                              rowSpan={4}
+                              className="text-center align-middle border-r"
+                            >
+                              <div className="rotate-[-90deg] whitespace-nowrap text-center align-middle">
+                                Vertical
                               </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_motor_nde_v_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor non-drive end acceleration (vertical)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_motor_nde_v"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor non-drive end acceleration (vertical)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_motor_nde_v_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="a_motor_nde_a_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Motor non-drive end acceleration (axial)
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="a_motor_nde_a"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor non-drive end acceleration (axial)"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "a_motor_nde_a_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={engineerReportCheckVibrationForm.control}
-                        name="temp_pump_nde_unit"
-                        render={({ field: field }) => (
-                          <FormItem>
-                            <div className="w-full flex items-center">
-                              <FormLabel className="w-32 lg:w-44">
-                                Pump non-drive end temperature
-                              </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="temp_pump_nde"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump non-drive end temperature"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
-                                />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "temp_pump_nde_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                            </TableCell>
+                            <TableRow>
+                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
+
+                              <TableCell className="text-start align-middle border-r">
+                                Acceleration (m/s²)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_motor_nde_v || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.a_motor_de_v || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Velocity (mm/s)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_motor_nde_v || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.v_motor_de_v || "-"}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-start align-middle border-r">
+                                Displacement (µm)
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_motor_nde_v || "-"}
+                              </TableCell>
+                              <TableCell className="text-center align-middle border-r">
+                                {vibeData?.d_motor_de_v || "-"}
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
                       <FormField
                         control={engineerReportCheckVibrationForm.control}
                         name="temp_pump_de_unit"
@@ -4275,7 +3061,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Pump drive end temperature
+                                Pump DE temp.
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 {/* Input for density */}
@@ -4299,7 +3085,7 @@ function ReportEdit() {
                                     className="min-w-[86px]"
                                     items={
                                       handleLOVDataFilter(
-                                        "unit_vibration",
+                                        "unit_temp",
                                         "pump_unit",
                                       ) || []
                                     } // Dropdown options
@@ -4326,7 +3112,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Pump non-drive end temperature
+                                Pump NDE temp.
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 {/* Input for density */}
@@ -4350,7 +3136,7 @@ function ReportEdit() {
                                     className="min-w-[86px]"
                                     items={
                                       handleLOVDataFilter(
-                                        "unit_vibration",
+                                        "unit_temp",
                                         "pump_unit",
                                       ) || []
                                     } // Dropdown options
@@ -4377,7 +3163,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Motor drive end temperature
+                                Motor DE temp.
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 {/* Input for density */}
@@ -4401,7 +3187,7 @@ function ReportEdit() {
                                     className="min-w-[86px]"
                                     items={
                                       handleLOVDataFilter(
-                                        "unit_vibration",
+                                        "unit_temp",
                                         "pump_unit",
                                       ) || []
                                     } // Dropdown options
@@ -4428,7 +3214,7 @@ function ReportEdit() {
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Motor drive end temperature
+                                Motor DE temp.
                               </FormLabel>
                               <div className="w-full flex gap-2">
                                 {/* Input for density */}
@@ -4452,7 +3238,7 @@ function ReportEdit() {
                                     className="min-w-[86px]"
                                     items={
                                       handleLOVDataFilter(
-                                        "unit_vibration",
+                                        "unit_temp",
                                         "pump_unit",
                                       ) || []
                                     } // Dropdown options

@@ -37,6 +37,65 @@ export interface MarsWaveDataOut {
     time : string
 }
 
+export interface EngineerReportCheckVibe {
+    v_pump_de_h ?: string 
+    v_pump_de_v ?: string 
+    v_pump_de_a ?: string 
+    
+    v_pump_nde_h ?: string 
+    v_pump_nde_v ?: string 
+    v_pump_nde_a ?: string 
+
+    v_motor_de_h ?: string 
+    v_motor_de_v ?: string 
+    v_motor_de_a ?: string 
+
+    v_motor_nde_h ?: string 
+    v_motor_nde_v ?: string 
+    v_motor_nde_a ?: string 
+
+    a_pump_de_h ?: string 
+    a_pump_de_v ?: string 
+    a_pump_de_a ?: string 
+
+    a_pump_nde_h ?: string 
+    a_pump_nde_v ?: string 
+    a_pump_nde_a ?: string 
+
+    
+    a_motor_de_h ?: string 
+    a_motor_de_v ?: string 
+    a_motor_de_a ?: string 
+
+    a_motor_nde_h ?: string 
+    a_motor_nde_v ?: string 
+    a_motor_nde_a ?: string 
+
+    d_pump_de_h ?: string 
+    d_pump_de_v ?: string 
+    d_pump_de_a ?: string 
+
+    d_pump_nde_h ?: string 
+    d_pump_nde_v ?: string 
+    d_pump_nde_a ?: string 
+
+    
+    d_motor_de_h ?: string 
+    d_motor_de_v ?: string 
+    d_motor_de_a ?: string 
+
+    d_motor_nde_h ?: string 
+    d_motor_nde_v ?: string 
+    d_motor_nde_a ?: string 
+
+    temp_pump_nde ?: string 
+    temp_pump_de ?: string 
+    temp_motor_nde ?: string 
+    temp_motor_de ?: string 
+    env_vibration ?: string 
+
+}
+
 export interface EngineerReportCheckVisual {
     check_visual_id : string
     check_id : string
