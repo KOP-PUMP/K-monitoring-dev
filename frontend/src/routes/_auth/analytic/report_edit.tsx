@@ -158,7 +158,9 @@ function ReportEdit() {
     null,
   );
 
-  setVibeData(null)
+  useEffect(() => {
+    setVibeData(null);
+  }, []);
 
   const { data: pumpLOVResponse } = useGetAllPumpLOVData();
   const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();
@@ -2750,14 +2752,20 @@ function ReportEdit() {
                                 colSpan={1}
                                 className="w-[150px]"
                               ></TableHead>
-                              <TableHead colSpan={2} className="text-center border">
+                              <TableHead
+                                colSpan={2}
+                                className="text-center border"
+                              >
                                 Pump
                               </TableHead>
                             </TableRow>
                             <TableRow className="hover:bg-transparent">
                               <TableCell colSpan={1}></TableCell>
                               <TableHead colSpan={1}></TableHead>
-                              <TableHead colSpan={1} className="text-center border-x">
+                              <TableHead
+                                colSpan={1}
+                                className="text-center border-x"
+                              >
                                 PE (NDE)
                               </TableHead>
                               <TableHead colSpan={1} className="text-center">
@@ -2908,17 +2916,26 @@ function ReportEdit() {
                                 colSpan={1}
                                 className="w-[150px]"
                               ></TableHead>
-                              <TableHead colSpan={2} className="text-center border ">
+                              <TableHead
+                                colSpan={2}
+                                className="text-center border "
+                              >
                                 Motor
                               </TableHead>
                             </TableRow>
                             <TableRow className="hover:bg-transparent">
                               <TableHead colSpan={1}></TableHead>
                               <TableHead colSpan={1}></TableHead>
-                              <TableHead colSpan={1} className="text-center border-x">
+                              <TableHead
+                                colSpan={1}
+                                className="text-center border-x"
+                              >
                                 NDE
                               </TableHead>
-                              <TableHead colSpan={1} className="text-center border-r">
+                              <TableHead
+                                colSpan={1}
+                                className="text-center border-r"
+                              >
                                 DE
                               </TableHead>
                             </TableRow>
