@@ -59,15 +59,14 @@ const PumpDetail = () => {
   }, [pumpDetail]);
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
+    <div className="flex-1 space-y-4 px-4 sm:p-8 sm:pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Pump Detail</h2>
-
         <div className="flex items-center justify-start space-x-2">
           <Link to="/pump/total_pump">Back</Link>
         </div>
       </div>
-      <div className="flex gap-4 py-4 ">
+      <div className="flex flex-col md:flex-row gap-2 md:gap-4 ">
         <img
           src={pumpImage} /* {data.image} */
           alt="pump image"
@@ -946,7 +945,7 @@ const PumpDetail = () => {
       <Card className="w-full">
         <Collapsible>
           <CollapsibleTrigger className="flex w-full justify-between items-center pr-4">
-            <CardTitle className="p-4">
+            <CardTitle className="p-4 text-start">
               Material and Impeller Details Group
             </CardTitle>
             <ChevronDown className="w-3.5 h-3.5" />

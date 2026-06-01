@@ -20,7 +20,7 @@ export interface MarsEquipmentDataOut {
     end_time : string
 }
 
-export interface MarsMeasureDataOut {
+export interface MARSVibrationDataOut {
     node_code : string
     node_id : string
     data_index : number
@@ -30,7 +30,7 @@ export interface MarsMeasureDataOut {
     page_size : number
 }
 
-export interface MarsWaveDataOut {
+export interface AnalysisDataOut {
     node_code : string
     node_id : string
     data_index : number
@@ -38,6 +38,20 @@ export interface MarsWaveDataOut {
 }
 
 export interface EngineerReportCheckVibe {
+    check_id : string
+    pump_nde_x_date ?: string
+    pump_nde_y_date ?: string
+    pump_nde_z_date ?: string
+    pump_de_x_date ?: string
+    pump_de_y_date ?: string
+    pump_de_z_date ?: string
+    motor_nde_x_date ?: string
+    motor_nde_y_date ?: string
+    motor_nde_z_date ?: string
+    motor_de_x_date ?: string
+    motor_de_y_date ?: string
+    motor_de_z_date ?: string
+
     v_pump_de_h ?: string 
     v_pump_de_v ?: string 
     v_pump_de_a ?: string 
@@ -79,7 +93,6 @@ export interface EngineerReportCheckVibe {
     d_pump_nde_v ?: string 
     d_pump_nde_a ?: string 
 
-    
     d_motor_de_h ?: string 
     d_motor_de_v ?: string 
     d_motor_de_a ?: string 
@@ -193,3 +206,67 @@ export interface EngineerReportCheckVisual {
     cavitation_run_check : string
     cavitation_run_remark : string
 }
+
+export interface EngineerVibrationAnalysisDataResponse {
+    pump_nde : EngineerVibrationAnalysisPositionData
+    pump_de : EngineerVibrationAnalysisPositionData
+    motor_nde : EngineerVibrationAnalysisPositionData
+    motor_de : EngineerVibrationAnalysisPositionData
+}
+
+export interface EngineerVibrationAnalysisPositionData{
+    x: EngineerVibrationAnalysisAxisData
+    y: EngineerVibrationAnalysisAxisData
+    z: EngineerVibrationAnalysisAxisData
+}
+
+export interface EngineerVibrationAnalysisAxisData {
+    speed: number
+    coltime: string
+    length: number
+    rate: number
+    xinterval: number
+    xunit: string
+    acceleration: EngineerVibrationAnalysisAccelerationData
+    velocity: EngineerVibrationAnalysisVelocityData
+    displacement: EngineerVibrationAnalysisDisplacementData
+}
+
+export interface EngineerVibrationAnalysisAccelerationData {
+    rms : number
+    yunit : string
+    length : number
+    xinterval : number
+    unit : string
+    data : number[]
+    spectrum : EngineerVibrationAnalysisSpectrumData
+}
+
+export interface EngineerVibrationAnalysisVelocityData {
+    rms : number
+    yunit : string
+    length : number
+    xinterval : number
+    unit : string
+    data : number[]
+    spectrum : EngineerVibrationAnalysisSpectrumData
+}
+
+export interface EngineerVibrationAnalysisDisplacementData {
+    rms : number
+    yunit : string
+    length : number
+    xinterval : number
+    unit : string
+    data : number[]
+    spectrum : EngineerVibrationAnalysisSpectrumData
+}
+
+export interface EngineerVibrationAnalysisSpectrumData {
+    length : number
+    xinterval : number
+    xunit : string
+    yunit : string
+    data : number[]
+}
+
