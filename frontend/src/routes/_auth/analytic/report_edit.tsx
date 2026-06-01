@@ -1,8 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, pick } from "@tanstack/react-router";
+import React, { useMemo } from "react";
 import {
   ReportCheckCalResponse,
   EngineerReportCheckVibe,
+  EngineerVibrationAnalysisDataResponse,
+  EngineerVibrationAnalysisPositionData,
 } from "@/types/amalytic/report_check_data";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner } from "@/components/ui/spinner";
 import {
   LineChart,
   Line,
@@ -15,6 +20,11 @@ import {
   Brush,
 } from "recharts";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   useCreateEngineerReportCalCheck,
   useCreateEngineerReportVibeCheck,
   useCreateEngineerReportVisualCheck,
@@ -26,16 +36,17 @@ import {
   useUpdateEngineerReportVisualCheck,
   useGetEquipmentFromMars,
   useGetAllMeasureDataFromMars,
-  useGetWaveDataFromMars,
+  useGetAnalysisData,
   useGetSpecTrumWaveDataFromMars,
 } from "@/hook/engineer/engineer";
+import { getAnalysisData as getAnalysisDataApi } from "@/api/engineer/engineer";
 import {
   EngineerReportCheckCalSchema,
   EngineerReportCheckVibrationSchema,
   EngineerReportCheckVisualSchema,
   EngineerReportCheckResultSchema,
 } from "@/validators/engineer";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, Copy, X } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import {
@@ -47,7 +58,7 @@ import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
-import { z } from "zod";
+import { string, z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
@@ -84,6 +95,427 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { set } from "date-fns";
+
+type MeasureType = "acceleration" | "velocity" | "displacement";
+
+const AXIS_COLORS = { x: "#3b82f6", y: "#22c55e", z: "#ef4444" };
+const AXIS_LABELS = { x: "Horizontal X", y: "Axial Y", z: "Vertical Z" };
+
+const buildWaveData = (
+  d: EngineerVibrationAnalysisPositionData,
+  type: MeasureType,
+) =>
+  Array.from(
+    {
+      length: Math.max(
+        d.x[type].data.length,
+        d.y[type].data.length,
+        d.z[type].data.length,
+      ),
+    },
+    (_, i) => ({
+      point: i,
+      x: d.x[type].data[i] ?? null,
+      y: d.y[type].data[i] ?? null,
+      z: d.z[type].data[i] ?? null,
+    }),
+  );
+
+const buildSpectrumData = (
+  d: EngineerVibrationAnalysisPositionData,
+  type: MeasureType,
+) =>
+  Array.from(
+    {
+      length: Math.max(
+        d.x[type].spectrum.data.length,
+        d.y[type].spectrum.data.length,
+        d.z[type].spectrum.data.length,
+      ),
+    },
+    (_, i) => ({
+      point: +(i * d.x[type].spectrum.xinterval).toFixed(3),
+      x: d.x[type].spectrum.data[i] ?? null,
+      y: d.y[type].spectrum.data[i] ?? null,
+      z: d.z[type].spectrum.data[i] ?? null,
+    }),
+  );
+
+const VibrationChart = ({
+  data,
+  title,
+  xLabel,
+  selectedAxes,
+}: {
+  data: any[];
+  title: string;
+  xLabel: string;
+  selectedAxes: ("x" | "y" | "z")[];
+}) => (
+  <div className="w-full h-64">
+    <p className="text-sm text-gray-600 mb-1">{title}</p>
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis
+          dataKey="point"
+          label={{ value: xLabel, position: "insideBottomRight", offset: -5 }}
+        />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        {(["x", "y", "z"] as const)
+          .filter((a) => selectedAxes.includes(a))
+          .map((a) => (
+            <Line
+              key={a}
+              type="monotone"
+              dot={false}
+              dataKey={a}
+              name={AXIS_LABELS[a]}
+              stroke={AXIS_COLORS[a]}
+              isAnimationActive={false}
+            />
+          ))}
+        <Brush />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+);
+
+const VibrationGraphs = React.memo(
+  ({
+    data,
+    selectedAxes,
+    onToggleAxis,
+  }: {
+    data: EngineerVibrationAnalysisPositionData;
+    selectedAxes: ("x" | "y" | "z")[];
+    onToggleAxis: (axis: "x" | "y" | "z") => void;
+  }) => {
+    const measures: { type: MeasureType; label: string }[] = [
+      { type: "acceleration", label: "Acceleration" },
+      { type: "velocity", label: "Velocity" },
+      { type: "displacement", label: "Displacement" },
+    ];
+
+    // Only recomputes when data changes, not on every parent render
+    const chartData = useMemo(
+      () =>
+        measures.map(({ type, label }) => ({
+          type,
+          label,
+          wave: buildWaveData(data, type),
+          spectrum: buildSpectrumData(data, type),
+        })),
+      [data],
+    );
+
+    return (
+      <div className="flex flex-col gap-6 pt-4">
+        {/* Axis selector */}
+        <div className="flex gap-4 items-center">
+          <span className="text-sm font-medium">Show axis:</span>
+          {(["x", "y", "z"] as const).map((a) => (
+            <label
+              key={a}
+              className="flex items-center gap-1.5 cursor-pointer text-sm"
+            >
+              <Checkbox
+                checked={selectedAxes.includes(a)}
+                onCheckedChange={() => onToggleAxis(a)}
+              />
+              <span style={{ color: AXIS_COLORS[a] }}>{AXIS_LABELS[a]}</span>
+            </label>
+          ))}
+        </div>
+
+        {/* Charts */}
+        {chartData.map(({ type, label, wave, spectrum }) => (
+          <div key={type} className="flex flex-col gap-2">
+            <p className="text-sm font-semibold text-decoration-line: underline">
+              {label}
+            </p>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <VibrationChart
+                  data={wave}
+                  title={`${label} Wave`}
+                  xLabel={data.x.xunit}
+                  selectedAxes={selectedAxes}
+                />
+              </div>
+              <div className="flex-1">
+                <VibrationChart
+                  data={spectrum}
+                  title={`${label} Spectrum`}
+                  xLabel="Hz"
+                  selectedAxes={selectedAxes}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  },
+);
+
+interface VibrationDialogProps {
+  position: string;
+  equipmentId: { x_id: string; y_id: string; z_id: string };
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  measureData: any[];
+  isFetchingMeasure: boolean;
+  isSubmitting: boolean;
+  isDateSelected: boolean;
+  pickVibeDate: { x: string; y: string; z: string };
+  onPickVibeDateChange: (axis: "x" | "y" | "z", value: string) => void;
+  onResetVibeDate: () => void;
+  onGetData: (
+    equipment: { x_id: string; y_id: string; z_id: string },
+    date: { x: string; y: string; z: string },
+    position: string,
+  ) => void;
+  onSelectTrigger: (
+    id: { x_id: string; y_id: string; z_id: string },
+    position: string,
+  ) => void;
+}
+
+const VibrationDialog = ({
+  position,
+  equipmentId,
+  isOpen,
+  onOpenChange,
+  measureData,
+  isFetchingMeasure,
+  isSubmitting,
+  isDateSelected,
+  pickVibeDate,
+  onPickVibeDateChange,
+  onResetVibeDate,
+  onSelectTrigger,
+  onGetData,
+}: VibrationDialogProps) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>
+        {!isDateSelected ? (
+          <Button type="button" disabled>
+            Get Data
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            onClick={() => onSelectTrigger(equipmentId, position)}
+            disabled={isFetchingMeasure}
+          >
+            {isFetchingMeasure ? (
+              <>
+                <Spinner className="mr-2 h-4 w-4" />
+                Loading...
+              </>
+            ) : (
+              "Get Data"
+            )}
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Record</DialogTitle>
+          <DialogDescription>
+            Vibration check record from sensor
+          </DialogDescription>
+        </DialogHeader>
+        {/* Selection summary */}
+        <div className="grid grid-cols-3 gap-2 px-1 pb-1">
+          {(["x", "y", "z"] as const).map((axis) => {
+            const labels = { x: "Horizontal X", y: "Axial Y", z: "Vertical Z" };
+            const selected = pickVibeDate[axis];
+            return (
+              <div
+                key={axis}
+                className={`rounded border px-2 py-1.5 text-xs ${
+                  selected
+                    ? "border-blue-400 bg-blue-50 text-blue-700"
+                    : "border-dashed border-muted-foreground/40 text-muted-foreground"
+                }`}
+              >
+                <p className="font-medium">{labels[axis]}</p>
+                <p className="truncate">{selected || "Not selected"}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="w-full max-h-[700px] overflow-y-auto flex flex-col gap-4">
+          {isFetchingMeasure ? (
+            <div className="flex items-center justify-center py-16">
+              <Spinner className="h-8 w-8" />
+            </div>
+          ) : (
+            <>
+              {/* X Axis */}
+              <Table>
+                <TableHeader>
+                  <header>Horizontal X Axis</header>
+                  <TableRow>
+                    <TableHead className="text-center">Time</TableHead>
+                    <TableHead className="text-center">Value (m/s²)</TableHead>
+                    <TableHead className="text-center">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {measureData && measureData[0]?.length > 0 ? (
+                    measureData[0].map((data: any, index: number) => {
+                      const isSelected = pickVibeDate.x === data.time;
+                      return (
+                        <TableRow
+                          key={index}
+                          className={`text-center ${isSelected ? "bg-blue-50" : ""}`}
+                        >
+                          <TableCell>{data.time}</TableCell>
+                          <TableCell>{data.value}</TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant={isSelected ? "default" : "link"}
+                              size="sm"
+                              onClick={() => onPickVibeDateChange("x", data.time)}
+                            >
+                              {isSelected ? "✓ Selected" : "Select"}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow className="text-center">
+                      <TableCell colSpan={3}>No Data</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              {/* Y Axis */}
+              <Table>
+                <TableHeader>
+                  <header>Axial Y Axis</header>
+                  <TableRow>
+                    <TableHead className="text-center">Time</TableHead>
+                    <TableHead className="text-center">Value (m/s²)</TableHead>
+                    <TableHead className="text-center">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {measureData && measureData[1]?.length > 0 ? (
+                    measureData[1].map((data: any, index: number) => {
+                      const isSelected = pickVibeDate.y === data.time;
+                      return (
+                        <TableRow
+                          key={index}
+                          className={`text-center ${isSelected ? "bg-blue-50" : ""}`}
+                        >
+                          <TableCell>{data.time}</TableCell>
+                          <TableCell>{data.value}</TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant={isSelected ? "default" : "link"}
+                              size="sm"
+                              onClick={() => onPickVibeDateChange("y", data.time)}
+                            >
+                              {isSelected ? "✓ Selected" : "Select"}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow className="text-center">
+                      <TableCell colSpan={3}>No Data</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              {/* Z Axis */}
+              <Table>
+                <TableHeader>
+                  <header>Vertical Z Axis</header>
+                  <TableRow>
+                    <TableHead className="text-center">Time</TableHead>
+                    <TableHead className="text-center">Value (m/s²)</TableHead>
+                    <TableHead className="text-center">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {measureData && measureData[2]?.length > 0 ? (
+                    measureData[2].map((data: any, index: number) => {
+                      const isSelected = pickVibeDate.z === data.time;
+                      return (
+                        <TableRow
+                          key={index}
+                          className={`text-center ${isSelected ? "bg-blue-50" : ""}`}
+                        >
+                          <TableCell>{data.time}</TableCell>
+                          <TableCell>{data.value}</TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant={isSelected ? "default" : "link"}
+                              size="sm"
+                              onClick={() => onPickVibeDateChange("z", data.time)}
+                            >
+                              {isSelected ? "✓ Selected" : "Select"}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow className="text-center">
+                      <TableCell colSpan={3}>No Data</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </>
+          )}
+        </div>
+        <DialogFooter className="w-full flex justify-between">
+          <Button
+            type="button"
+            disabled={isSubmitting}
+            onClick={() =>
+              onGetData(
+                equipmentId,
+                { x: pickVibeDate.x, y: pickVibeDate.y, z: pickVibeDate.z },
+                position,
+              )
+            }
+          >
+            {isSubmitting ? (
+              <>
+                <Spinner className="mr-2 h-4 w-4" />
+                Loading...
+              </>
+            ) : (
+              "Submit"
+            )}
+          </Button>
+          <DialogClose asChild>
+            <Button type="button" onClick={onResetVibeDate}>
+              Close
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 function ReportEdit() {
   /* const { data: pumpDetail } = useGetPumpDetail(null); */
@@ -102,7 +534,7 @@ function ReportEdit() {
   const getEquipmentFromMars = useGetEquipmentFromMars();
   const getAllMeasureDataFromMars = useGetAllMeasureDataFromMars();
   /* const getMeasureDataFromMars = useGetMeasureDataFromMars(); */
-  const getWaveDatafromMars = useGetWaveDataFromMars();
+  const getAnalysisData = useGetAnalysisData();
   const getSpectrumWaveDatafromMars = useGetSpecTrumWaveDataFromMars();
 
   /* Form initialized */
@@ -143,16 +575,53 @@ function ReportEdit() {
   const [pumpLOVData, setPumpLOVData] = useState<ComboboxItemProps[]>([]);
   const [pumpUnitLOVData, setPumpUnitLOVData] = useState<ComboboxItemProps[]>();
   /* useState for MARS system data out */
-  const [MARSEquipmentData, setMARSEquipmentData] = useState<any>(null);
+  const [MARSEquipmentData, setMARSEquipmentData] = useState<{
+    x_id: string;
+    y_id: string;
+    z_id: string;
+  }>({ x_id: "", y_id: "", z_id: "" });
   const [MARSMeasureData, setMARSMeasureData] = useState<any>(null);
-  const [MARSWaveData, setMARSWaveData] = useState<any>(null);
-  const [MARSSpectrumData, setMARSSpectrumData] = useState<any>(null);
-  const [openDatePicker, setOpenDatePicker] = useState(false);
-  const [pickDate, setPickDate] = useState<string>("");
+  const [selectedVibAxes, setSelectedVibAxes] = useState<
+    Record<string, ("x" | "y" | "z")[]>
+  >({
+    pump_nde: ["x", "y", "z"],
+    pump_de: ["x", "y", "z"],
+    motor_nde: ["x", "y", "z"],
+    motor_de: ["x", "y", "z"],
+  });
+  const [vibrationAnalysisData, setVibrationAnalysisData] = useState<
+    Record<string, EngineerVibrationAnalysisPositionData | null>
+  >({
+    pump_nde: null,
+    pump_de: null,
+    motor_nde: null,
+    motor_de: null,
+  });
+  const [openDatePicker, setOpenDatePicker] = useState<any>({
+    pump_nde: false,
+    pump_de: false,
+    motor_nde: false,
+    motor_de: false,
+  });
+  const [pickDate, setPickDate] = useState<any>({
+    pump_nde: "",
+    pump_de: "",
+    motor_nde: "",
+    motor_de: "",
+  });
+  const [pickVibeDate, setPickVibeDate] = useState<
+    Record<string, { x: string; y: string; z: string }>
+  >({
+    pump_nde:  { x: "", y: "", z: "" },
+    pump_de:   { x: "", y: "", z: "" },
+    motor_nde: { x: "", y: "", z: "" },
+    motor_de:  { x: "", y: "", z: "" },
+  });
   const [dialogOpen, setDialogOpen] = useState<any>({
-    x: false,
-    y: false,
-    z: false,
+    pump_nde: false,
+    pump_de: false,
+    motor_nde: false,
+    motor_de: false,
   });
   const [vibeData, setVibeData] = useState<EngineerReportCheckVibe | null>(
     null,
@@ -187,107 +656,17 @@ function ReportEdit() {
       return filterData;
     }
   };
-  interface VibrationDialogProps {
-    axis: "x" | "y" | "z";
-    label: string;
-    equipmentId: string;
-    isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
-    measureData: any[];
-    onGetData: (id: string, time: string, axis: "x" | "y" | "z") => void;
-    onSelectTrigger?: (id: string) => void;
-  }
 
-  const VibrationDialog = ({
-    axis,
-    label,
-    equipmentId,
-    isOpen,
-    onOpenChange,
-    measureData,
-    onGetData,
-    onSelectTrigger,
-  }: VibrationDialogProps) => {
-    return (
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogTrigger asChild>
-          <Button type="button" onClick={() => onSelectTrigger?.(equipmentId)}>
-            {label}
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Record ({label})</DialogTitle>
-            <DialogDescription>
-              Vibration check record from sensor
-            </DialogDescription>
-          </DialogHeader>
-
-          <Table className="table-auto w-full">
-            <TableHead>
-              <TableRow>
-                <TableCell className="w-2/4 outline outline-1 outline-gray-300">
-                  Time
-                </TableCell>
-                <TableCell className="w-1/4 outline outline-1 outline-gray-300">
-                  Value (m/s²)
-                </TableCell>
-                <TableCell className="w-1/4 outline outline-1 outline-gray-300">
-                  Action
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {measureData && measureData.length > 0 ? (
-                measureData.map((data, index) => (
-                  <TableRow key={index}>
-                    <td className="outline outline-1 outline-gray-300 text-center">
-                      {data.time}
-                    </td>
-                    <td className="outline outline-1 outline-gray-300 text-center">
-                      {data.value.toFixed(4)}
-                    </td>
-                    <td className="outline outline-1 outline-gray-300 text-center">
-                      <Button
-                        type="button"
-                        variant="link"
-                        onClick={() => onGetData(equipmentId, data.time, axis)}
-                      >
-                        Get
-                      </Button>
-                    </td>
-                  </TableRow>
-                ))
-              ) : (
-                <tr className="text-center w-full">
-                  <td
-                    colSpan={3}
-                    className="outline outline-1 p-4 outline-gray-300"
-                  >
-                    No Data
-                  </td>
-                </tr>
-              )}
-            </TableBody>
-          </Table>
-
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button">Close</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const handleDatePickFormatChange = (date: Date) => {
+  const handleDatePickFormatChange = (date: Date, datePickerKey: string) => {
     const year_pick = date.getFullYear();
     const month_pick = String(date.getMonth() + 1).padStart(2, "0");
     const day_pick = String(date.getDate()).padStart(2, "0");
     const formattedDateTime = `${year_pick}-${month_pick}-${day_pick} 00:00:00`;
 
-    setPickDate(formattedDateTime);
+    setPickDate((prev: any) => ({
+      ...prev,
+      [datePickerKey]: formattedDateTime,
+    }));
   };
 
   useEffect(() => {
@@ -376,11 +755,80 @@ function ReportEdit() {
   };
 
   const handleReportVibrationSubmit = () => {
-    let data = engineerReportCheckVibrationForm.getValues();
+    const formValues = engineerReportCheckVibrationForm.getValues();
+
+    const data: EngineerReportCheckVibe = {
+      check_id: id ?? "",
+
+      //Measure timestamps from vibrationAnalysisData coltime
+      pump_nde_x_date: vibrationAnalysisData.pump_nde?.x.coltime,
+      pump_nde_y_date: vibrationAnalysisData.pump_nde?.y.coltime,
+      pump_nde_z_date: vibrationAnalysisData.pump_nde?.z.coltime,
+      pump_de_x_date:  vibrationAnalysisData.pump_de?.x.coltime,
+      pump_de_y_date:  vibrationAnalysisData.pump_de?.y.coltime,
+      pump_de_z_date:  vibrationAnalysisData.pump_de?.z.coltime,
+      motor_nde_x_date: vibrationAnalysisData.motor_nde?.x.coltime,
+      motor_nde_y_date: vibrationAnalysisData.motor_nde?.y.coltime,
+      motor_nde_z_date: vibrationAnalysisData.motor_nde?.z.coltime,
+      motor_de_x_date:  vibrationAnalysisData.motor_de?.x.coltime,
+      motor_de_y_date:  vibrationAnalysisData.motor_de?.y.coltime,
+      motor_de_z_date:  vibrationAnalysisData.motor_de?.z.coltime,
+
+      // Velocity RMS
+      v_pump_nde_h: vibrationAnalysisData.pump_nde?.x.velocity.rms?.toString(),
+      v_pump_nde_v: vibrationAnalysisData.pump_nde?.z.velocity.rms?.toString(),
+      v_pump_nde_a: vibrationAnalysisData.pump_nde?.y.velocity.rms?.toString(),
+      v_pump_de_h:  vibrationAnalysisData.pump_de?.x.velocity.rms?.toString(),
+      v_pump_de_v:  vibrationAnalysisData.pump_de?.z.velocity.rms?.toString(),
+      v_pump_de_a:  vibrationAnalysisData.pump_de?.y.velocity.rms?.toString(),
+      v_motor_nde_h: vibrationAnalysisData.motor_nde?.x.velocity.rms?.toString(),
+      v_motor_nde_v: vibrationAnalysisData.motor_nde?.z.velocity.rms?.toString(),
+      v_motor_nde_a: vibrationAnalysisData.motor_nde?.y.velocity.rms?.toString(),
+      v_motor_de_h:  vibrationAnalysisData.motor_de?.x.velocity.rms?.toString(),
+      v_motor_de_v:  vibrationAnalysisData.motor_de?.z.velocity.rms?.toString(),
+      v_motor_de_a:  vibrationAnalysisData.motor_de?.y.velocity.rms?.toString(),
+
+      // Acceleration RMS
+      a_pump_nde_h: vibrationAnalysisData.pump_nde?.x.acceleration.rms?.toString(),
+      a_pump_nde_v: vibrationAnalysisData.pump_nde?.z.acceleration.rms?.toString(),
+      a_pump_nde_a: vibrationAnalysisData.pump_nde?.y.acceleration.rms?.toString(),
+      a_pump_de_h:  vibrationAnalysisData.pump_de?.x.acceleration.rms?.toString(),
+      a_pump_de_v:  vibrationAnalysisData.pump_de?.z.acceleration.rms?.toString(),
+      a_pump_de_a:  vibrationAnalysisData.pump_de?.y.acceleration.rms?.toString(),
+      a_motor_nde_h: vibrationAnalysisData.motor_nde?.x.acceleration.rms?.toString(),
+      a_motor_nde_v: vibrationAnalysisData.motor_nde?.z.acceleration.rms?.toString(),
+      a_motor_nde_a: vibrationAnalysisData.motor_nde?.y.acceleration.rms?.toString(),
+      a_motor_de_h:  vibrationAnalysisData.motor_de?.x.acceleration.rms?.toString(),
+      a_motor_de_v:  vibrationAnalysisData.motor_de?.z.acceleration.rms?.toString(),
+      a_motor_de_a:  vibrationAnalysisData.motor_de?.y.acceleration.rms?.toString(),
+
+      // Displacement RMS
+      d_pump_nde_h: vibrationAnalysisData.pump_nde?.x.displacement.rms?.toString(),
+      d_pump_nde_v: vibrationAnalysisData.pump_nde?.z.displacement.rms?.toString(),
+      d_pump_nde_a: vibrationAnalysisData.pump_nde?.y.displacement.rms?.toString(),
+      d_pump_de_h:  vibrationAnalysisData.pump_de?.x.displacement.rms?.toString(),
+      d_pump_de_v:  vibrationAnalysisData.pump_de?.z.displacement.rms?.toString(),
+      d_pump_de_a:  vibrationAnalysisData.pump_de?.y.displacement.rms?.toString(),
+      d_motor_nde_h: vibrationAnalysisData.motor_nde?.x.displacement.rms?.toString(),
+      d_motor_nde_v: vibrationAnalysisData.motor_nde?.z.displacement.rms?.toString(),
+      d_motor_nde_a: vibrationAnalysisData.motor_nde?.y.displacement.rms?.toString(),
+      d_motor_de_h:  vibrationAnalysisData.motor_de?.x.displacement.rms?.toString(),
+      d_motor_de_v:  vibrationAnalysisData.motor_de?.z.displacement.rms?.toString(),
+      d_motor_de_a:  vibrationAnalysisData.motor_de?.y.displacement.rms?.toString(),
+
+      // Temp.
+      temp_pump_nde:  formValues.temp_pump_nde,
+      temp_pump_de:   formValues.temp_pump_de,
+      temp_motor_nde: formValues.temp_motor_nde,
+      temp_motor_de:  formValues.temp_motor_de,
+      env_vibration:  formValues.env_vibration,
+    };
+
+    console.log("handleReportVibrationSubmit data:", data);
+
     if (reportCheckData.data_vibe?.check_id) {
       updateEngineerReportVibeCheck.mutate({ data, id: id ?? "" });
     } else {
-      data["check_id"] = id ?? "";
       createEngineerReportVibeCheck.mutate(data);
     }
   };
@@ -429,6 +877,7 @@ function ReportEdit() {
 
   useEffect(() => {
     if (reportCheckData) {
+      console.log("report check data", reportCheckData);
       const calCheckFormData = engineerReportCheckCalForm.getValues();
       const vibeCheckFormData = engineerReportCheckVibrationForm.getValues();
       const visualCheckFormData = engineerReportCheckVisualForm.getValues();
@@ -456,6 +905,31 @@ function ReportEdit() {
             );
           }
         }
+
+        // Restore previously selected timestamps into pickVibeDate per position
+        const vd = reportCheckData.data_vibe;
+        setPickVibeDate({
+          pump_nde: {
+            x: vd.pump_nde_x_date || "",
+            y: vd.pump_nde_y_date || "",
+            z: vd.pump_nde_z_date || "",
+          },
+          pump_de: {
+            x: vd.pump_de_x_date || "",
+            y: vd.pump_de_y_date || "",
+            z: vd.pump_de_z_date || "",
+          },
+          motor_nde: {
+            x: vd.motor_nde_x_date || "",
+            y: vd.motor_nde_y_date || "",
+            z: vd.motor_nde_z_date || "",
+          },
+          motor_de: {
+            x: vd.motor_de_x_date || "",
+            y: vd.motor_de_y_date || "",
+            z: vd.motor_de_z_date || "",
+          },
+        });
       }
       if (reportCheckData.data_visual.check_id) {
         for (let key in visualCheckFormData) {
@@ -484,16 +958,91 @@ function ReportEdit() {
     }
   }, [reportCheckData]);
 
-  const handleSelectCordinate = (id: string) => {
-    const data_out = {
-      node_code: "",
-      node_id: id,
-      data_index: 20,
-      start_time: pickDate,
-      end_time: formattedTomorrowDateTime,
-      page_index: 1,
-      page_size: 1000,
-    };
+  const [isAutoLoadingVibe, setIsAutoLoadingVibe] = useState(false);
+
+  // Auto-load graphs on page load when saved vibration data + equipment IDs are both ready
+  const autoLoadedVibeRef = React.useRef(false);
+  useEffect(() => {
+    if (autoLoadedVibeRef.current) return;
+    if (!MARSEquipmentData.x_id) return;
+    if (!reportCheckData?.data_vibe?.check_id) return;
+
+    autoLoadedVibeRef.current = true;
+
+    const vd = reportCheckData.data_vibe;
+    const positions = [
+      { position: "pump_nde",  x: vd.pump_nde_x_date,  y: vd.pump_nde_y_date,  z: vd.pump_nde_z_date  },
+      { position: "pump_de",   x: vd.pump_de_x_date,   y: vd.pump_de_y_date,   z: vd.pump_de_z_date   },
+      { position: "motor_nde", x: vd.motor_nde_x_date, y: vd.motor_nde_y_date, z: vd.motor_nde_z_date },
+      { position: "motor_de",  x: vd.motor_de_x_date,  y: vd.motor_de_y_date,  z: vd.motor_de_z_date  },
+    ];
+    const toFetch = positions.filter(({ x, y, z }) => x && y && z);
+
+    if (toFetch.length === 0) return;
+
+    setIsAutoLoadingVibe(true);
+
+    Promise.all(
+      toFetch.map(({ position, x, y, z }) => {
+        const payload = [
+          { node_code: "", node_id: MARSEquipmentData.x_id, data_index: 20, time: x },
+          { node_code: "", node_id: MARSEquipmentData.y_id, data_index: 20, time: y },
+          { node_code: "", node_id: MARSEquipmentData.z_id, data_index: 20, time: z },
+        ];
+        return getAnalysisDataApi(payload).then((data) => ({ position, data }));
+      })
+    ).then((results) => {
+      setVibrationAnalysisData((prev) => {
+        const next = { ...prev };
+        results.forEach(({ position, data }) => {
+          next[position] = data;
+        });
+        return next;
+      });
+    }).catch((err) => {
+      console.error("Auto-load vibration graphs failed:", err);
+    }).finally(() => {
+      setIsAutoLoadingVibe(false);
+    });
+  }, [MARSEquipmentData.x_id, reportCheckData?.data_vibe?.check_id]);
+
+  const handleSelectCordinate = (
+    id: {
+      x_id: string;
+      y_id: string;
+      z_id: string;
+    },
+    position: string,
+  ) => {
+    const data_out = [
+      {
+        node_code: "",
+        node_id: id.x_id,
+        data_index: 20,
+        start_time: pickDate[position],
+        end_time: formattedTomorrowDateTime,
+        page_index: 1,
+        page_size: 1000,
+      },
+      {
+        node_code: "",
+        node_id: id.y_id,
+        data_index: 20,
+        start_time: pickDate[`${position}`],
+        end_time: formattedTomorrowDateTime,
+        page_index: 1,
+        page_size: 1000,
+      },
+      {
+        node_code: "",
+        node_id: id.z_id,
+        data_index: 20,
+        start_time: pickDate[`${position}`],
+        end_time: formattedTomorrowDateTime,
+        page_index: 1,
+        page_size: 1000,
+      },
+    ];
     getAllMeasureDataFromMars.mutate(data_out, {
       onSuccess: (data) => {
         setMARSMeasureData(data);
@@ -502,51 +1051,63 @@ function ReportEdit() {
   };
 
   const handleGetVibrationData = (
-    id: string,
-    date: string,
-    axis: "x" | "y" | "z",
+    equipment: { x_id: string; y_id: string; z_id: string },
+    vibration_point: { x: string; y: string; z: string },
+    position: string,
   ) => {
-    const data_out = {
+    console.log("handleGetVibrationData : ", equipment);
+    const data_out = [];
+    data_out.push({
       node_code: "",
-      node_id: id,
+      node_id: equipment.x_id,
       data_index: 20,
-      time: date,
-    };
-    try {
-      getWaveDatafromMars.mutate(data_out, {
-        onSuccess: (data) => {
-          console.log(data);
-          const formated_spectrum_data = data.data.map(
-            (data: any, index: number) => {
-              return {
-                point: index,
-                value: data,
-              };
-            },
-          );
-          setMARSWaveData(formated_spectrum_data);
-        },
-      });
-      getSpectrumWaveDatafromMars.mutate(data_out, {
-        onSuccess: (data) => {
-          console.log(data);
-          const formated_wave_data = data.data.map(
-            (data: any, index: number) => {
-              return {
-                point: index,
-                value: data,
-              };
-            },
-          );
-          setMARSSpectrumData(formated_wave_data);
-        },
-      });
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setDialogOpen({ ...dialogOpen, [axis]: false });
-    }
+      time: vibration_point.x,
+    });
+    data_out.push({
+      node_code: "",
+      node_id: equipment.y_id,
+      data_index: 20,
+      time: vibration_point.y,
+    });
+    data_out.push({
+      node_code: "",
+      node_id: equipment.z_id,
+      data_index: 20,
+      time: vibration_point.z,
+    });
+    getAnalysisData.mutate(data_out, {
+      onSuccess: (data) => {
+        console.log("Vibration Analysis Data: ", data);
+        setVibrationAnalysisData((prev) => ({ ...prev, [position]: data }));
+        setDialogOpen(() => ({ ...dialogOpen, [position]: false }));
+        console.log(
+          "Dialog Open: ",
+          dialogOpen[position],
+          "position: ",
+          position,
+        );
+      },
+      onError: () => {
+        setDialogOpen(() => ({ ...dialogOpen, [position]: false }));
+      },
+    });
   };
+
+  useEffect(() => {
+    console.log("vibrationAnalysisData: ", vibrationAnalysisData);
+  }, [vibrationAnalysisData]);
+
+  const handleToggleVibAxis = React.useCallback(
+    (position: string, axis: "x" | "y" | "z") => {
+      setSelectedVibAxes((prev) => ({
+        ...prev,
+        [position]: prev[position].includes(axis)
+          ? prev[position].filter((a) => a !== axis)
+          : [...prev[position], axis],
+      }));
+    },
+    [],
+  );
 
   const handleVisualCheckListRender = (pump_type: string) => {
     const visual_check_list = [
@@ -2607,140 +3168,442 @@ function ReportEdit() {
                 {/* Report data */}
                 <div className="text-foreground dark:text-foreground grow flex-1">
                   <FormBox field="Vibration Check">
-                    <div className="space-y-2">
-                      {MARSEquipmentData !== null && (
-                        <div className="w-full flex flex-col gap-2">
-                          <div className="w-full flex items-start justify-start">
-                            <Label htmlFor="date" className="pt-2 w-32 lg:w-44">
-                              Pick Date
-                            </Label>
-                            <div className="w-full flex flex-col gap-2">
-                              <Popover
-                                open={openDatePicker}
-                                onOpenChange={setOpenDatePicker}
-                              >
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    id="date"
-                                    className="w-full justify-between font-normal"
-                                  >
-                                    {pickDate
-                                      ? new Date(pickDate).toLocaleDateString()
-                                      : "Select date"}
-                                    <ChevronDownIcon />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="bg-white overflow-hidden p-2"
-                                  align="start"
+                    {isAutoLoadingVibe && (
+                      <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
+                        <Spinner className="h-4 w-4" />
+                        Loading vibration data...
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-4">
+                      {/*Pump PE (NDE)*/}
+                      <div>
+                        {MARSEquipmentData !== null && (
+                          <div className="w-full flex flex-col gap-4">
+                            <div className="w-full flex flex-col gap-4 items-start justify-start">
+                              <Label htmlFor="date">Pump PE (NDE)</Label>
+                              <div className="w-full flex gap-2">
+                                <Popover
+                                  open={openDatePicker.pump_nde}
+                                  onOpenChange={(open) =>
+                                    setOpenDatePicker({
+                                      ...openDatePicker,
+                                      pump_nde: open,
+                                    })
+                                  }
                                 >
-                                  <Calendar
-                                    mode="single"
-                                    className="w-full"
-                                    selected={new Date(pickDate ?? "")}
-                                    captionLayout="dropdown"
-                                    onSelect={(date: any) => {
-                                      handleDatePickFormatChange(date);
-                                      setOpenDatePicker(false);
-                                    }}
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      id="date"
+                                      className="w-full justify-between font-normal"
+                                    >
+                                      {pickDate.pump_nde
+                                        ? new Date(
+                                            pickDate.pump_nde,
+                                          ).toLocaleDateString()
+                                        : "Select date"}
+                                      <ChevronDownIcon />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="bg-white overflow-hidden p-2"
+                                    align="start"
+                                  >
+                                    <Calendar
+                                      mode="single"
+                                      className="w-full"
+                                      selected={
+                                        new Date(pickDate.pump_nde ?? "")
+                                      }
+                                      captionLayout="dropdown"
+                                      onSelect={(date: any) => {
+                                        handleDatePickFormatChange(
+                                          date,
+                                          "pump_nde",
+                                        );
+                                        setOpenDatePicker({
+                                          ...openDatePicker,
+                                          pump_nde: false,
+                                        });
+                                      }}
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <VibrationDialog
+                                  position="pump_nde"
+                                  equipmentId={MARSEquipmentData}
+                                  isOpen={dialogOpen.pump_nde}
+                                  onOpenChange={(open) =>
+                                    setDialogOpen({
+                                      ...dialogOpen,
+                                      pump_nde: open,
+                                    })
+                                  }
+                                  measureData={MARSMeasureData}
+                                  isFetchingMeasure={
+                                    getAllMeasureDataFromMars.isPending
+                                  }
+                                  isSubmitting={getAnalysisData.isPending}
+                                  isDateSelected={pickDate.pump_nde !== ""}
+                                  pickVibeDate={pickVibeDate.pump_nde}
+                                  onPickVibeDateChange={(axis, value) =>
+                                    setPickVibeDate((prev) => ({
+                                      ...prev,
+                                      pump_nde: { ...prev.pump_nde, [axis]: value },
+                                    }))
+                                  }
+                                  onResetVibeDate={() =>
+                                    setPickVibeDate((prev) => ({
+                                      ...prev,
+                                      pump_nde: { x: "", y: "", z: "" },
+                                    }))
+                                  }
+                                  onSelectTrigger={handleSelectCordinate}
+                                  onGetData={handleGetVibrationData}
+                                />
+                              </div>
+                            </div>
+                            {vibrationAnalysisData.pump_nde && (
+                              <Collapsible>
+                                <CollapsibleTrigger className="w-full border-y-2 py-2 hover:bg-secondary/50 data-[state=open]:bg-secondary/50">
+                                  Vibration Graphs
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="border-b-2 pb-12">
+                                  <VibrationGraphs
+                                    data={vibrationAnalysisData.pump_nde}
+                                    selectedAxes={selectedVibAxes.pump_nde}
+                                    onToggleAxis={(axis) =>
+                                      handleToggleVibAxis("pump_nde", axis)
+                                    }
                                   />
-                                </PopoverContent>
-                              </Popover>
-                              <div className="flex gap-2">
-                                {/* Render Horizontal X */}
-                                <VibrationDialog
-                                  axis="x"
-                                  label="HorizontalX"
-                                  equipmentId={MARSEquipmentData.x_id}
-                                  isOpen={dialogOpen.x}
-                                  onOpenChange={(open) =>
-                                    setDialogOpen({ ...dialogOpen, x: open })
-                                  }
-                                  measureData={MARSMeasureData}
-                                  onGetData={handleGetVibrationData}
-                                  onSelectTrigger={handleSelectCordinate}
-                                />
-
-                                {/* Render Axial Y */}
-                                <VibrationDialog
-                                  axis="y"
-                                  label="AxialY"
-                                  equipmentId={MARSEquipmentData.y_id}
-                                  isOpen={dialogOpen.y}
-                                  onOpenChange={(open) =>
-                                    setDialogOpen({ ...dialogOpen, y: open })
-                                  }
-                                  measureData={MARSMeasureData}
-                                  onGetData={handleGetVibrationData}
-                                  onSelectTrigger={handleSelectCordinate}
-                                />
-
-                                {/* Render Vertical Z */}
-                                <VibrationDialog
-                                  axis="z"
-                                  label="VerticalZ"
-                                  equipmentId={MARSEquipmentData.z_id}
-                                  isOpen={dialogOpen.z}
-                                  onOpenChange={(open) =>
-                                    setDialogOpen({ ...dialogOpen, z: open })
-                                  }
-                                  measureData={MARSMeasureData}
-                                  onGetData={handleGetVibrationData}
-                                  onSelectTrigger={handleSelectCordinate}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {MARSSpectrumData?.length > 0 &&
-                        MARSWaveData?.length > 0 && (
-                          <div className="w-full flex">
-                            <div className="w-32 lg:w-44"></div>
-                            <div className="w-full h-[700px] flex flex-col gap-4">
-                              <div className="w-full h-1/2">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <LineChart data={MARSWaveData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" name="asdasdasd" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Line
-                                      type="monotone"
-                                      dot={false}
-                                      dataKey="value"
-                                      name="Wave data"
-                                      stroke="#8884d8"
-                                    />
-                                    <Brush />
-                                  </LineChart>
-                                </ResponsiveContainer>
-                              </div>
-                              <div className="w-full h-1/2">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <LineChart data={MARSSpectrumData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey={"point"} />
-                                    <YAxis dataKey={"value"} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Line
-                                      type="monotone"
-                                      dot={false}
-                                      dataKey="value"
-                                      name="Spectrum data (m/s²)"
-                                      stroke="#8884d8"
-                                    />
-                                    <Brush />
-                                  </LineChart>
-                                </ResponsiveContainer>
-                              </div>
-                            </div>
+                                </CollapsibleContent>
+                              </Collapsible>
+                            )}
                           </div>
                         )}
-                      <div className="w-full flex md:flex-row sm:flex-col gap-4 py-4">
+                      </div>
+                      {/*Pump CE (DE)*/}
+                      <div>
+                        {MARSEquipmentData !== null && (
+                          <div className="w-full flex flex-col gap-4">
+                            <div className="w-full flex flex-col gap-4 items-start justify-start">
+                              <Label htmlFor="date">Pump CE (DE)</Label>
+                              <div className="w-full flex gap-2">
+                                <Popover
+                                  open={openDatePicker.pump_de}
+                                  onOpenChange={(open) =>
+                                    setOpenDatePicker({
+                                      ...openDatePicker,
+                                      pump_de: open,
+                                    })
+                                  }
+                                >
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      id="date"
+                                      className="w-full justify-between font-normal"
+                                    >
+                                      {pickDate.pump_de
+                                        ? new Date(
+                                            pickDate.pump_de,
+                                          ).toLocaleDateString()
+                                        : "Select date"}
+                                      <ChevronDownIcon />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="bg-white overflow-hidden p-2"
+                                    align="start"
+                                  >
+                                    <Calendar
+                                      mode="single"
+                                      className="w-full"
+                                      selected={
+                                        new Date(pickDate.pump_de ?? "")
+                                      }
+                                      captionLayout="dropdown"
+                                      onSelect={(date: any) => {
+                                        handleDatePickFormatChange(
+                                          date,
+                                          "pump_de",
+                                        );
+                                        setOpenDatePicker({
+                                          ...openDatePicker,
+                                          pump_de: false,
+                                        });
+                                      }}
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <VibrationDialog
+                                  position="pump_de"
+                                  equipmentId={MARSEquipmentData}
+                                  isOpen={dialogOpen.pump_de}
+                                  onOpenChange={(open) =>
+                                    setDialogOpen({
+                                      ...dialogOpen,
+                                      pump_de: open,
+                                    })
+                                  }
+                                  measureData={MARSMeasureData}
+                                  isFetchingMeasure={
+                                    getAllMeasureDataFromMars.isPending
+                                  }
+                                  isSubmitting={getAnalysisData.isPending}
+                                  isDateSelected={pickDate.pump_de !== ""}
+                                  pickVibeDate={pickVibeDate.pump_de}
+                                  onPickVibeDateChange={(axis, value) =>
+                                    setPickVibeDate((prev) => ({
+                                      ...prev,
+                                      pump_de: { ...prev.pump_de, [axis]: value },
+                                    }))
+                                  }
+                                  onResetVibeDate={() =>
+                                    setPickVibeDate((prev) => ({
+                                      ...prev,
+                                      pump_de: { x: "", y: "", z: "" },
+                                    }))
+                                  }
+                                  onSelectTrigger={handleSelectCordinate}
+                                  onGetData={handleGetVibrationData}
+                                />
+                              </div>
+                            </div>
+                            {vibrationAnalysisData.pump_de && (
+                              <Collapsible>
+                                <CollapsibleTrigger className="w-full border-y-2 py-2 hover:bg-secondary/50 data-[state=open]:bg-secondary/50">
+                                  Vibration Graphs
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="border-b-2 pb-12">
+                                  <VibrationGraphs
+                                    data={vibrationAnalysisData.pump_de}
+                                    selectedAxes={selectedVibAxes.pump_de}
+                                    onToggleAxis={(axis) =>
+                                      handleToggleVibAxis("pump_de", axis)
+                                    }
+                                  />
+                                </CollapsibleContent>
+                              </Collapsible>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {/*Motor NDE*/}
+                      <div>
+                        {MARSEquipmentData !== null && (
+                          <div className="w-full flex flex-col gap-4">
+                            <div className="w-full flex flex-col gap-4 items-start justify-start">
+                              <Label htmlFor="date">Motor NDE</Label>
+                              <div className="w-full flex gap-2">
+                                <Popover
+                                  open={openDatePicker.motor_nde}
+                                  onOpenChange={(open) =>
+                                    setOpenDatePicker({
+                                      ...openDatePicker,
+                                      motor_nde: open,
+                                    })
+                                  }
+                                >
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      id="date"
+                                      className="w-full justify-between font-normal"
+                                    >
+                                      {pickDate.motor_nde
+                                        ? new Date(
+                                            pickDate.motor_nde,
+                                          ).toLocaleDateString()
+                                        : "Select date"}
+                                      <ChevronDownIcon />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="bg-white overflow-hidden p-2"
+                                    align="start"
+                                  >
+                                    <Calendar
+                                      mode="single"
+                                      className="w-full"
+                                      selected={
+                                        new Date(pickDate.motor_nde ?? "")
+                                      }
+                                      captionLayout="dropdown"
+                                      onSelect={(date: any) => {
+                                        handleDatePickFormatChange(
+                                          date,
+                                          "motor_nde",
+                                        );
+                                        setOpenDatePicker({
+                                          ...openDatePicker,
+                                          motor_nde: false,
+                                        });
+                                      }}
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <VibrationDialog
+                                  position="motor_nde"
+                                  equipmentId={MARSEquipmentData}
+                                  isOpen={dialogOpen.motor_nde}
+                                  onOpenChange={(open) =>
+                                    setDialogOpen({
+                                      ...dialogOpen,
+                                      motor_nde: open,
+                                    })
+                                  }
+                                  measureData={MARSMeasureData}
+                                  isFetchingMeasure={
+                                    getAllMeasureDataFromMars.isPending
+                                  }
+                                  isSubmitting={getAnalysisData.isPending}
+                                  isDateSelected={pickDate.motor_nde !== ""}
+                                  pickVibeDate={pickVibeDate.motor_nde}
+                                  onPickVibeDateChange={(axis, value) =>
+                                    setPickVibeDate((prev) => ({
+                                      ...prev,
+                                      motor_nde: { ...prev.motor_nde, [axis]: value },
+                                    }))
+                                  }
+                                  onResetVibeDate={() =>
+                                    setPickVibeDate((prev) => ({
+                                      ...prev,
+                                      motor_nde: { x: "", y: "", z: "" },
+                                    }))
+                                  }
+                                  onSelectTrigger={handleSelectCordinate}
+                                  onGetData={handleGetVibrationData}
+                                />
+                              </div>
+                            </div>
+                            {vibrationAnalysisData.motor_nde && (
+                              <Collapsible>
+                                <CollapsibleTrigger className="w-full border-y-2 py-2 hover:bg-secondary/50 data-[state=open]:bg-secondary/50">
+                                  Vibration Graphs
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="border-b-2 pb-12">
+                                  <VibrationGraphs
+                                    data={vibrationAnalysisData.motor_nde}
+                                    selectedAxes={selectedVibAxes.motor_nde}
+                                    onToggleAxis={(axis) =>
+                                      handleToggleVibAxis("motor_nde", axis)
+                                    }
+                                  />
+                                </CollapsibleContent>
+                              </Collapsible>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {/* Motor DE */}
+                      <div>
+                        {MARSEquipmentData !== null && (
+                          <div className="w-full flex flex-col gap-4">
+                            <div className="w-full flex flex-col gap-4 items-start justify-start">
+                              <Label htmlFor="date">Motor DE</Label>
+                              <div className="w-full flex gap-2">
+                                <Popover
+                                  open={openDatePicker.motor_de}
+                                  onOpenChange={(open) =>
+                                    setOpenDatePicker({
+                                      ...openDatePicker,
+                                      motor_de: open,
+                                    })
+                                  }
+                                >
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      id="date"
+                                      className="w-full justify-between font-normal"
+                                    >
+                                      {pickDate.motor_de
+                                        ? new Date(
+                                            pickDate.motor_de,
+                                          ).toLocaleDateString()
+                                        : "Select date"}
+                                      <ChevronDownIcon />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="bg-white overflow-hidden p-2"
+                                    align="start"
+                                  >
+                                    <Calendar
+                                      mode="single"
+                                      className="w-full"
+                                      selected={
+                                        new Date(pickDate.motor_de ?? "")
+                                      }
+                                      captionLayout="dropdown"
+                                      onSelect={(date: any) => {
+                                        handleDatePickFormatChange(
+                                          date,
+                                          "motor_de",
+                                        );
+                                        setOpenDatePicker({
+                                          ...openDatePicker,
+                                          motor_de: false,
+                                        });
+                                      }}
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <VibrationDialog
+                                  position="motor_de"
+                                  equipmentId={MARSEquipmentData}
+                                  isOpen={dialogOpen.motor_de}
+                                  onOpenChange={(open) =>
+                                    setDialogOpen({
+                                      ...dialogOpen,
+                                      motor_de: open,
+                                    })
+                                  }
+                                  measureData={MARSMeasureData}
+                                  isFetchingMeasure={
+                                    getAllMeasureDataFromMars.isPending
+                                  }
+                                  isSubmitting={getAnalysisData.isPending}
+                                  isDateSelected={pickDate.motor_de !== ""}
+                                  pickVibeDate={pickVibeDate.motor_de}
+                                  onPickVibeDateChange={(axis, value) =>
+                                    setPickVibeDate((prev) => ({
+                                      ...prev,
+                                      motor_de: { ...prev.motor_de, [axis]: value },
+                                    }))
+                                  }
+                                  onResetVibeDate={() =>
+                                    setPickVibeDate((prev) => ({
+                                      ...prev,
+                                      motor_de: { x: "", y: "", z: "" },
+                                    }))
+                                  }
+                                  onSelectTrigger={handleSelectCordinate}
+                                  onGetData={handleGetVibrationData}
+                                />
+                              </div>
+                            </div>
+                            {vibrationAnalysisData.motor_de && (
+                              <Collapsible>
+                                <CollapsibleTrigger className="w-full border-y-2 py-2 hover:bg-secondary/50 data-[state=open]:bg-secondary/50">
+                                  Vibration Graphs
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="border-b-2 pb-12">
+                                  <VibrationGraphs
+                                    data={vibrationAnalysisData.motor_de}
+                                    selectedAxes={selectedVibAxes.motor_de}
+                                    onToggleAxis={(axis) =>
+                                      handleToggleVibAxis("motor_de", axis)
+                                    }
+                                  />
+                                </CollapsibleContent>
+                              </Collapsible>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="w-full flex md:flex-row flex-col gap-4 py-4">
                         <Table className="border-r">
                           <TableHeader>
                             <TableRow className="border border-none hover:bg-transparent">
@@ -2783,38 +3646,36 @@ function ReportEdit() {
                               </div>
                             </TableCell>
                             <TableRow>
-                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
-
                               <TableCell className="text-start align-middle border-r">
                                 Acceleration (m/s²)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_pump_nde_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_nde?.y.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_pump_de_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_de?.y.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Velocity (mm/s)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_pump_nde_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_nde?.y.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_pump_de_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_de?.y.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Displacement (µm)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_pump_nde_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_nde?.y.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_pump_de_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_de?.y.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableCell
@@ -2826,38 +3687,36 @@ function ReportEdit() {
                               </div>
                             </TableCell>
                             <TableRow>
-                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
-
                               <TableCell className="text-start align-middle border-r">
                                 Acceleration (m/s²)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_pump_nde_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_nde?.x.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_pump_de_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_de?.x.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Velocity (mm/s)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_pump_nde_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_nde?.x.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_pump_de_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_de?.x.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Displacement (µm)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_pump_nde_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_nde?.x.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_pump_de_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_de?.x.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableCell
@@ -2869,38 +3728,36 @@ function ReportEdit() {
                               </div>
                             </TableCell>
                             <TableRow>
-                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
-
                               <TableCell className="text-start align-middle border-r">
                                 Acceleration (m/s²)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_pump_nde_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_nde?.z.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_pump_de_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_de?.z.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Velocity (mm/s)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_pump_nde_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_nde?.z.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_pump_de_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_de?.z.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Displacement (µm)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_pump_nde_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_nde?.z.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_pump_de_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.pump_de?.z.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                           </TableBody>
@@ -2950,38 +3807,36 @@ function ReportEdit() {
                               </div>
                             </TableCell>
                             <TableRow>
-                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
-
                               <TableCell className="text-start align-middle border-r">
                                 Acceleration (m/s²)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_motor_nde_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_nde?.y.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_motor_de_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_de?.y.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Velocity (mm/s)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_motor_nde_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_nde?.y.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_motor_de_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_de?.y.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Displacement (µm)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_motor_nde_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_nde?.y.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_motor_de_a || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_de?.y.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableCell
@@ -2993,38 +3848,36 @@ function ReportEdit() {
                               </div>
                             </TableCell>
                             <TableRow>
-                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
-
                               <TableCell className="text-start align-middle border-r">
                                 Acceleration (m/s²)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_motor_nde_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_nde?.x.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_motor_de_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_de?.x.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Velocity (mm/s)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_motor_nde_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_nde?.x.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_motor_de_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_de?.x.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Displacement (µm)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_motor_nde_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_nde?.x.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_motor_de_h || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_de?.x.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableCell
@@ -3036,38 +3889,36 @@ function ReportEdit() {
                               </div>
                             </TableCell>
                             <TableRow>
-                              {/* This cell spans 3 ROWS. Vertically center and rotate text. */}
-
                               <TableCell className="text-start align-middle border-r">
                                 Acceleration (m/s²)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_motor_nde_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_nde?.z.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.a_motor_de_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_de?.z.acceleration.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Velocity (mm/s)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_motor_nde_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_nde?.z.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.v_motor_de_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_de?.z.velocity.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell className="text-start align-middle border-r">
                                 Displacement (µm)
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_motor_nde_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_nde?.z.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
-                              <TableCell className="text-center align-middle border-r">
-                                {vibeData?.d_motor_de_v || "-"}
+                              <TableCell className="text-right align-middle border-r">
+                                {vibrationAnalysisData.motor_de?.z.displacement.rms?.toFixed(4) ?? "-"}
                               </TableCell>
                             </TableRow>
                           </TableBody>
@@ -3075,50 +3926,20 @@ function ReportEdit() {
                       </div>
                       <FormField
                         control={engineerReportCheckVibrationForm.control}
-                        name="temp_pump_de_unit"
+                        name="temp_pump_de"
                         render={({ field: field }) => (
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Pump DE temp.
+                                Pump DE temp. (°C)
                               </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="temp_pump_de"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump drive end temperature"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
+                              <FormControl className="w-full">
+                                <Input
+                                  placeholder="Pump drive end temperature"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_temp",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "temp_pump_de_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
+                              </FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -3126,50 +3947,20 @@ function ReportEdit() {
                       />
                       <FormField
                         control={engineerReportCheckVibrationForm.control}
-                        name="temp_pump_nde_unit"
+                        name="temp_pump_nde"
                         render={({ field: field }) => (
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Pump NDE temp.
+                                Pump NDE temp. (°C)
                               </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="temp_pump_nde"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Pump non-drive end temperature"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
+                              <FormControl className="w-full">
+                                <Input
+                                  placeholder="Pump non-drive end temperature"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_temp",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "temp_pump_nde_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
+                              </FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -3177,50 +3968,20 @@ function ReportEdit() {
                       />
                       <FormField
                         control={engineerReportCheckVibrationForm.control}
-                        name="temp_motor_de_unit"
+                        name="temp_motor_de"
                         render={({ field: field }) => (
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Motor DE temp.
+                                Motor DE temp. (°C)
                               </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="temp_motor_de"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor drive end temperature"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
+                              <FormControl className="w-full">
+                                <Input
+                                  placeholder="Motor drive end temperature"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_temp",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "temp_motor_de_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
+                              </FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -3228,50 +3989,20 @@ function ReportEdit() {
                       />
                       <FormField
                         control={engineerReportCheckVibrationForm.control}
-                        name="temp_motor_de_unit"
+                        name="temp_motor_nde"
                         render={({ field: field }) => (
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Motor DE temp.
+                                Motor NDE temp. (°C)
                               </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="temp_motor_de"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Motor drive end temperature"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
+                              <FormControl className="w-full">
+                                <Input
+                                  placeholder="Motor non-drive end temperature"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_temp",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "temp_motor_de_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
+                              </FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -3279,50 +4010,20 @@ function ReportEdit() {
                       />
                       <FormField
                         control={engineerReportCheckVibrationForm.control}
-                        name="env_vibration_unit"
+                        name="env_vibration"
                         render={({ field: field }) => (
                           <FormItem>
                             <div className="w-full flex items-center">
                               <FormLabel className="w-32 lg:w-44">
-                                Environmental Vibration
+                                Environmental Vibration (mm/s)
                               </FormLabel>
-                              <div className="w-full flex gap-2">
-                                {/* Input for density */}
-                                <FormField
-                                  control={
-                                    engineerReportCheckVibrationForm.control
-                                  }
-                                  name="temp_motor_de"
-                                  render={({ field: field }) => (
-                                    <FormControl className="w-full">
-                                      <Input
-                                        placeholder="Environmental Vibration"
-                                        {...field}
-                                        value={field.value || ""} // Ensure the value is never undefined
-                                      />
-                                    </FormControl>
-                                  )}
+                              <FormControl className="w-full">
+                                <Input
+                                  placeholder="Environmental Vibration"
+                                  {...field}
+                                  value={field.value || ""} // Ensure the value is never undefined
                                 />
-                                <FormControl className="md:max-w-[500px]">
-                                  <Combobox
-                                    className="min-w-[86px]"
-                                    items={
-                                      handleLOVDataFilter(
-                                        "unit_vibration",
-                                        "pump_unit",
-                                      ) || []
-                                    } // Dropdown options
-                                    label={
-                                      engineerReportCheckVibrationForm.getValues(
-                                        "env_vibration_unit",
-                                      ) ?? "Select"
-                                    }
-                                    onChange={(value) => {
-                                      field.onChange(value); // Update form state
-                                    }}
-                                  />
-                                </FormControl>
-                              </div>
+                              </FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>

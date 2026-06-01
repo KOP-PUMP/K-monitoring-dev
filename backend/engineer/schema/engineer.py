@@ -116,65 +116,60 @@ class ReportCheckCalPayload_schema(Schema):
 
 class EngineerReportCheckVibe_schema(Schema):
     check_id : Optional[str] = None
+    pump_nde_x_date : Optional[str] = None
+    pump_nde_y_date : Optional[str] = None
+    pump_nde_z_date : Optional[str] = None
+    pump_de_x_date : Optional[str] = None
+    pump_de_y_date : Optional[str] = None
+    pump_de_z_date : Optional[str] = None
+    motor_nde_x_date : Optional[str] = None
+    motor_nde_y_date : Optional[str] = None
+    motor_nde_z_date : Optional[str] = None
+    motor_de_x_date : Optional[str] = None
+    motor_de_y_date : Optional[str] = None
+    motor_de_z_date : Optional[str] = None
     v_pump_de_h : Optional[str] = None
-    v_pump_de_h_unit : Optional[str] = None
     v_pump_de_v : Optional[str] = None
-    v_pump_de_v_unit : Optional[str] = None
     v_pump_de_a : Optional[str] = None
-    v_pump_de_a_unit : Optional[str] = None
     v_pump_nde_h : Optional[str] = None
-    v_pump_nde_h_unit : Optional[str] = None
     v_pump_nde_v : Optional[str] = None
-    v_pump_nde_v_unit : Optional[str] = None
     v_pump_nde_a : Optional[str] = None
-    v_pump_nde_a_unit : Optional[str] = None
     v_motor_de_h : Optional[str] = None
-    v_motor_de_h_unit : Optional[str] = None
     v_motor_de_v : Optional[str] = None
-    v_motor_de_v_unit : Optional[str] = None
     v_motor_de_a : Optional[str] = None
-    v_motor_de_a_unit : Optional[str] = None
     v_motor_nde_h : Optional[str] = None
-    v_motor_nde_h_unit : Optional[str] = None
     v_motor_nde_v : Optional[str] = None
-    v_motor_nde_v_unit : Optional[str] = None
     v_motor_nde_a : Optional[str] = None
-    v_motor_nde_a_unit : Optional[str] = None
     a_pump_de_h : Optional[str] = None
-    a_pump_de_h_unit : Optional[str] = None
     a_pump_de_v : Optional[str] = None
-    a_pump_de_v_unit : Optional[str] = None
     a_pump_de_a : Optional[str] = None
-    a_pump_de_a_unit : Optional[str] = None
     a_pump_nde_h : Optional[str] = None
-    a_pump_nde_h_unit : Optional[str] = None
     a_pump_nde_v : Optional[str] = None
-    a_pump_nde_v_unit : Optional[str] = None
     a_pump_nde_a : Optional[str] = None
-    a_pump_nde_a_unit : Optional[str] = None
     a_motor_de_h : Optional[str] = None
-    a_motor_de_h_unit : Optional[str] = None
     a_motor_de_v : Optional[str] = None
-    a_motor_de_v_unit : Optional[str] = None
     a_motor_de_a : Optional[str] = None
-    a_motor_de_a_unit : Optional[str] = None
     a_motor_nde_h : Optional[str] = None
-    a_motor_nde_h_unit : Optional[str] = None
     a_motor_nde_v : Optional[str] = None
-    a_motor_nde_v_unit : Optional[str] = None
     a_motor_nde_a : Optional[str] = None
-    a_motor_nde_a_unit : Optional[str] = None
     temp_pump_nde : Optional[str] = None
-    temp_pump_nde_unit : Optional[str] = None
+    d_pump_de_h : Optional[str] = None
+    d_pump_de_v : Optional[str] = None
+    d_pump_de_a : Optional[str] = None
+    d_pump_nde_h : Optional[str] = None
+    d_pump_nde_v : Optional[str] = None
+    d_pump_nde_a : Optional[str] = None
+    d_motor_de_h : Optional[str] = None
+    d_motor_de_v : Optional[str] = None
+    d_motor_de_a : Optional[str] = None
+    d_motor_nde_h : Optional[str] = None
+    d_motor_nde_v : Optional[str] = None
+    d_motor_nde_a : Optional[str] = None
     temp_pump_de : Optional[str] = None
-    temp_pump_de_unit : Optional[str] = None
     temp_motor_nde : Optional[str] = None
-    temp_motor_nde_unit : Optional[str] = None
     temp_motor_de : Optional[str] = None
-    temp_motor_de_unit : Optional[str] = None
     env_vibration : Optional[str] = None
-    env_vibration_unit : Optional[str] = None
-
+    
 class EngineerReportCheckVisual_schema(Schema):
     check_id : Optional[str] = None
     axial_hand_check : Optional[str] = 'Not Pass'
@@ -377,53 +372,29 @@ class EngineerReportCheckResultSubmit_schema(Schema):
     remarks : Optional[str] = None
 
     v_pump_de_h : Optional[str] = None
-    v_pump_de_h_unit : Optional[str] = None
     v_pump_de_v : Optional[str] = None
-    v_pump_de_v_unit : Optional[str] = None
     v_pump_de_a : Optional[str] = None
-    v_pump_de_a_unit : Optional[str] = None
     v_pump_nde_h : Optional[str] = None
-    v_pump_nde_h_unit : Optional[str] = None
     v_pump_nde_v : Optional[str] = None
-    v_pump_nde_v_unit : Optional[str] = None
     v_pump_nde_a : Optional[str] = None
-    v_pump_nde_a_unit : Optional[str] = None
     v_motor_de_h : Optional[str] = None
-    v_motor_de_h_unit : Optional[str] = None
     v_motor_de_v : Optional[str] = None
-    v_motor_de_v_unit : Optional[str] = None
     v_motor_de_a : Optional[str] = None
-    v_motor_de_a_unit : Optional[str] = None
     v_motor_nde_h : Optional[str] = None
-    v_motor_nde_h_unit : Optional[str] = None
     v_motor_nde_v : Optional[str] = None
-    v_motor_nde_v_unit : Optional[str] = None
     v_motor_nde_a : Optional[str] = None
-    v_motor_nde_a_unit : Optional[str] = None
     a_pump_de_h : Optional[str] = None
-    a_pump_de_h_unit : Optional[str] = None
     a_pump_de_v : Optional[str] = None
-    a_pump_de_v_unit : Optional[str] = None
     a_pump_de_a : Optional[str] = None
-    a_pump_de_a_unit : Optional[str] = None
     a_pump_nde_h : Optional[str] = None
-    a_pump_nde_h_unit : Optional[str] = None
     a_pump_nde_v : Optional[str] = None
-    a_pump_nde_v_unit : Optional[str] = None
     a_pump_nde_a : Optional[str] = None
-    a_pump_nde_a_unit : Optional[str] = None
     a_motor_de_h : Optional[str] = None
-    a_motor_de_h_unit : Optional[str] = None
     a_motor_de_v : Optional[str] = None
-    a_motor_de_v_unit : Optional[str] = None
     a_motor_de_a : Optional[str] = None
-    a_motor_de_a_unit : Optional[str] = None
     a_motor_nde_h : Optional[str] = None
-    a_motor_nde_h_unit : Optional[str] = None
     a_motor_nde_v : Optional[str] = None
-    a_motor_nde_v_unit : Optional[str] = None
     a_motor_nde_a : Optional[str] = None
-    a_motor_nde_a_unit : Optional[str] = None
     temp_pump_nde : Optional[str] = None
     temp_pump_nde_unit : Optional[str] = None
     temp_pump_de : Optional[str] = None
@@ -507,6 +478,12 @@ class EngineerReportData_schema(Schema):
     pump_data : Optional[PumpDetail_schema] = None
     user_data : Optional[str] = None
     
+class EngineerVibrationAnalysisPayload_schema(Schema):
+    node_code : str
+    node_id : str
+    data_index : int
+    time : str
+    
 class MARSEquipmentDataOut_schema(Schema):
     node_code : str
     node_id : str
@@ -522,10 +499,4 @@ class MARSMeasurementDataOut_schema(Schema):
     end_time : str
     page_index : int
     page_size : int
-    
-class MARSWaveSpectrumDataOut_schema(Schema):
-    node_code : str
-    node_id : str
-    data_index : int
-    time : str
     

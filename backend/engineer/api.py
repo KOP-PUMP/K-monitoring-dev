@@ -1,3 +1,4 @@
+
 from ninja_extra import api_controller, http_get, http_post, http_put, http_delete
 from ninja_jwt.authentication import JWTAuth
 from pump_data.models import KMonitoringLOV, PumpDetail, PumpDetailLOV, MotorDetailLOV, ShaftSealLOV, PumpMaterialLOV, MediaLOV
@@ -24,8 +25,8 @@ from factory_curve.schema.factory_curve import CalPumpPayload_schema
 from engineer.report_generate import ReportMapper
 import requests
 from dotenv import load_dotenv
-from engineer.schema.engineer import MARSEquipmentDataOut_schema, MARSMeasurementDataOut_schema, MARSWaveSpectrumDataOut_schema
-
+from engineer.schema.engineer import MARSEquipmentDataOut_schema,EngineerVibrationAnalysisPayload_schema, MARSMeasurementDataOut_schema
+from typing import List
 load_dotenv()
 
 @api_controller('/engineer', tags=['Report'])
@@ -416,15 +417,12 @@ class ReportController:
     def create_report_check_vibe(self, request, payload: EngineerReportCheckVibe_schema):
         try:
             payload_dict = payload.dict()
-            print(payload_dict.get('check_id'))
             pump_instance = EngineerReportCheck.objects.get(check_id=payload_dict.get('check_id'))
-            
+
             if not pump_instance:
                 return JsonResponse({"error": "Report not found"}, status=404)
-            
-            new_report = {}
 
-            new_report.update(payload_dict)
+            new_report = {k: v for k, v in payload_dict.items() if k != 'check_id'}
             new_report['check_id'] = pump_instance
 
             EngineerReportCheckVibration.objects.create(**new_report)
@@ -432,34 +430,29 @@ class ReportController:
             pump_instance.status = "Finish Vibration Check"
             pump_instance.save()
 
-
             return JsonResponse({"success": True, "message": "Report created successfully"}, status=200)
-        
+
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-        check_id = request.GET.get('id')
+
+    @http_put('/report-check-vibe/{id}')
+    def update_report_check_vibe(self, request, id: str, payload: EngineerReportCheckVibe_schema):
         try:
-            uuid_id = UUID(check_id)
-            data = get_object_or_404(EngineerReportCheckVibration, pk=uuid_id)
-            data = model_to_dict(data)
-            return JsonResponse(data, status=200)
+            uuid_id = UUID(id)
+            report_instance = EngineerReportCheckVibration.objects.get(check_id=uuid_id)
+
+            for attr, value in payload.dict(exclude_unset=True).items():
+                if attr == 'check_id':
+                    continue
+                setattr(report_instance, attr, value)
+            report_instance.save()
+
+            return JsonResponse({"success": True, "message": "Report vibration updated successfully"}, status=200)
+
         except EngineerReportCheckVibration.DoesNotExist:
             return JsonResponse({"error": "Report not found"}, status=404)
-
-    @http_put('/report-check-vibe/{id}', response=EngineerReportCheckVibe_schema)
-    def update_report_check_vibe(self, request, id: str, payload: EngineerReportCheckVibe_schema):
-        uuid_id = UUID(id)
-        report_instance = EngineerReportCheckVibration.objects.get(check_id=uuid_id)
-
-        if not report_instance:
-            return JsonResponse({"error": "Report not found"}, status=404)
-
-
-        for attr, value in payload.dict(exclude_unset=True).items():
-            setattr(report_instance, attr, value) 
-        report_instance.save()
-
-        return JsonResponse({"success": True, "message": "Report vibration updated successfully"}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
     @http_post('/report-check-visual')
     def create_report_check_visual(self, request, payload: EngineerReportCheckVisual_schema):
@@ -594,11 +587,12 @@ class MarsController:
                 timeout=10
             )
             if response.status_code == 200:
-                data = response.json() 
+                data = response.json()
+                print(f"Received data from MARS: {data}") 
                 coordinate_id = {
-                    "x_id": data[0].get("asset_id"),
-                    "y_id": data[1].get("asset_id"),
-                    "z_id": data[2].get("asset_id"),
+                    "z_id": data[0].get("asset_id"),
+                    "x_id": data[1].get("asset_id"),
+                    "y_id": data[2].get("asset_id"),
                 }
     
                 return JsonResponse(coordinate_id, safe=False)
@@ -610,58 +604,132 @@ class MarsController:
                 )
     
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+            return JsonResponse({"error": str(e)}, status=500) 
         
     @http_post('/measurements')
-    def get_all_measurement_from_mars(self, payload: MARSMeasurementDataOut_schema):
+    def get_all_measurement_from_mars(self, payload: List[MARSMeasurementDataOut_schema]):
+        payload_dicts = [item.dict() for item in payload]
         try:
-            response = requests.post(
+            response_x = requests.post(
                 f"{os.getenv('URL_MARS')}/history_data",
-                json=payload.dict(),
+                json=payload_dicts[0],
                 timeout=10
             )
-            
-            if response.status_code == 200:
-                data = response.json() 
+            response_y = requests.post(
+                f"{os.getenv('URL_MARS')}/history_data",
+                json=payload_dicts[1],
+                timeout=10
+            )
+            response_z = requests.post(
+                f"{os.getenv('URL_MARS')}/history_data",
+                json=payload_dicts[2],
+                timeout=10
+            )
+            if response_x.status_code == 200 and response_y.status_code == 200 and response_z.status_code == 200:
+                data = [response_x.json(), response_y.json(), response_z.json()]
                 return JsonResponse(data, safe=False)
             else:
                 return JsonResponse({"error": "No data received from MARS"}, status=500)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
         
-    
-    @http_post('/wave')
-    def get_wave_data_from_mars(self, payload: MARSWaveSpectrumDataOut_schema):
+    @http_post('/analysis-data')
+    def get_analysis_data(self,payload: List[EngineerVibrationAnalysisPayload_schema]):
+        payload_dicts = [item.dict() for item in payload]
         try:
-            response = requests.post(
+            response_x = requests.post(
                 f"{os.getenv('URL_MARS')}/wave",
-                json=payload.dict(),
+                json=payload_dicts[0],
+                timeout=10
+            )
+            print(f"X response status: {response_x.status_code}")
+            
+            response_y = requests.post(
+                f"{os.getenv('URL_MARS')}/wave",
+                json=payload_dicts[1],
                 timeout=10
             )
             
-            if response.status_code == 200:
-                data = response.json()
-                return JsonResponse(data, safe=False)
-            else:
-                return JsonResponse({"error": "No data received from MARS"}, status=500)
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-        
-    @http_post('/spectrum_wave')
-    def get_spectrum_data_from_mars(self, payload: MARSWaveSpectrumDataOut_schema):
-        try:
-            response = requests.post(
-                f"{os.getenv('URL_MARS')}/spectrum_wave",
-                json=payload.dict(),
+            print(f"Y response status: {response_y.status_code}")
+            response_z = requests.post(
+                f"{os.getenv('URL_MARS')}/wave",
+                json=payload_dicts[2],
                 timeout=10
             )
-            print(f"Request payload: {payload.dict()}")
-            print(f"MARS response status: {response.status_code}")
-            if response.status_code == 200:
-                data = response.json()
-                return JsonResponse(data, safe=False)
+            print(f"Z response status: {response_z.status_code}")
+            
+            
+            if response_x.status_code == 200 and response_y.status_code == 200 and response_z.status_code == 200:
+                data = [response_x.json(), response_y.json(), response_z.json()]
+                
+                response = requests.post(
+                f"{os.getenv('URL_ANALYSIS')}/fft_3axis_full",
+                json=data,
+                timeout=10
+                )
+                
+                print(f"Analysis response status: {response.status_code}")
+            
+                if response.status_code == 200:
+                    analysis_data = response.json() 
+                    return JsonResponse(analysis_data, safe=False)
+                else:
+                    return JsonResponse({"error": "No data received from Analysis API"}, status=500)
+                
             else:
                 return JsonResponse({"error": "No data received from MARS"}, status=500)
+            
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
+            
+            
+        
+    #@http_post('/wave')
+    #def get_wave_data_from_mars(self, payload: List[MARSWaveSpectrumDataOut_schema]):
+    #    payload_dicts = [item.dict() for item in payload]
+    #    try:
+    #        response_x = requests.post(
+    #            f"{os.getenv('URL_MARS')}/wave",
+    #            json=payload_dicts[0],
+    #            timeout=10
+    #        )
+    #        print(f"X response status: {response_x.status_code}")
+    #        
+    #        response_y = requests.post(
+    #            f"{os.getenv('URL_MARS')}/wave",
+    #            json=payload_dicts[1],
+    #            timeout=10
+    #        )
+    #        
+    #        print(f"Y response status: {response_y.status_code}")
+    #        response_z = requests.post(
+    #            f"{os.getenv('URL_MARS')}/wave",
+    #            json=payload_dicts[2],
+    #            timeout=10
+    #        )
+    #        print(f"Z response status: {response_z.status_code}")
+    #        
+    #        if response_x.status_code == 200 and response_y.status_code == 200 and response_z.status_code == 200:
+    #            data = [response_x.json(), response_y.json(), response_z.json()]
+    #            return JsonResponse(data, safe=False)
+    #        else:
+    #            return JsonResponse({"error": "No data received from MARS"}, status=500)
+    #    except Exception as e:
+    #        return JsonResponse({"error": str(e)}, status=500)
+        
+    #@http_post('/spectrum_wave')
+    #def get_spectrum_data_from_mars(self, payload: MARSWaveSpectrumDataOut_schema):
+    #    try:
+    #        response = requests.post(
+    #            f"{os.getenv('URL_MARS')}/spectrum_wave",
+    #            json=payload.dict(),
+    #            timeout=10
+    #        )
+    #        if response.status_code == 200:
+    #            data = response.json()
+    #            return JsonResponse(data, safe=False)
+    #        else:
+    #            return JsonResponse({"error": "No data received from MARS"}, status=500)
+    #    except Exception as e:
+    #        return JsonResponse({"error": str(e)}, status=500)
     

@@ -19,12 +19,12 @@ import {
   updateEngineerReportVisualCheck,
   getEquipmentFromMars,
   getAllMeasureDataFromMars,
-  getWaveDatafromMars,
+  getAnalysisData,
   getSpectrumWaveDatafromMars,
 } from "@/api/engineer/engineer";
 
 
-import { ReportCheckFileCreateOut } from "@/types/amalytic/report_check_data";
+import { ReportCheckFileCreateOut, EngineerReportCheckVibe } from "@/types/amalytic/report_check_data";
 
 export const useCreateEngineerReportFile = () => {
   return useMutation({
@@ -173,7 +173,7 @@ export const useCreateEngineerReportVibeCheck = () => {
 
 export const useUpdateEngineerReportVibeCheck = () => {
   return useMutation({
-    mutationFn: ({ data, id }: { data: any; id: string }) =>
+    mutationFn: ({ data, id }: { data: EngineerReportCheckVibe; id: string }) =>
       updateEngineerReportVibeCheck(data, id),
     onSuccess: () => {
       toast.success("Engineer Report Vibe Check updated successfully");
@@ -280,11 +280,20 @@ export const useGetAllMeasureDataFromMars = () => {
   });
 };
 
-export const useGetWaveDataFromMars = () => {
+/* export const useGetWaveDataFromMars = () => {
   return useMutation({
     mutationFn: getWaveDatafromMars,
     onError: () => {
       toast.error("Error : Cannot get wave data from MARS");
+    },
+  });
+}; */
+
+export const useGetAnalysisData = () => {
+  return useMutation({
+    mutationFn: getAnalysisData,
+    onError: () => {
+      toast.error("Error : Cannot get analysis data");
     },
   });
 };

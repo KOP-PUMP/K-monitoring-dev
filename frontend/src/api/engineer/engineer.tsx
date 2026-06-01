@@ -1,9 +1,9 @@
 import { axiosInstance} from "../utils";
 import {
   MarsEquipmentDataOut,
-  MarsMeasureDataOut,
-  MarsWaveDataOut,
   ReportCheckFileCreateOut,
+  AnalysisDataOut,
+  EngineerReportCheckVibe,
 } from "@/types/amalytic/report_check_data";
 
 // Report File
@@ -151,7 +151,7 @@ export const updateEngineerReportCalCheck = async (data: any, id: string) => {
   }
 };
 
-export const createEngineerReportVibeCheck = async (data: any) => {
+export const createEngineerReportVibeCheck = async (data: EngineerReportCheckVibe) => {
   const response = await axiosInstance.post(
     "/engineer/report-check-vibe",
     data,
@@ -159,7 +159,7 @@ export const createEngineerReportVibeCheck = async (data: any) => {
   return response.data;
 };
 
-export const updateEngineerReportVibeCheck = async (data: any, id: string) => {
+export const updateEngineerReportVibeCheck = async (data: EngineerReportCheckVibe, id: string) => {
   const response = await axiosInstance.put(
     `/engineer/report-check-vibe/${id}`,
     data,
@@ -219,13 +219,18 @@ export const getEquipmentFromMars = async (data: MarsEquipmentDataOut) => {
   return response.data;
 };
 
-export const getAllMeasureDataFromMars = async (data: MarsMeasureDataOut) => {
+export const getAllMeasureDataFromMars = async (data: VibrationDataOut[]) => {
   const response = await axiosInstance.post("/mars/measurements", data);
   return response.data;
 };
 
-export const getWaveDatafromMars = async (data: MarsWaveDataOut) => {
+/* export const getWaveDatafromMars = async (data: MarsWaveDataOut[]) => {
   const response = await axiosInstance.post("/mars/wave", data);
+  return response.data;
+}; */
+
+export const getAnalysisData = async (data: AnalysisDataOut[]) => {
+  const response = await axiosInstance.post("/mars/analysis-data", data);
   return response.data;
 };
 
