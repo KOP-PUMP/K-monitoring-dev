@@ -1,9 +1,8 @@
-import { createFileRoute, pick } from "@tanstack/react-router";
+import { createFileRoute} from "@tanstack/react-router";
 import React, { useMemo } from "react";
 import {
   ReportCheckCalResponse,
   EngineerReportCheckVibe,
-  EngineerVibrationAnalysisDataResponse,
   EngineerVibrationAnalysisPositionData,
 } from "@/types/amalytic/report_check_data";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -37,7 +36,6 @@ import {
   useGetEquipmentFromMars,
   useGetAllMeasureDataFromMars,
   useGetAnalysisData,
-  useGetSpecTrumWaveDataFromMars,
 } from "@/hook/engineer/engineer";
 import { getAnalysisData as getAnalysisDataApi } from "@/api/engineer/engineer";
 import {
@@ -46,7 +44,7 @@ import {
   EngineerReportCheckVisualSchema,
   EngineerReportCheckResultSchema,
 } from "@/validators/engineer";
-import { ChevronDownIcon, Copy, X } from "lucide-react";
+import { ChevronDownIcon} from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import {
@@ -58,7 +56,7 @@ import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
-import { string, z } from "zod";
+import {z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
@@ -95,7 +93,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { set } from "date-fns";
 
 type MeasureType = "acceleration" | "velocity" | "displacement";
 
@@ -535,7 +532,6 @@ function ReportEdit() {
   const getAllMeasureDataFromMars = useGetAllMeasureDataFromMars();
   /* const getMeasureDataFromMars = useGetMeasureDataFromMars(); */
   const getAnalysisData = useGetAnalysisData();
-  const getSpectrumWaveDatafromMars = useGetSpecTrumWaveDataFromMars();
 
   /* Form initialized */
 
@@ -623,13 +619,6 @@ function ReportEdit() {
     motor_nde: false,
     motor_de: false,
   });
-  const [vibeData, setVibeData] = useState<EngineerReportCheckVibe | null>(
-    null,
-  );
-
-  useEffect(() => {
-    setVibeData(null);
-  }, []);
 
   const { data: pumpLOVResponse } = useGetAllPumpLOVData();
   const { data: pumpUnitLOVResponse } = useGetAllUnitLOVData();

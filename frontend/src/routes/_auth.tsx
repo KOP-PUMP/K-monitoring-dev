@@ -4,7 +4,6 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Link, Outlet } from "@tanstack/react-router";
 import { useState } from "react";
 import { CollapsibleState } from "@/types";
-import { SVGAttributes } from "react";
 
 import {
   Bell,
@@ -13,22 +12,12 @@ import {
   LineChart,
   Menu,
   Package,
-  Package2,
   Search,
-  ShoppingCart,
   Users,
   BookUser,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -219,7 +219,7 @@ export const getEquipmentFromMars = async (data: MarsEquipmentDataOut) => {
   return response.data;
 };
 
-export const getAllMeasureDataFromMars = async (data: VibrationDataOut[]) => {
+export const getAllMeasureDataFromMars = async (data: any) => {
   const response = await axiosInstance.post("/mars/measurements", data);
   return response.data;
 };
@@ -234,7 +234,7 @@ export const getAnalysisData = async (data: AnalysisDataOut[]) => {
   return response.data;
 };
 
-export const getSpectrumWaveDatafromMars = async (data: MarsWaveDataOut) => {
+export const getSpectrumWaveDatafromMars = async (data: any) => {
   const response = await axiosInstance.post("/mars/spectrum_wave", data);
   return response.data;
 };
