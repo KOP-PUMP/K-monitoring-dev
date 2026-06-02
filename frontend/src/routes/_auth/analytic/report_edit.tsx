@@ -293,7 +293,6 @@ const VibrationDialog = ({
   isDateSelected,
   pickVibeDate,
   onPickVibeDateChange,
-  onResetVibeDate,
   onSelectTrigger,
   onGetData,
 }: VibrationDialogProps) => {
@@ -504,7 +503,7 @@ const VibrationDialog = ({
             )}
           </Button>
           <DialogClose asChild>
-            <Button type="button" onClick={onResetVibeDate}>
+            <Button type="button">
               Close
             </Button>
           </DialogClose>
@@ -965,6 +964,11 @@ function ReportEdit() {
       { position: "motor_nde", x: vd.motor_nde_x_date, y: vd.motor_nde_y_date, z: vd.motor_nde_z_date },
       { position: "motor_de",  x: vd.motor_de_x_date,  y: vd.motor_de_y_date,  z: vd.motor_de_z_date  },
     ];
+    const selectDate = positions.map(({ position, x, y, z }) => ({
+      position,
+      oldestDate: [x, y, z].filter(Boolean).sort()[0] || ""
+    }));
+
     const toFetch = positions.filter(({ x, y, z }) => x && y && z);
 
     if (toFetch.length === 0) return;
@@ -988,6 +992,13 @@ function ReportEdit() {
         });
         return next;
       });
+      setPickDate((prev: any) => ({
+      ...prev,
+      pump_nde : selectDate.find(d => d.position === "pump_nde")?.oldestDate || "",
+      pump_de  : selectDate.find(d => d.position === "pump_de")?.oldestDate || "",
+      motor_nde: selectDate.find(d => d.position === "motor_nde")?.oldestDate || "",
+      motor_de : selectDate.find(d => d.position === "motor_de")?.oldestDate || "",
+    }));
     }).catch((err) => {
       console.error("Auto-load vibration graphs failed:", err);
     }).finally(() => {
@@ -3189,7 +3200,7 @@ function ReportEdit() {
                                       {pickDate.pump_nde
                                         ? new Date(
                                             pickDate.pump_nde,
-                                          ).toLocaleDateString()
+                                          ).toLocaleDateString("en-GB")
                                         : "Select date"}
                                       <ChevronDownIcon />
                                     </Button>
@@ -3241,12 +3252,6 @@ function ReportEdit() {
                                       pump_nde: { ...prev.pump_nde, [axis]: value },
                                     }))
                                   }
-                                  onResetVibeDate={() =>
-                                    setPickVibeDate((prev) => ({
-                                      ...prev,
-                                      pump_nde: { x: "", y: "", z: "" },
-                                    }))
-                                  }
                                   onSelectTrigger={handleSelectCordinate}
                                   onGetData={handleGetVibrationData}
                                 />
@@ -3296,7 +3301,7 @@ function ReportEdit() {
                                       {pickDate.pump_de
                                         ? new Date(
                                             pickDate.pump_de,
-                                          ).toLocaleDateString()
+                                          ).toLocaleDateString("en-GB")
                                         : "Select date"}
                                       <ChevronDownIcon />
                                     </Button>
@@ -3403,7 +3408,7 @@ function ReportEdit() {
                                       {pickDate.motor_nde
                                         ? new Date(
                                             pickDate.motor_nde,
-                                          ).toLocaleDateString()
+                                          ).toLocaleDateString("en-GB")
                                         : "Select date"}
                                       <ChevronDownIcon />
                                     </Button>
@@ -3510,7 +3515,7 @@ function ReportEdit() {
                                       {pickDate.motor_de
                                         ? new Date(
                                             pickDate.motor_de,
-                                          ).toLocaleDateString()
+                                          ).toLocaleDateString("en-GB")
                                         : "Select date"}
                                       <ChevronDownIcon />
                                     </Button>
