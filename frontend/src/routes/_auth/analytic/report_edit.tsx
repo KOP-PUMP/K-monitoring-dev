@@ -270,7 +270,6 @@ interface VibrationDialogProps {
   isDateSelected: boolean;
   pickVibeDate: { x: string; y: string; z: string };
   onPickVibeDateChange: (axis: "x" | "y" | "z", value: string) => void;
-  onResetVibeDate: () => void;
   onGetData: (
     equipment: { x_id: string; y_id: string; z_id: string },
     date: { x: string; y: string; z: string },
@@ -3353,12 +3352,6 @@ function ReportEdit() {
                                       pump_de: { ...prev.pump_de, [axis]: value },
                                     }))
                                   }
-                                  onResetVibeDate={() =>
-                                    setPickVibeDate((prev) => ({
-                                      ...prev,
-                                      pump_de: { x: "", y: "", z: "" },
-                                    }))
-                                  }
                                   onSelectTrigger={handleSelectCordinate}
                                   onGetData={handleGetVibrationData}
                                 />
@@ -3460,12 +3453,6 @@ function ReportEdit() {
                                       motor_nde: { ...prev.motor_nde, [axis]: value },
                                     }))
                                   }
-                                  onResetVibeDate={() =>
-                                    setPickVibeDate((prev) => ({
-                                      ...prev,
-                                      motor_nde: { x: "", y: "", z: "" },
-                                    }))
-                                  }
                                   onSelectTrigger={handleSelectCordinate}
                                   onGetData={handleGetVibrationData}
                                 />
@@ -3565,12 +3552,6 @@ function ReportEdit() {
                                     setPickVibeDate((prev) => ({
                                       ...prev,
                                       motor_de: { ...prev.motor_de, [axis]: value },
-                                    }))
-                                  }
-                                  onResetVibeDate={() =>
-                                    setPickVibeDate((prev) => ({
-                                      ...prev,
-                                      motor_de: { x: "", y: "", z: "" },
                                     }))
                                   }
                                   onSelectTrigger={handleSelectCordinate}
