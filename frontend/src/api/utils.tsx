@@ -17,7 +17,7 @@ const kmonitoring_baseURL =
 // Create a custom Axios instance with default settings
 export const axiosInstance = axios.create({
   baseURL: kmonitoring_baseURL, // Base URL for all API requests
-  timeout: 5000, // Set timeout to 5 seconds for API calls
+  timeout: 10000, // Set timeout to 10 seconds for API calls
   headers: {
     Authorization: "Bearer " + localStorage.getItem("access_token"), // Set initial Authorization header with token from localStorage
     "Content-Type": "application/json", // Content-Type for JSON payloads
@@ -27,7 +27,7 @@ export const axiosInstance = axios.create({
 
 export const axiosInstanceLine = axios.create({
   baseURL: "https://api.line.me/v2/bot/message/push", // Base URL for all API requests
-  timeout: 5000,
+  timeout: 10000,
   headers: {
     Authorization: "Bearer " + "uQ/uhgrejilRm2vl+1jQo+DAc7kYNdpe54xp+No1mgDr+UqlwAxlcVoW22XOa6+6+RGcE8t0aLzRv3gbJBBAGtTbipKCtJ8RRTh6OyMhccgorC//vBqk6MCsCSgEVDO6Xz+qEe8a85CjFJbplv3TSAdB04t89/1O/w1cDnyilFU=",
     accept: "application/json", // Accept header for JSON responses
@@ -36,17 +36,17 @@ export const axiosInstanceLine = axios.create({
 
 export const axiosInstanceMars = axios.create({
   baseURL: MARS_API_BASE_URL, // Base URL for all API requests
-  timeout: 5000, // Set timeout to 5 seconds for API calls
+  timeout: 20000, // Set timeout to 20 seconds for API calls
 })
 
 export const axiosInstancePEC = axios.create({
   baseURL: API_PEC_URL, // Base URL for all API requests
-  timeout: 5000, // Set timeout to 5 seconds for API calls
+  timeout: 20000, // Set timeout to 20 seconds for API calls
 });
 
 export const axiosInstanceProvince = axios.create({
   baseURL: API_PUBLIC_PROVINCE_URL,
-  timeout: 5000,
+  timeout: 20000,
 });
 
 // Add a request interceptor to modify the request before sending it
@@ -76,7 +76,8 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config; // Get the original request that failed
 
     // Check if the error is a 401 (Unauthorized) and if the request hasn't already been retried
-    if (error.response.status === 401 && !originalRequest._retry) {
+    // Guard: error.response is undefined on network errors / timeouts
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true; // Mark the request as retried
 
       try {
