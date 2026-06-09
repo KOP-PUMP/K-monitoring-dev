@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/table/DataTable";
 import { useSearch } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   GearIcon,
   PersonIcon,
@@ -355,7 +355,7 @@ function TotalReport() {
                       setOpenFileAction(true);
                     }}
                   >
-                    All Report (Dialog)
+                    All Report
                   </DropdownMenuItem>
                   {/* <DropdownMenuItem
                   onClick={() => handleDeleteReportFile(company.check_id)}
@@ -528,6 +528,10 @@ function TotalReport() {
     setReportFileID("");
     reportFileCreateForm.reset();
   };
+
+  useEffect(() => {
+    console.log(reportFileData);
+  }, [reportFileData]);
 
   return (
     <div className="w-full space-y-4 p-0 md:p-8 md:pt-6">

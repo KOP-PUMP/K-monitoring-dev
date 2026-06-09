@@ -94,7 +94,7 @@ function Dashboard() {
             <div className="h-full w-full flex justify-center items-center">
               <Link to="/" className="flex items-center gap-2 font-bold">
                 <img
-                  src="/public/K-MONITORING-LOGO-WEB.png"
+                  src="/K-MONITORING-LOGO-WEB.png"
                   alt="logo"
                   className="w-6 h-6"
                 />
@@ -357,7 +357,7 @@ function Dashboard() {
               <SheetHeader >
                 <div className="flex gap-2 justify-start align-middle">
                   <img
-                    src="/public/K-MONITORING-LOGO-WEB.png"
+                    src="/K-MONITORING-LOGO-WEB.png"
                     alt="logo"
                     className="w-8 h-8"
                   />
