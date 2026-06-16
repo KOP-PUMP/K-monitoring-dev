@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Link, Outlet } from "@tanstack/react-router";
 import { useState } from "react";
 import { CollapsibleState } from "@/types";
+import { canAccess, getCurrentUserRole } from "@/lib/permissions";
 
 import {
   Bell,
@@ -77,6 +78,7 @@ function Dashboard() {
     pump_data: false,
     user_manage: false,
     analytics: false,
+    companies: false,
   });
 
   const toggleClick = (tab: keyof CollapsibleState) => {
@@ -85,6 +87,8 @@ function Dashboard() {
       [tab]: !prevState[tab],
     }));
   };
+
+  const userRole = getCurrentUserRole();
 
   return (
     <div className="flex min-h-screen w-full bg-background text-primary">
@@ -139,104 +143,111 @@ function Dashboard() {
                   >
                     Total Pump
                   </Link>
-                  <Collapsible>
-                    <CollapsibleTrigger
-                      className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                      onClick={() => toggleClick("pump_data")}
-                    >
-                      <div className="flex gap-3 items-center">Data Table</div>
-                      {isOpen.pump_data ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <Link
-                        to="/pump/unit_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
+                  {canAccess("data_table", userRole) && (
+                    <Collapsible>
+                      <CollapsibleTrigger
+                        className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                        onClick={() => toggleClick("pump_data")}
                       >
-                        Units
-                      </Link>
-                      {/* <Link
+                        <div className="flex gap-3 items-center">
+                          Data Table
+                        </div>
+                        {isOpen.pump_data ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <Link
+                          to="/pump/unit_list"
+                          className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                          activeProps={activeProps}
+                        >
+                          Units
+                        </Link>
+                        {/* <Link
                         to="/pump/lov_list"
                         className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
                         activeProps={activeProps}
                       >
                         List of Values
                       </Link> */}
-                      <Collapsible>
-                        <CollapsibleTrigger
-                          className="flex w-full justify-between items-center rounded-lg pr-3 pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                          onClick={() => toggleClick("pump_data")}
-                        >
-                          <div className="flex gap-3 items-center">
-                            Pump Data
-                          </div>
-                          {isOpen.pump_data ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <Link
-                            to="/pump/lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
+                        <Collapsible>
+                          <CollapsibleTrigger
+                            className="flex w-full justify-between items-center rounded-lg pr-3 pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                            onClick={() => toggleClick("pump_data")}
                           >
-                            List of Values
-                          </Link>
-                          <Link
-                            to="/pump/pump_detail_lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            Pump Data
-                          </Link>
-                          <Link
-                            to="/pump/motor_lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            Motor Data
-                          </Link>
-                          <Link
-                            to="/pump/material_lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            Material Data
-                          </Link>
-                          <Link
-                            to="/pump/shaft_seal_lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            Shaft/Seal Data
-                          </Link>
-                          <Link
-                            to="/pump/media_lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            Media Data
-                          </Link>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </CollapsibleContent>
-                  </Collapsible>
+                            <div className="flex gap-3 items-center">
+                              Pump Data
+                            </div>
+                            {isOpen.pump_data ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <Link
+                              to="/pump/lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              List of Values
+                            </Link>
+                            <Link
+                              to="/pump/pump_detail_lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              Pump Data
+                            </Link>
+                            <Link
+                              to="/pump/motor_lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              Motor Data
+                            </Link>
+                            <Link
+                              to="/pump/material_lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              Material Data
+                            </Link>
+                            <Link
+                              to="/pump/shaft_seal_lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              Shaft/Seal Data
+                            </Link>
+                            <Link
+                              to="/pump/media_lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              Media Data
+                            </Link>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
                 </CollapsibleContent>
               </Collapsible>
-              <Link
-                to="/customers"
-                className="flex  items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                activeProps={activeProps}
-              >
-                <Users className="h-4 w-4" />
-                Customers
-              </Link>
+              {canAccess("customer", userRole) && (
+                <Link
+                  to="/customers"
+                  className="flex  items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                  activeProps={activeProps}
+                >
+                  <Users className="h-4 w-4" />
+                  Customers
+                </Link>
+              )}
+
               <Collapsible>
                 <CollapsibleTrigger
                   className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
@@ -246,7 +257,7 @@ function Dashboard() {
                     <LineChart className="h-4 w-4" />
                     Analytics
                   </div>
-                  {isOpen.pumps ? (
+                  {isOpen.analytics ? (
                     <ChevronUp className="h-4 w-4" />
                   ) : (
                     <ChevronDown className="h-4 w-4" />
@@ -262,82 +273,71 @@ function Dashboard() {
                   </Link>
                 </CollapsibleContent>
               </Collapsible>
-              <Collapsible>
-                <CollapsibleTrigger
-                  className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                  onClick={() => toggleClick("pumps")}
-                >
-                  <div className="flex gap-3 items-center">
-                    <BookUser className="h-4 w-4" />
-                    Users Manage
-                  </div>
-                  {isOpen.pumps ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <Link
-                    to="/users/company_list"
-                    className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                    activeProps={activeProps}
+              {canAccess("user_manage", userRole) && (
+                <Collapsible>
+                  <CollapsibleTrigger
+                    className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    onClick={() => toggleClick("user_manage")}
                   >
-                    Companies
-                  </Link>
-                  <Collapsible>
-                    <CollapsibleTrigger
-                      className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                      onClick={() => toggleClick("user_manage")}
+                    <div className="flex gap-3 items-center">
+                      <BookUser className="h-4 w-4" />
+                      Users Manage
+                    </div>
+                    {isOpen.user_manage ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <Link
+                      to="/users/company_list"
+                      className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                      activeProps={activeProps}
                     >
-                      <div className="flex gap-3 items-center">Users</div>
-                      {isOpen.pump_data ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <Link
-                        to="/users/pec_user_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
+                      Companies
+                    </Link>
+                    <Collapsible>
+                      <CollapsibleTrigger
+                        className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                        onClick={() => toggleClick("companies")}
                       >
-                        PEC Members
-                      </Link>
-                      <Link
-                        to="/users/customer_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Customer
-                      </Link>
-                      <Link
-                        to="/users/create_user"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Create User
-                      </Link>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </CollapsibleContent>
-              </Collapsible>
+                        <div className="flex gap-3 items-center">Users</div>
+                        {isOpen.companies ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <Link
+                          to="/users/pec_user_list"
+                          className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                          activeProps={activeProps}
+                        >
+                          PEC Members
+                        </Link>
+                        <Link
+                          to="/users/customer_list"
+                          className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                          activeProps={activeProps}
+                        >
+                          Customer
+                        </Link>
+                        <Link
+                          to="/users/create_user"
+                          className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                          activeProps={activeProps}
+                        >
+                          Create User
+                        </Link>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
             </nav>
           </div>
-          {/* <div className="mt-auto p-4">
-            <Card x-chunk="dashboard-02-chunk-0">
-              <CardHeader className="p-2 pt-0 md:p-4">
-                <CardTitle>Upgrade to Pro</CardTitle>
-                <CardDescription>Unlock all features and get unlimited access to our support team.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                <Button size="sm" className="w-full">
-                  Upgrade
-                </Button>
-              </CardContent>
-            </Card>
-          </div> */}
         </div>
       </div>
       <div className="w-full max-w-full flex flex-col overflow-hidden">
@@ -354,82 +354,58 @@ function Dashboard() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
-              <SheetHeader >
+              <SheetHeader>
                 <div className="flex gap-2 justify-start align-middle">
                   <img
                     src="/K-MONITORING-LOGO-WEB.png"
                     alt="logo"
                     className="w-8 h-8"
                   />
-                  <span className="content-center font-bold text-2xl text-primary">K-MONITORING</span>
+                  <span className="content-center font-bold text-2xl text-primary">
+                    K-MONITORING
+                  </span>
                 </div>
               </SheetHeader>
               <nav className="grid items-start text-sm font-medium">
-              <Link
-                to="/dashboard"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                activeProps={activeProps}
-              >
-                <Home className="h-4 w-4" />
-                Dashboard
-              </Link>
-              <Collapsible>
-                <CollapsibleTrigger
-                  className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                  onClick={() => toggleClick("pumps")}
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                  activeProps={activeProps}
                 >
-                  <div className="flex gap-3 items-center">
-                    <Package className="h-4 w-4" />
-                    Pumps
-                  </div>
-                  {isOpen.pumps ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <Link
-                    to="/pump/total_pump"
-                    className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                    activeProps={activeProps}
+                  <Home className="h-4 w-4" />
+                  Dashboard
+                </Link>
+                <Collapsible>
+                  <CollapsibleTrigger
+                    className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    onClick={() => toggleClick("pumps")}
                   >
-                    Total Pump
-                  </Link>
-                  <Collapsible>
-                    <CollapsibleTrigger
-                      className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                      onClick={() => toggleClick("pump_data")}
+                    <div className="flex gap-3 items-center">
+                      <Package className="h-4 w-4" />
+                      Pumps
+                    </div>
+                    {isOpen.pumps ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <Link
+                      to="/pump/total_pump"
+                      className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                      activeProps={activeProps}
                     >
-                      <div className="flex gap-3 items-center">Data Table</div>
-                      {isOpen.pump_data ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <Link
-                        to="/pump/unit_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Units
-                      </Link>
-                      {/* <Link
-                        to="/pump/lov_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        List of Values
-                      </Link> */}
-                      <Collapsible>
+                      Total Pump
+                    </Link>
+                    <Collapsible>
+                      {canAccess("data_table", userRole) && (
                         <CollapsibleTrigger
-                          className="flex w-full justify-between items-center rounded-lg pr-3 pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                          className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
                           onClick={() => toggleClick("pump_data")}
                         >
                           <div className="flex gap-3 items-center">
-                            Pump Data
+                            Data Table
                           </div>
                           {isOpen.pump_data ? (
                             <ChevronUp className="h-4 w-4" />
@@ -437,150 +413,181 @@ function Dashboard() {
                             <ChevronDown className="h-4 w-4" />
                           )}
                         </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <Link
-                            to="/pump/lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            List of Values
-                          </Link>
-                          <Link
-                            to="/pump/pump_detail_lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            Pump Data
-                          </Link>
-                          <Link
-                            to="/pump/motor_lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            Motor Data
-                          </Link>
-                          <Link
-                            to="/pump/material_lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            Material Data
-                          </Link>
-                          <Link
-                            to="/pump/shaft_seal_lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            Shaft/Seal Data
-                          </Link>
-                          <Link
-                            to="/pump/media_lov_list"
-                            className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
-                            activeProps={activeProps}
-                          >
-                            Media Data
-                          </Link>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </CollapsibleContent>
-              </Collapsible>
-              <Link
-                to="/customers"
-                className="flex  items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                activeProps={activeProps}
-              >
-                <Users className="h-4 w-4" />
-                Customers
-              </Link>
-              <Collapsible>
-                <CollapsibleTrigger
-                  className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                  onClick={() => toggleClick("analytics")}
-                >
-                  <div className="flex gap-3 items-center">
-                    <LineChart className="h-4 w-4" />
-                    Analytics
-                  </div>
-                  {isOpen.pumps ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <Link
-                    to="/analytic/factory_curve"
-                    className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                    activeProps={activeProps}
-                  >
-                    Factory Curve
-                  </Link>
-                </CollapsibleContent>
-              </Collapsible>
-              <Collapsible>
-                <CollapsibleTrigger
-                  className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                  onClick={() => toggleClick("pumps")}
-                >
-                  <div className="flex gap-3 items-center">
-                    <BookUser className="h-4 w-4" />
-                    Users Manage
-                  </div>
-                  {isOpen.pumps ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <Link
-                    to="/users/company_list"
-                    className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                    activeProps={activeProps}
-                  >
-                    Companies
-                  </Link>
-                  <Collapsible>
-                    <CollapsibleTrigger
-                      className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
-                      onClick={() => toggleClick("user_manage")}
-                    >
-                      <div className="flex gap-3 items-center">Users</div>
-                      {isOpen.pump_data ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
                       )}
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <Link
-                        to="/users/pec_user_list"
+
+                      <CollapsibleContent>
+                        <Link
+                          to="/pump/unit_list"
+                          className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                          activeProps={activeProps}
+                        >
+                          Units
+                        </Link>
+                        {/* <Link
+                        to="/pump/lov_list"
                         className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
                         activeProps={activeProps}
                       >
-                        PEC Members
-                      </Link>
-                      <Link
-                        to="/users/customer_list"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
+                        List of Values
+                      </Link> */}
+                        <Collapsible>
+                          <CollapsibleTrigger
+                            className="flex w-full justify-between items-center rounded-lg pr-3 pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                            onClick={() => toggleClick("pump_data")}
+                          >
+                            <div className="flex gap-3 items-center">
+                              Pump Data
+                            </div>
+                            {isOpen.pump_data ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <Link
+                              to="/pump/lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              List of Values
+                            </Link>
+                            <Link
+                              to="/pump/pump_detail_lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              Pump Data
+                            </Link>
+                            <Link
+                              to="/pump/motor_lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              Motor Data
+                            </Link>
+                            <Link
+                              to="/pump/material_lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              Material Data
+                            </Link>
+                            <Link
+                              to="/pump/shaft_seal_lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              Shaft/Seal Data
+                            </Link>
+                            <Link
+                              to="/pump/media_lov_list"
+                              className="flex  items-center gap-3 rounded-lg pl-20 py-2 text-muted-foreground transition-all hover:text-primary"
+                              activeProps={activeProps}
+                            >
+                              Media Data
+                            </Link>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Link
+                  to="/customers"
+                  className="flex  items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                  activeProps={activeProps}
+                >
+                  <Users className="h-4 w-4" />
+                  Customers
+                </Link>
+                <Collapsible>
+                  <CollapsibleTrigger
+                    className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    onClick={() => toggleClick("analytics")}
+                  >
+                    <div className="flex gap-3 items-center">
+                      <LineChart className="h-4 w-4" />
+                      Analytics
+                    </div>
+                    {isOpen.analytics ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <Link
+                      to="/analytic/factory_curve"
+                      className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                      activeProps={activeProps}
+                    >
+                      Factory Curve
+                    </Link>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible>
+                  <CollapsibleTrigger
+                    className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    onClick={() => toggleClick("pumps")}
+                  >
+                    <div className="flex gap-3 items-center">
+                      <BookUser className="h-4 w-4" />
+                      Users Manage
+                    </div>
+                    {isOpen.pumps ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <Link
+                      to="/users/company_list"
+                      className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                      activeProps={activeProps}
+                    >
+                      Companies
+                    </Link>
+                    <Collapsible>
+                      <CollapsibleTrigger
+                        className="flex w-full justify-between items-center rounded-lg pr-3 pl-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                        onClick={() => toggleClick("user_manage")}
                       >
-                        Customer
-                      </Link>
-                      <Link
-                        to="/users/create_user"
-                        className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
-                        activeProps={activeProps}
-                      >
-                        Create User
-                      </Link>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </CollapsibleContent>
-              </Collapsible>
-            </nav>
+                        <div className="flex gap-3 items-center">Users</div>
+                        {isOpen.pump_data ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <Link
+                          to="/users/pec_user_list"
+                          className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                          activeProps={activeProps}
+                        >
+                          PEC Members
+                        </Link>
+                        <Link
+                          to="/users/customer_list"
+                          className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                          activeProps={activeProps}
+                        >
+                          Customer
+                        </Link>
+                        <Link
+                          to="/users/create_user"
+                          className="flex  items-center gap-3 rounded-lg pl-16 py-2 text-muted-foreground transition-all hover:text-primary"
+                          activeProps={activeProps}
+                        >
+                          Create User
+                        </Link>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </CollapsibleContent>
+                </Collapsible>
+              </nav>
               {/* <div className="mt-auto">
                 <Card>
                   <CardHeader>

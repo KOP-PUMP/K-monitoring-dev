@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import { Combobox} from "@/components/common/ComboBox";
+import { Combobox } from "@/components/common/ComboBox";
 import {
   Sheet,
   SheetClose,
@@ -30,13 +30,14 @@ import { UserOutSchema } from "@/validators/user";
 import { useSettings } from "@/lib/settings";
 import { FormBox } from "@/components/common/FormBox";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import {PlusCircle, Search} from "lucide-react";
+import { PlusCircle, Search } from "lucide-react";
 import { useEffect } from "react";
 import { useGetPECPersonByCode, useCreateUser } from "@/hook/users/users";
 import { useGetCompanyDetailByCode } from "@/hook/users/company";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { CreateUserOut} from "@/types/users/users";
+import { CreateUserOut } from "@/types/users/users";
+import { UserRole } from "@/types";
 
 function CreateUser() {
   const [SelectedPECCode, setSelectedPECCode] = useState<string>("");
@@ -64,17 +65,21 @@ function CreateUser() {
       value: "Customer",
       label: "Customer",
     },
+    {
+      value: "Sales",
+      label: "Sales",
+    },
   ];
 
   useEffect(() => {
-    if(localstorage){
+    if (localstorage) {
       USERCreateForm.reset({
         ...USERCreateForm.getValues(),
         created_by: userData.user.user_email,
         updated_by: userData.user.user_email,
       });
     }
-  },[localstorage]);
+  }, [localstorage]);
 
   const defaultValues = {
     user_email: "",
@@ -133,13 +138,12 @@ function CreateUser() {
     }
   }, [selectedRole, USERCreateForm]);
 
-
   const handleSubmit = (values: z.infer<typeof UserOutSchema>) => {
     const data: CreateUserOut = {
       user_email: values.user_email,
-      user_username:values.user_username,
+      user_username: values.user_username,
       user_password: values.user_password,
-      user_role: values.user_role as "Engineer" | "Customer",
+      user_role: values.user_role as UserRole,
       profile: {
         user_username: values.user_username,
         user_email: values.user_email,
@@ -156,7 +160,7 @@ function CreateUser() {
     };
 
     console.log("Data Submitted:", data);
-    
+
     userCreateMutation.mutate(data);
   };
 
@@ -192,7 +196,7 @@ function CreateUser() {
                                 onChange={(value) => {
                                   field.onChange(value); // Update form state
                                   setSelectedRole(
-                                    USERCreateForm.getValues("user_role")
+                                    USERCreateForm.getValues("user_role"),
                                   );
                                 }}
                                 className="w-full"
@@ -355,14 +359,27 @@ function CreateUser() {
                                                     USERCreateForm.getValues();
                                                   USERCreateForm.reset({
                                                     ...currentValues,
-                                                    user_name:PECPersonDetail[0].pec_code,
-                                                    user_email:PECPersonDetail[0].email,
-                                                    show_name_th:PECPersonDetail[0].name_surname_th,
-                                                    show_name_en:PECPersonDetail[0].name_surname_en,
-                                                    show_department:PECPersonDetail[0].department,
-                                                    show_position:PECPersonDetail[0].position,
-                                                    user_mobile:PECPersonDetail[0].mobile,
-                                                    user_tel:PECPersonDetail[0].tel,
+                                                    user_name:
+                                                      PECPersonDetail[0]
+                                                        .pec_code,
+                                                    user_email:
+                                                      PECPersonDetail[0].email,
+                                                    show_name_th:
+                                                      PECPersonDetail[0]
+                                                        .name_surname_th,
+                                                    show_name_en:
+                                                      PECPersonDetail[0]
+                                                        .name_surname_en,
+                                                    show_department:
+                                                      PECPersonDetail[0]
+                                                        .department,
+                                                    show_position:
+                                                      PECPersonDetail[0]
+                                                        .position,
+                                                    user_mobile:
+                                                      PECPersonDetail[0].mobile,
+                                                    user_tel:
+                                                      PECPersonDetail[0].tel,
                                                   });
                                                   setCompanyCode("PEC");
                                                   setIsAdd(true);
@@ -502,10 +519,7 @@ function CreateUser() {
                                   Mobile
                                 </FormLabel>
                                 <FormControl>
-                                  <Input
-                                    placeholder="Mobile"
-                                    {...field}
-                                  />
+                                  <Input placeholder="Mobile" {...field} />
                                 </FormControl>
                               </div>
                               {showDescriptions && (
@@ -527,10 +541,7 @@ function CreateUser() {
                                   Tel.
                                 </FormLabel>
                                 <FormControl>
-                                  <Input
-                                    placeholder="Telephone"
-                                    {...field}
-                                  />
+                                  <Input placeholder="Telephone" {...field} />
                                 </FormControl>
                               </div>
                               {showDescriptions && (
@@ -715,7 +726,7 @@ function CreateUser() {
                                           className="col-span-3"
                                           onChange={(e) =>
                                             setSelectedCompanyCode(
-                                              e.target.value
+                                              e.target.value,
                                             )
                                           }
                                         />
@@ -825,7 +836,7 @@ function CreateUser() {
                                         <Button
                                           type="button"
                                           variant={"destructive"}
-                                          onClick={()=>{
+                                          onClick={() => {
                                             setSelectedPECCode("");
                                           }}
                                         >

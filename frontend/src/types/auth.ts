@@ -3,6 +3,8 @@ export interface LoginRequest {
   password: string;
 }
 
+export type UserRole = 'Admin' | 'Engineer' | 'Customer' | 'Developer' | 'Sales' | 'Service';
+
 export interface TokenResponse {
   email: string;
   refresh: string;
@@ -22,5 +24,6 @@ export interface CollapsibleState {
   pump_data: boolean;
   user_manage : boolean;
   analytics: boolean;
+  companies: boolean;
 };
 

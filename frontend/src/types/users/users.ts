@@ -1,3 +1,5 @@
+import { UserRole } from "@/types";
+
 export interface CustomerDetail {
   id: number;
   username: string;
@@ -25,7 +27,7 @@ export interface CreateUserOut {
   user_email : string,
   user_username : string,
   user_password : string,
-  user_role : "Engineer" | "Customer",
+  user_role : UserRole,
   profile :  UserProfile 
 }
 

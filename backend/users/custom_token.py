@@ -20,6 +20,8 @@ class MyTokenObtainPairInputSchema(TokenObtainInputSchemaBase):
     def get_token(cls, user) -> Dict:
         values = {}
         refresh = RefreshToken.for_user(user)
+        refresh["user_role"] = user.user_role
+        
         values["refresh"] = str(refresh)
         values["access"] = str(refresh.access_token)
 
