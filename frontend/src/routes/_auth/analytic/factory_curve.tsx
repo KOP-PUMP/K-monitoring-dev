@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Combobox, ComboboxItemProps } from "@/components/common/ComboBox";
 import {
-  useGetFactoryCurveNumber,
+  /* useGetFactoryCurveNumber, */
   useGetPECAllFactoryCurve,
   useGetPECFactoryCurveData,
 } from "@/hook/factory_curve/factory_curve";
@@ -13,9 +13,9 @@ import { NpshrFlowGraph } from "@/components/chart/NpshrFlowGraph";
 
 const FactoryCurve = () => {
   const [factoryNumber, setFactoryNumber] = useState<string>("");
-  const [factoryNumberOptions, setFactoryNumberOptions] = useState<
+  /* const [factoryNumberOptions, setFactoryNumberOptions] = useState<
     ComboboxItemProps[]
-  >([]);
+  >([]); */
   const [modelFormatType, setModelFormatType] = useState<ComboboxItemProps[]>(
     [],
   );
@@ -29,7 +29,7 @@ const FactoryCurve = () => {
   /* const [model, setModel] = useState(""); */
 
   /* const {data : factoryCurveData} = useGetFactoryCurveData(factoryNumber); */
-  const { data: factoryCurveNumber } = useGetFactoryCurveNumber();
+  /* const { data: factoryCurveNumber } = useGetFactoryCurveNumber(); */
   const { data: pecFactoryCurveData } = useGetPECAllFactoryCurve();
 
   useEffect(() => {
@@ -70,7 +70,7 @@ const FactoryCurve = () => {
     { value: "scatter", label: "Show Scatter Plot" },
   ];
 
-  useEffect(() => {
+ /*  useEffect(() => {
     if (factoryCurveNumber) {
       const mappedData = factoryCurveNumber.map((item) => ({
         value: item.fac_number || "",
@@ -78,7 +78,7 @@ const FactoryCurve = () => {
       }));
       setFactoryNumberOptions(mappedData);
     }
-  }, [factoryCurveNumber]);
+  }, [factoryCurveNumber]); */
 
   useEffect(() => {
     if (selectedModelFormat && pecFactoryCurveData) {

@@ -38,13 +38,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
-  useGetFactoryCurveNumber,
   useGetPECAllFactoryCurve,
-  useGetPECFactoryCurveData,
 } from "@/hook/factory_curve/factory_curve";
 import { PECFactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
-import { Combobox } from "@/components/common/ComboBox";
-import { set } from "date-fns";
 
 function MediaLOVEdit() {
   // Unit form setup
