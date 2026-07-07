@@ -259,7 +259,7 @@ const PumpLOV = () => {
         <h2 className="text-3xl font-bold tracking-tight">List of Pump Data</h2>
         <div className="flex items-center space-x-2">
           <Link to="/pump/pump_detail_lov_edit" search={{ id: null }}>
-            <Button>Add Motor Data</Button>
+            <Button>Add Pump</Button>
           </Link>
         </div>
       </div>

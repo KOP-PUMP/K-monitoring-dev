@@ -30,6 +30,13 @@ export const getAllPumpLOV = async (): Promise<any[]> => {
 /* Pump Detail */
 
 export const createPumpDetail = async (data: any) => {
+  try {
+    const response = await axiosInstance.post("/pump-data/pump-detail", data);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating pump detail:", error);
+    throw new Error("Failed to create pump detail");
+  }
   const response = await axiosInstance.post("/pump-data/pump-detail", data);
   return response.data;
 }
@@ -250,6 +257,11 @@ export const updateMediaLOV = async ({
 
 export const deleteMediaLOV = async (id: string) => {
   const response = await axiosInstance.delete(`/pump-data/media-lov/${id}`);
+  return response.data;
+};
+
+export const updatePumpDetail = async ({ id, data }: { id: string; data: any }) => {
+  const response = await axiosInstance.put(`/pump-data/pump-detail/${id}`, data);
   return response.data;
 };
 

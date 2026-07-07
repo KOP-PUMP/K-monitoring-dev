@@ -2,6 +2,8 @@ import {
   getFactoryCurveData,
   getFactoryCurveNumber,
   getCalPumpData,
+  getPECAllFactoryCurve,
+  getPECFactoryCurveData
 } from "@/api/factory_curve/factory_curve_data";
 import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
 import { useQuery, useMutation} from "@tanstack/react-query";
@@ -29,3 +31,18 @@ export const useGetCalPumpData = () =>{
     mutationFn: getCalPumpData,
   })
 }
+
+export const useGetPECAllFactoryCurve = () => {
+  return useQuery({
+    queryKey: ["pec", "factory_curve"],
+    queryFn: () => getPECAllFactoryCurve(),
+  });
+};
+
+export const useGetPECFactoryCurveData = (factoryNumber: string) => {
+  return useQuery({
+    queryKey: ["pec", "factory_curve", factoryNumber],
+    queryFn: () => getPECFactoryCurveData(factoryNumber),
+    enabled: !!factoryNumber
+  });
+};

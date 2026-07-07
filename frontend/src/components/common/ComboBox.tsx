@@ -16,20 +16,27 @@ export interface ComboboxItemProps {
 interface ComboboxProps {
   items: ComboboxItemProps[] | null;
   label?: string;
+  value?: string;
   className?: string;
   onChange: (event: string) => void;
 }
 
-export function Combobox({ items,label, className, onChange }: ComboboxProps) {
+export function Combobox({ items, label, value: controlledValue, className, onChange }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+  const [internalValue, setInternalValue] = React.useState("");
+
+  const value = controlledValue !== undefined ? controlledValue : internalValue;
+
+  const displayLabel = value
+    ? items?.find((item) => item.value === value)?.label ?? label ?? "Select"
+    : label ?? "Select";
 
   return (
     <div className={cn("block", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" role="combobox" size="sm" aria-expanded={open} className="w-full justify-between">
-            {value ? items?.find((item) => item.value === value)?.label :label ? label : "Select"}
+            {displayLabel}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -45,7 +52,9 @@ export function Combobox({ items,label, className, onChange }: ComboboxProps) {
                     value={item.value || ""}
                     onSelect={(currentValue) => {
                       onChange(item.value || "");
-                      setValue(currentValue === value ? "" : currentValue);
+                      if (controlledValue === undefined) {
+                        setInternalValue(currentValue === internalValue ? "" : currentValue);
+                      }
                       setOpen(false);
                     }}>
                     <CheckCircledIcon

@@ -28,6 +28,7 @@ import {
   updateMediaLOV,
   createPumpDetail,
   getPumpDetail,
+  updatePumpDetail,
   deletePumpDetail,
 } from "@/api/pump/pump";
 import { LOVData } from "@/types/table";
@@ -438,6 +439,21 @@ export const useUpdateMediaLOV = () => {
     onError: (error) => {
       toast.error("Error updating media LOV");
       console.error("Update Error:", error);
+    },
+  });
+};
+
+export const useUpdatePumpDetail = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      updatePumpDetail({ id, data }),
+    onSuccess: () => {
+      toast.success("Pump detail updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["pump", "pump_detail"] });
+    },
+    onError: () => {
+      toast.error("Error updating pump detail");
     },
   });
 };

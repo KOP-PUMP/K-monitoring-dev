@@ -2,7 +2,7 @@ import {
   FactoryCurveDataResponse,
   FactoryCurveNumberResponse,
 } from "@/types/factory_curve/factory_curve_data";
-import { axiosInstance } from "../utils";
+import { axiosInstance, axiosInstancePEC } from "../utils";
 import {
   PumpDetailCalDataOut,
 } from "@/types/factory_curve/factory_curve_data";
@@ -39,7 +39,6 @@ export const getFactoryCurveNumber = async (): Promise<
   }
 };
 
-
 export const getCalPumpData = async (data: PumpDetailCalDataOut) => {
   try {
     //const response = await axiosInstance.get(
@@ -52,3 +51,29 @@ export const getCalPumpData = async (data: PumpDetailCalDataOut) => {
     throw new Error(error.message || "Fail to get calculate data");
   }
 };
+
+export const getPECAllFactoryCurve = async () => {
+  try {
+    const response = await axiosInstancePEC.get("/factory_model_api.php");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching PEC factory curve data:", error);
+    throw new Error("Failed to fetch PEC factory curve data");
+  }
+}
+
+export const getPECFactoryCurveData = async (fac_number: string) => {
+  try {
+    const response = await axiosInstancePEC.post("/factory_curve_api.php", {
+      fac_number : fac_number
+    }, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching PEC factory curve data:", error);
+    throw new Error("Failed to fetch PEC factory curve data");
+  }
+}

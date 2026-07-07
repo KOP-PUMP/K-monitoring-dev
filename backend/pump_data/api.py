@@ -17,12 +17,18 @@ class ListOfValuesController:
     def create_pump_detail(self, request, payload: PumpDetail_schema):
         try:
             payload_dict = payload.dict()
-            company_instance = CompaniesDetail.objects.get(company_id=payload_dict.get('company_id'))
-            pump_lov_instance = PumpDetailLOV.objects.get(pump_lov_id=payload_dict.get('pump_lov_id'))
-            media_lov_instance = MediaLOV.objects.get(media_lov_id=payload_dict.get('media_lov_id'))
-            mat_lov_instance = PumpMaterialLOV.objects.get(mat_lov_id=payload_dict.get('mat_lov_id'))
-            motor_lov_instance = MotorDetailLOV.objects.get(motor_lov_id=payload_dict.get('motor_lov_id'))
-            shaft_seal_lov_instance = ShaftSealLOV.objects.get(shaft_seal_lov_id=payload_dict.get('shaft_seal_lov_id'))
+
+            def get_optional(model, field, value):
+                if not value:
+                    return None
+                return model.objects.get(**{field: value})
+
+            company_instance = get_optional(CompaniesDetail, 'company_id', payload_dict.get('company_id'))
+            pump_lov_instance = get_optional(PumpDetailLOV, 'pump_lov_id', payload_dict.get('pump_lov_id'))
+            media_lov_instance = get_optional(MediaLOV, 'media_lov_id', payload_dict.get('media_lov_id'))
+            mat_lov_instance = get_optional(PumpMaterialLOV, 'mat_lov_id', payload_dict.get('mat_lov_id'))
+            motor_lov_instance = get_optional(MotorDetailLOV, 'motor_lov_id', payload_dict.get('motor_lov_id'))
+            shaft_seal_lov_instance = get_optional(ShaftSealLOV, 'shaft_seal_lov_id', payload_dict.get('shaft_seal_lov_id'))
 
             payload_dict.update({
                 'company_id' : company_instance,
@@ -34,8 +40,8 @@ class ListOfValuesController:
             })
             PumpDetail.objects.create(**payload_dict)
             return JsonResponse({"success": True, "message": f"Pump detail created successfully"}, status=200)
-        except ValueError:
-            return JsonResponse({"error": "Error creating pump detail"}, status=400)
+        except (ValueError, Exception) as e:
+            return JsonResponse({"error": f"Error creating pump detail: {str(e)}"}, status=400)
         
     @http_get('/pump-detail')
     def get_pump_detail(self, request):
@@ -52,6 +58,43 @@ class ListOfValuesController:
             pump_detail = list(PumpDetail.objects.all().values())
             return JsonResponse({"data": pump_detail}, status=200)
 
+
+    @http_put('/pump-detail/{id}')
+    def update_pump_detail(self, request, id: str, payload: PumpDetail_schema):
+        try:
+            uuid_id = UUID(id)
+            instance = get_object_or_404(PumpDetail, pk=uuid_id)
+            payload_dict = payload.dict()
+
+            def get_optional(model, field, value):
+                if not value:
+                    return None
+                return model.objects.get(**{field: value})
+
+            company_instance = get_optional(CompaniesDetail, 'company_id', payload_dict.get('company_id'))
+            pump_lov_instance = get_optional(PumpDetailLOV, 'pump_lov_id', payload_dict.get('pump_lov_id'))
+            media_lov_instance = get_optional(MediaLOV, 'media_lov_id', payload_dict.get('media_lov_id'))
+            mat_lov_instance = get_optional(PumpMaterialLOV, 'mat_lov_id', payload_dict.get('mat_lov_id'))
+            motor_lov_instance = get_optional(MotorDetailLOV, 'motor_lov_id', payload_dict.get('motor_lov_id'))
+            shaft_seal_lov_instance = get_optional(ShaftSealLOV, 'shaft_seal_lov_id', payload_dict.get('shaft_seal_lov_id'))
+
+            payload_dict.update({
+                'company_id': company_instance,
+                'pump_lov_id': pump_lov_instance,
+                'media_lov_id': media_lov_instance,
+                'mat_lov_id': mat_lov_instance,
+                'motor_lov_id': motor_lov_instance,
+                'shaft_seal_lov_id': shaft_seal_lov_instance,
+            })
+
+            for attr, value in payload_dict.items():
+                if attr == 'pump_id':
+                    continue
+                setattr(instance, attr, value)
+            instance.save()
+            return JsonResponse({"success": True, "message": "Pump detail updated successfully"}, status=200)
+        except (ValueError, Exception) as e:
+            return JsonResponse({"error": f"Error updating pump detail: {str(e)}"}, status=400)
 
     @http_delete('/pump-detail/{id}')
     def delete_pump_detail(self, request, id: str):

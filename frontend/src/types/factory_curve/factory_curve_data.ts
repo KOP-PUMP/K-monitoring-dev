@@ -77,9 +77,17 @@ export interface PumpDetailCalResponse {
     curve: CurveDataAtImp[]
 }
 
-interface CurveDataAtImp {
+export interface CurveDataAtImp {
     flow:string
     head: string
     kw: string | null
     imp_dia: string
+}
+
+export interface PECFactoryCurveDataResponse {
+    brand : string;
+    curve_format : string;
+    equipment : string;
+    fac_number  : string;
+    model : string;
 }

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "@tanstack/react-router";
 
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,8 @@ import {
   useGetMotorDetailLOV,
   useGetMediaLOVData,
   useCreatePumpDetail,
+  useGetPumpDetail,
+  useUpdatePumpDetail,
 } from "@/hook/pump/pump";
 import {
   PumpDetailLOVResponse,
@@ -60,7 +63,10 @@ import { CompaniesResponse } from "@/types/users/company";
 import { useGetCalPumpData } from "@/hook/factory_curve/factory_curve";
 import { HeadFlowGraph } from "@/components/chart/HeadFlowGraph";
 
-export default function PumpList() {
+export default function PumpList({ editId }: { editId?: string } = {}) {
+  const isEditMode = !!editId;
+  const { data: existingPumpData } = useGetPumpDetail(editId ?? null);
+  const navigate = useNavigate();
   /* Setup state and variable */
   /* page state */
   const [step, setStep] = useState({
@@ -151,7 +157,7 @@ export default function PumpList() {
   }, [pumpLOVResponse, mediaData]);
 
   const getFormData = (key: string) =>
-    JSON.parse(localStorage.getItem(key) || "{}");
+    isEditMode ? {} : JSON.parse(localStorage.getItem(key) || "{}");
 
   /* Tab 1 */
   type PumpGeneralDetail = z.infer<typeof PumpDetailFormSchema>;
@@ -201,6 +207,121 @@ export default function PumpList() {
     defaultValues: getFormData("formData5"),
   });
 
+  /* Pre-populate forms when editing existing pump */
+  useEffect(() => {
+    if (!isEditMode || !existingPumpData) return;
+    const d = existingPumpData as any;
+    formPumpGeneralDetail.reset({
+      company_id: d.company_id ?? "", company_code: d.company_code ?? "",
+      customer_industry_group: d.customer_industry_group ?? "",
+      company_name_en: d.company_name_en ?? "", address_en: d.address_en ?? "",
+      company_name_th: d.company_name_th ?? "", address_th: d.address_th ?? "",
+      map: d.map ?? "", province: d.province ?? "", sales_area: d.sales_area ?? "",
+      doc_customer: d.doc_customer ?? "", doc_no: d.doc_no ?? "",
+      doc_date: d.doc_date ?? "", tag_no: d.tag_no ?? "", serial_no: d.serial_no ?? "",
+      pump_lov_id: d.pump_lov_id ?? "", pump_code_name: d.pump_code_name ?? "",
+      pump_brand: d.pump_brand ?? "", pump_model: d.pump_model ?? "",
+      pump_model_size: d.pump_model_size ?? "", pump_design: d.pump_design ?? "",
+      pump_standard: d.pump_standard ?? "", pump_standard_no: d.pump_standard_no ?? "",
+      pump_flange_con_std: d.pump_flange_con_std ?? "", pump_type_name: d.pump_type_name ?? "",
+      pump_stage: d.pump_stage ?? "", pump_seal_chamber: d.pump_seal_chamber ?? "",
+      pump_oil_seal: d.pump_oil_seal ?? "", pump_max_temp: d.pump_max_temp ?? "",
+      pump_suction_size_id: d.pump_suction_size_id ?? "", pump_suction_size: d.pump_suction_size ?? "",
+      pump_suction_rating: d.pump_suction_rating ?? "", pump_discharge_size_id: d.pump_discharge_size_id ?? "",
+      pump_discharge_size: d.pump_discharge_size ?? "", pump_discharge_rating: d.pump_discharge_rating ?? "",
+      pump_impeller_max_size: d.pump_impeller_max_size ?? "", pump_impeller_type: d.pump_impeller_type ?? "",
+      base_plate_id: d.base_plate_id ?? "", base_plate: d.base_plate ?? "",
+      location: d.location ?? "", pump_status: d.pump_status ?? "",
+      design_impeller_dia: d.design_impeller_dia ?? "", max_temp: d.max_temp ?? "",
+      pump_speed: d.pump_speed ?? "", pump_speed_unit: d.pump_speed_unit ?? "",
+      min_flow: d.min_flow ?? "", min_flow_unit: d.min_flow_unit ?? "",
+      design_flow: d.design_flow ?? "", design_flow_unit: d.design_flow_unit ?? "",
+      max_flow: d.max_flow ?? "", max_flow_unit: d.max_flow_unit ?? "",
+      bep_flow: d.bep_flow ?? "", bep_flow_unit: d.bep_flow_unit ?? "",
+      shut_off_head: d.shut_off_head ?? "", shut_off_head_unit: d.shut_off_head_unit ?? "",
+      min_head: d.min_head ?? "", min_head_unit: d.min_head_unit ?? "",
+      design_head: d.design_head ?? "", design_head_unit: d.design_head_unit ?? "",
+      max_head: d.max_head ?? "", max_head_unit: d.max_head_unit ?? "",
+      bep_head: d.bep_head ?? "", bep_head_unit: d.bep_head_unit ?? "",
+      npshr: d.npshr ?? "", npshr_unit: d.npshr_unit ?? "",
+      pump_efficiency: d.pump_efficiency ?? "", pump_efficiency_unit: d.pump_efficiency_unit ?? "",
+      hyd_power: d.hyd_power ?? "", hyd_power_unit: d.hyd_power_unit ?? "",
+      power_min_flow: d.power_min_flow ?? "", power_min_flow_unit: d.power_min_flow_unit ?? "",
+      power_required_cal: d.power_required_cal ?? "", power_required_cal_unit: d.power_required_cal_unit ?? "",
+      power_max_flow: d.power_max_flow ?? "", power_max_flow_unit: d.power_max_flow_unit ?? "",
+      power_bep_flow: d.power_bep_flow ?? "", power_bep_flow_unit: d.power_bep_flow_unit ?? "",
+      media_lov_id: d.media_lov_id ?? "", media_name: d.media_name ?? "",
+      media_density: d.media_density ?? "", media_density_unit: d.media_density_unit ?? "",
+      media_viscosity: d.media_viscosity ?? "", media_viscosity_unit: d.media_viscosity_unit ?? "",
+      media_concentration_percentage: d.media_concentration_percentage ?? "",
+      operating_temperature: d.operating_temperature ?? "",
+      vapor_pressure: d.vapor_pressure ?? "", vapor_pressure_unit: d.vapor_pressure_unit ?? "",
+      solid_type: d.solid_type ?? "", solid_diameter: d.solid_diameter ?? "",
+      solid_percentage: d.solid_percentage ?? "",
+    });
+    formMaterialDetail.reset({
+      mat_lov_id: d.mat_lov_id ?? "", mat_code_name: d.mat_code_name ?? "",
+      pump_type_mat: d.pump_type_mat ?? "", pump_mat_code: d.pump_mat_code ?? "",
+      casing_mat: d.casing_mat ?? "", casing_cover_mat: d.casing_cover_mat ?? "",
+      impeller_mat: d.impeller_mat ?? "", liner_mat: d.liner_mat ?? "",
+      pump_base_mat: d.pump_base_mat ?? "", pump_head_mat: d.pump_head_mat ?? "",
+      pump_head_cover_mat: d.pump_head_cover_mat ?? "",
+      stage_casing_diffuser_mat: d.stage_casing_diffuser_mat ?? "",
+    });
+    formMotorAndCouplingDetail.reset({
+      motor_lov_id: d.motor_lov_id ?? "", motor_code_name: d.motor_code_name ?? "",
+      motor_model: d.motor_model ?? "", motor_brand: d.motor_brand ?? "",
+      motor_drive: d.motor_drive ?? "", motor_standard: d.motor_standard ?? "",
+      motor_ie: d.motor_ie ?? "", motor_speed: d.motor_speed ?? "",
+      motor_speed_unit: d.motor_speed_unit ?? "", motor_rated: d.motor_rated ?? "",
+      motor_rated_unit: d.motor_rated_unit ?? "", motor_factor: d.motor_factor ?? "",
+      motor_connection: d.motor_connection ?? "", motor_phase: d.motor_phase ?? "",
+      motor_efficiency: d.motor_efficiency ?? "", motor_efficiency_unit: d.motor_efficiency_unit ?? "",
+      motor_rated_current: d.motor_rated_current ?? "", motor_rated_current_unit: d.motor_rated_current_unit ?? "",
+      motor_serial_no: d.motor_serial_no ?? "", voltage: d.voltage ?? "",
+      voltage_unit: d.voltage_unit ?? "", suggest_motor: d.suggest_motor ?? "",
+      coup_type: d.coup_type ?? "",
+    });
+    formMechanicalSealDetail.reset({
+      shaft_seal_lov_id: d.shaft_seal_lov_id ?? "", shaft_seal_code_name: d.shaft_seal_code_name ?? "",
+      shaft_seal_design: d.shaft_seal_design ?? "", shaft_seal_brand: d.shaft_seal_brand ?? "",
+      shaft_seal_model: d.shaft_seal_model ?? "", shaft_seal_material: d.shaft_seal_material ?? "",
+      mech_size: d.mech_size ?? "", mech_size_unit: d.mech_size_unit ?? "",
+      seal_cham: d.seal_cham ?? "", mechanical_seal_api_plan: d.mechanical_seal_api_plan ?? "",
+      mech_main_pre: d.mech_main_pre ?? "", mech_main_pre_unit: d.mech_main_pre_unit ?? "",
+      mech_main_temp: d.mech_main_temp ?? "",
+    });
+    formFlangeAndBearingDetail.reset({
+      bearing_nde_one: d.bearing_nde_one ?? "", bearing_nde_two: d.bearing_nde_two ?? "",
+      bearing_de_one: d.bearing_de_one ?? "", bearing_de_two: d.bearing_de_two ?? "",
+      bearing_lubric_type: d.bearing_lubric_type ?? "", bearing_lubric_brand: d.bearing_lubric_brand ?? "",
+      bearing_lubric_no: d.bearing_lubric_no ?? "", oil_seal: d.oil_seal ?? "",
+      rotation_de: d.rotation_de ?? "", bearing_last_chg_dt: d.bearing_last_chg_dt ?? "",
+      tank_position: d.tank_position ?? "", tank_design: d.tank_design ?? "",
+      tank_pressure: d.tank_pressure ?? "", flang_con_std: d.flang_con_std ?? "",
+      pump_suction_rating: d.pump_suction_rating ?? "", pump_suction_size: d.pump_suction_size ?? "",
+      suction_pipe_id: d.suction_pipe_id ?? "", suction_pipe_id_unit: d.suction_pipe_id_unit ?? "",
+      suction_pipe_sch: d.suction_pipe_sch ?? "", suction_pipe_size: d.suction_pipe_size ?? "",
+      suction_pipe_length: d.suction_pipe_length ?? "", suction_pipe_length_unit: d.suction_pipe_length_unit ?? "",
+      suction_elbow: d.suction_elbow ?? "", suction_tee: d.suction_tee ?? "",
+      suction_reducer: d.suction_reducer ?? "", suction_valve: d.suction_valve ?? "",
+      suction_y_strainer: d.suction_y_strainer ?? "", suction_other: d.suction_other ?? "",
+      suction_equi_length: d.suction_equi_length ?? "", suction_head: d.suction_head ?? "",
+      suction_head_unit: d.suction_head_unit ?? "", suction_velo: d.suction_velo ?? "",
+      suction_velo_unit: d.suction_velo_unit ?? "", pump_discharge_rating: d.pump_discharge_rating ?? "",
+      pump_discharge_size: d.pump_discharge_size ?? "", discharge_pipe_sch: d.discharge_pipe_sch ?? "",
+      discharge_pipe_size: d.discharge_pipe_size ?? "", discharge_pipe_id: d.discharge_pipe_id ?? "",
+      discharge_pipe_id_unit: d.discharge_pipe_id_unit ?? "",
+      discharge_pipe_length_h: d.discharge_pipe_length_h ?? "", discharge_pipe_length_h_unit: d.discharge_pipe_length_h_unit ?? "",
+      discharge_pipe_length_v: d.discharge_pipe_length_v ?? "", discharge_pipe_length_v_unit: d.discharge_pipe_length_v_unit ?? "",
+      discharge_elbow: d.discharge_elbow ?? "", discharge_tee: d.discharge_tee ?? "",
+      discharge_reducer: d.discharge_reducer ?? "", discharge_valve: d.discharge_valve ?? "",
+      discharge_y_strainer: d.discharge_y_strainer ?? "", discharge_other: d.discharge_other ?? "",
+      discharge_equi_length: d.discharge_equi_length ?? "", discharge_head: d.discharge_head ?? "",
+      discharge_velo: d.discharge_velo ?? "", discharge_velo_unit: d.discharge_velo_unit ?? "",
+    });
+  }, [existingPumpData]);
+
   /* const flangeAndBearingCurrentValue = formFlangeAndBearingDetail.getValues(); */
 
   const handleNextStep = (
@@ -210,7 +331,9 @@ export default function PumpList() {
   ) => {
     formName.handleSubmit(
       (data) => {
-        localStorage.setItem(`formData${currentStep}`, JSON.stringify(data));
+        if (!isEditMode) {
+          localStorage.setItem(`formData${currentStep}`, JSON.stringify(data));
+        }
         setStep((prev) => ({
           ...prev,
           [currentStep]: true,
@@ -366,6 +489,7 @@ export default function PumpList() {
   };
 
   const createMutation = useCreatePumpDetail();
+  const updateMutation = useUpdatePumpDetail();
   const localstorage = window.localStorage.getItem("user");
   const userData = localstorage !== null ? JSON.parse(localstorage) : null;
   const handleDataSubmit = () => {
@@ -380,12 +504,25 @@ export default function PumpList() {
       ...form3,
       ...form4,
       ...form5,
-      created_at: new Date().toISOString(),
-      created_by: userData?.user.user_email,
       updated_at: new Date().toISOString(),
       updated_by: userData?.user.user_email,
+    };
+    if (isEditMode && editId) {
+      updateMutation.mutate(
+        { id: editId, data },
+        {
+          onSuccess: () => {
+            navigate({ to: "/pump/pump_detail", search: { id: editId } });
+          },
+        },
+      );
+    } else {
+      createMutation.mutate({
+        ...data,
+        created_at: new Date().toISOString(),
+        created_by: userData?.user.user_email,
+      });
     }
-    createMutation.mutate(data);
   };
 
   const { mutate, isPending, isError } = useGetCalPumpData();
@@ -521,7 +658,7 @@ export default function PumpList() {
           <TabsList className="w-full h-auto flex justify-between bg-white ">
             <TabsTrigger
               value="1"
-              className={`rounded-full ${step["1"] && "bg-primary text-white"}`}
+              className={`rounded-full ${step["1"] && "bg-primary text-white"} hover:bg-gray-200`}
             >
               {step["1"] ? <Check className="w-[12px] h-[20px]" /> : "1"}
             </TabsTrigger>
@@ -530,7 +667,7 @@ export default function PumpList() {
             />
             <TabsTrigger
               value="2"
-              className={`rounded-full ${step["2"] && "bg-primary text-white"}`}
+              className={`rounded-full ${step["2"] && "bg-primary text-white"} hover:bg-gray-200`}
             >
               {step["2"] ? <Check className="w-[12px] h-[20px]" /> : "2"}
             </TabsTrigger>
@@ -539,7 +676,7 @@ export default function PumpList() {
             />
             <TabsTrigger
               value="3"
-              className={`rounded-full ${step["3"] && "bg-primary text-white"}`}
+              className={`rounded-full ${step["3"] && "bg-primary text-white"} hover:bg-gray-200`}
             >
               {step["3"] ? <Check className="w-[12px] h-[20px]" /> : "3"}
             </TabsTrigger>
@@ -548,7 +685,7 @@ export default function PumpList() {
             />
             <TabsTrigger
               value="4"
-              className={`rounded-full ${step["4"] && "bg-primary text-white"}`}
+              className={`rounded-full ${step["4"] && "bg-primary text-white"} hover:bg-gray-200`}
             >
               {step["4"] ? <Check className="w-[12px] h-[20px]" /> : "4"}
             </TabsTrigger>
@@ -557,7 +694,7 @@ export default function PumpList() {
             />
             <TabsTrigger
               value="5"
-              className={`rounded-full ${step["5"] && "bg-primary text-white"}`}
+              className={`rounded-full ${step["5"] && "bg-primary text-white"} hover:bg-gray-200`}
             >
               {step["5"] ? <Check className="w-[12px] h-[20px]" /> : "5"}
             </TabsTrigger>
@@ -6257,7 +6394,7 @@ export default function PumpList() {
                         }}
                       >
                         <PlusCircle className="h-3.5 w-3.5" />
-                        <span>Submit</span>
+                        <span>{isEditMode ? "Update" : "Submit"}</span>
                       </Button>
                     </div>
                   </div>

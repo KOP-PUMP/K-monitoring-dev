@@ -33,6 +33,7 @@ import { Route as AuthPumpShaftseallovlistImport } from './routes/_auth/pump/sha
 import { Route as AuthPumpShaftsealloveditImport } from './routes/_auth/pump/shaft_seal_lov_edit'
 import { Route as AuthPumpPumpdetaillovlistImport } from './routes/_auth/pump/pump_detail_lov_list'
 import { Route as AuthPumpPumpdetailloveditImport } from './routes/_auth/pump/pump_detail_lov_edit'
+import { Route as AuthPumpPumpdetaileditImport } from './routes/_auth/pump/pump_detail_edit'
 import { Route as AuthPumpPumpdetailImport } from './routes/_auth/pump/pump_detail'
 import { Route as AuthPumpMotorlovlistImport } from './routes/_auth/pump/motor_lov_list'
 import { Route as AuthPumpMotorloveditImport } from './routes/_auth/pump/motor_lov_edit'
@@ -161,6 +162,11 @@ const AuthPumpPumpdetaillovlistRoute = AuthPumpPumpdetaillovlistImport.update({
 
 const AuthPumpPumpdetailloveditRoute = AuthPumpPumpdetailloveditImport.update({
   path: '/pump/pump_detail_lov_edit',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthPumpPumpdetaileditRoute = AuthPumpPumpdetaileditImport.update({
+  path: '/pump/pump_detail_edit',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -412,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPumpPumpdetailImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/pump/pump_detail_edit': {
+      id: '/_auth/pump/pump_detail_edit'
+      path: '/pump/pump_detail_edit'
+      fullPath: '/pump/pump_detail_edit'
+      preLoaderRoute: typeof AuthPumpPumpdetaileditImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/pump/pump_detail_lov_edit': {
       id: '/_auth/pump/pump_detail_lov_edit'
       path: '/pump/pump_detail_lov_edit'
@@ -565,6 +578,7 @@ export const routeTree = rootRoute.addChildren({
     AuthPumpMotorloveditRoute,
     AuthPumpMotorlovlistRoute,
     AuthPumpPumpdetailRoute,
+    AuthPumpPumpdetaileditRoute,
     AuthPumpPumpdetailloveditRoute,
     AuthPumpPumpdetaillovlistRoute,
     AuthPumpShaftsealloveditRoute,
@@ -622,6 +636,7 @@ export const routeTree = rootRoute.addChildren({
         "/_auth/pump/motor_lov_edit",
         "/_auth/pump/motor_lov_list",
         "/_auth/pump/pump_detail",
+        "/_auth/pump/pump_detail_edit",
         "/_auth/pump/pump_detail_lov_edit",
         "/_auth/pump/pump_detail_lov_list",
         "/_auth/pump/shaft_seal_lov_edit",
@@ -723,6 +738,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_auth/pump/pump_detail": {
       "filePath": "_auth/pump/pump_detail.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/pump/pump_detail_edit": {
+      "filePath": "_auth/pump/pump_detail_edit.tsx",
       "parent": "/_auth"
     },
     "/_auth/pump/pump_detail_lov_edit": {
