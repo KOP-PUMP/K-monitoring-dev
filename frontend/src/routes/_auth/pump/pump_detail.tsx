@@ -94,7 +94,6 @@ const PumpDetail = () => {
           </CardFooter>
         </Card>
       </div>
-
       {/* General Detail */}
       <Card className="w-full">
         <Collapsible>

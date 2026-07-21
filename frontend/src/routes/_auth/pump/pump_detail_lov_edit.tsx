@@ -37,9 +37,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  useGetPECAllFactoryCurve,
-} from "@/hook/factory_curve/factory_curve";
+import { useGetPECAllFactoryCurve } from "@/hook/factory_curve/factory_curve";
 import { PECFactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
 
 function MediaLOVEdit() {

@@ -8,27 +8,21 @@
 
 #### Set up MySQL database
 
-2. [Install MySQL Shell](https://dev.mysql.com/downloads/shell/)
-3. [Download DBEngin](https://dbngin.com/)
-   - After install DBEngin, Click **+** sign on top left corner to create new **MySQL** instance.
-   - In this popup window set it up like this (values are depend on .env file)
-   ![dbengin1](https://github.com/user-attachments/assets/83d97dd8-7c43-4517-aee4-d91746064389)
-   - Then click **Start**, wait until DBEngin download all important files.
+2. Install MySQL Server
+   - [MacOS](https://dev.mysql.com/downloads/mysql/)
+   - [Windows](https://dev.mysql.com/downloads/installer/)
+
+   During install, set root password and port (default `3306`) to match your `.env` values.
+
+3. [Install MySQL Workbench](https://dev.mysql.com/downloads/workbench/)
+   - Open Workbench, create a new connection to `127.0.0.1:3306` using your root credentials.
+
 4. Create database
 
-Run these command (it will ask for password and saving, just click enter to continue)
-
-```bash
-mysqlsh -u root -h localhost --port 3306
-# Please provide the password for 'root@localhost:3306':
-# Save password for 'root@localhost:3306'? [Y]es/[N]o/Ne[v]er (default No):
-```
-
-After this it will enter shell of MySQL, then create database
+   In Workbench, open a SQL editor tab against your connection and run:
 
 ```sql
 CREATE DATABASE kmonitoring;
-\quit
 ```
 
 #### Setup Django
@@ -57,7 +51,7 @@ pip install -r requirements.txt
 
 7. Create `.env`
 
-Copy content of file `sample.env` into `.env`
+Create a `.env` file at `backend/.env` (`sample.env` no longer exists in the repo, so set it up manually with your DB and secret key values).
 
 8. Start Django Server
 
@@ -78,9 +72,11 @@ After enter shell, copy and paste these commands in shell (lines with this symbo
 
 ```shell
 from users.models import CustomUser
-CustomUser.objects.create_superuser(email="admin1@gmail.com", username="admin1", password="@Password123")
+CustomUser.objects.create_superuser(user_email="admin1@gmail.com", user_username="admin1", user_password="@Password123", user_role="Admin")
 quit()
 ```
+
+Note: `user_role` must be one of `Admin`, `Developer`, `Sales`, `Service`, `Engineer`, `Customer`.
 
 ### Frontend Installation
 
@@ -95,7 +91,7 @@ Note: Normally, we can run the command above, if error occur follow PNPM install
 
 3. Create `.env.local`
 
-Copy content of file `sample.env.local` into `.env.local`
+Create a `.env.local` file at `frontend/.env.local` (`sample.env.local` no longer exists in the repo, so set it up manually with your API URL values).
 
 4. Install modules and start react
 
@@ -128,8 +124,12 @@ frontend/
 │  ├─ api/  # API request services
 │  ├─ components/  # Components used in react
 │  │  ├─ ui/  # Shadcn components
+│  │  ├─ chart/  # Chart components (factory curve, analytics)
+│  │  ├─ table/  # Reusable table components
+│  ├─ hook/  # React hooks per domain (pump, engineer, factory_curve, users)
 │  ├─ lib/  # Settings and Authentication related files
 │  ├─ routes/  # All routes files to render each route, file-base routing
+│  │  ├─ _auth/  # Authenticated routes: pump, users, analytic, customers, dashboard, settings
 │  ├─ types/  # Typescript Interface, provide types to whole apps
 │  ├─ validators/  # All zod types validator
 │  ├─ App.jsx
@@ -139,13 +139,27 @@ frontend/
 backend/
 ├─ core/
 │  ├─ settings.py  # Config Django here
-│  ├─ api.py  # collect api from whole django apps
-├─ pumps/
-│  ├─ schemas/  # Pydantic files
-│  ├─ api.py  # Pumps-related api
-│  ├─ permissions.py  # Create permission of users here
+│  ├─ api.py  # collect api from whole django apps (registers controllers)
+├─ pump_data/
+│  ├─ schema/  # Pydantic files
+│  ├─ api.py  # Pump / list-of-values related api
+├─ factory_curve/
+│  ├─ schema/  # Pydantic files
+│  ├─ api.py  # Factory curve related api (incl. fetching curves from PEC)
+├─ engineer/
+│  ├─ schema/  # Pydantic files
+│  ├─ report_templates/  # Report generation templates
+│  ├─ reports/  # Generated reports
+│  ├─ api.py  # Engineering report / Mars related api
+│  ├─ report_generate.py  # Report generation logic
+│  ├─ check_condition.py  # Condition checks for reports
 ├─ users/
-│  ├─ schema.py  # Pydantic files
+│  ├─ schemas/  # Pydantic files
 │  ├─ signals.py  # Control profile creation
-│  ├─ api.py  # Users-related api
+│  ├─ api.py  # Users, companies, customer related api
+│  ├─ models.py  # User roles / permissions defined here
 ```
+
+## Docker
+
+A `docker-compose.yml` is provided at the repo root to run frontend and backend as containers (frontend on port 3000, backend using host networking, reading env from `backend/.env`).
