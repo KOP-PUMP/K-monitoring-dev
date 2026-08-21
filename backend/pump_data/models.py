@@ -182,6 +182,7 @@ class PumpDetail(models.Model):
     doc_date = models.TextField(max_length=100, blank=True, null = True)
     tag_no = models.TextField(max_length=100, blank=True, null = True)
     serial_no = models.TextField(max_length=100, blank=True, null = True)
+    pump_image = models.ImageField(upload_to='pump_images/', blank=True, null=True)
 
     #Pump detail LOV
     pump_code_name = models.TextField(max_length=100, blank=True, null = True)

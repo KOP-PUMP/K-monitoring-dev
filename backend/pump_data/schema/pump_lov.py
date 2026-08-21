@@ -93,6 +93,7 @@ class PumpMaterialLOV_schema(Schema):
     casing_cover_mat : Optional[str]=None
     impeller_mat : Optional[str]=None
     liner_mat : Optional[str]=None
+    pump_base_mat : Optional[str]=None
     pump_head_mat : Optional[str]=None
     pump_head_cover_mat : Optional[str]=None
     stage_casing_diffuser_mat : Optional[str]=None
@@ -103,7 +104,7 @@ class PumpMaterialLOV_schema(Schema):
 
 
 class PumpDetail_schema(Schema):
-    pump_id : Optional[str] = None
+    pump_id : Optional[UUID] = Field(default_factory=uuid4)
     company_id : Optional[str] = None
     pump_lov_id : Optional[str] = None
     media_lov_id : Optional[str] = None

@@ -363,11 +363,7 @@ function MotorLOVEdit() {
                                       "pump_unit"
                                     ) || []
                                   } // Dropdown options
-                                  label={
-                                    motorData?.motor_speed_unit
-                                      ? motorData.motor_speed_unit
-                                      : "Select"
-                                  }
+                                  label={speedField.value || "Select"}
                                   onChange={(value) => {
                                     speedField.onChange(value); // Update form state
                                   }}
@@ -410,11 +406,7 @@ function MotorLOVEdit() {
                                       "pump_unit"
                                     ) || []
                                   } // Dropdown options
-                                  label={
-                                    motorData?.motor_rated_unit
-                                      ? motorData.motor_rated_unit
-                                      : "Select"
-                                  }
+                                  label={ratedField.value || "Select"}
                                   onChange={(value) => {
                                     ratedField.onChange(value); // Update form state
                                   }}
@@ -517,11 +509,7 @@ function MotorLOVEdit() {
                                       "pump_unit"
                                     ) || []
                                   } // Dropdown options
-                                  label={
-                                    motorData?.motor_efficiency_unit
-                                      ? motorData.motor_efficiency_unit
-                                      : "Select"
-                                  }
+                                  label={ratedField.value || "Select"}
                                   onChange={(value) => {
                                     ratedField.onChange(value); // Update form state
                                   }}
@@ -564,11 +552,7 @@ function MotorLOVEdit() {
                                       "pump_unit"
                                     ) || []
                                   } // Dropdown options
-                                  label={
-                                    motorData?.motor_rated_current_unit
-                                      ? motorData.motor_rated_current_unit
-                                      : "Select"
-                                  }
+                                  label={ratedField.value || "Select"}
                                   onChange={(value) => {
                                     ratedField.onChange(value); // Update form state
                                   }}

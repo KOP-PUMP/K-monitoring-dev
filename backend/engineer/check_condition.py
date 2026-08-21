@@ -1,8 +1,9 @@
+import os
+import requests
 from django.http import JsonResponse
 from factory_curve.schema.factory_curve import CalPumpPayload_schema
 from engineer.schema.engineer import EngineerReportCheckPayload_schema
 from pump_data.models import KMonitoringLOV
-from factory_curve.models import FactoryCurve
 from django.forms.models import model_to_dict
 from scipy.optimize import curve_fit
 from scipy.interpolate import griddata
@@ -15,6 +16,35 @@ from dateutil import parser
 
 
 G = 9.80665  # m/s²
+
+PEC_API_URL = os.getenv("PEC_API_URL", "https://www.pecsystem.net")
+
+
+def fetch_pec_curve_data(model_input: str) -> Optional[List[Dict[str, Any]]]:
+    """Fetch factory curve rows for a model directly from the PEC system's live API."""
+    try:
+        models_resp = requests.get(f"{PEC_API_URL}/factory_model_api.php", timeout=15)
+        models_resp.raise_for_status()
+        models = models_resp.json()
+    except Exception:
+        return None
+
+    match = next((m for m in models if m.get("model") == model_input), None)
+    if not match or not match.get("fac_number"):
+        return None
+
+    try:
+        curve_resp = requests.post(
+            f"{PEC_API_URL}/factory_curve_api.php",
+            data={"fac_number": match["fac_number"]},
+            timeout=15,
+        )
+        curve_resp.raise_for_status()
+        curve_data = curve_resp.json()
+    except Exception:
+        return None
+
+    return curve_data or None
 
 # ---------- curve models ----------
 def logistic(x, A, k, x0):
@@ -287,7 +317,14 @@ class ReportCheckResult:
             lower = float(lower); upper = float(upper)
 
             f_interp = 0.5 * (f_low + f_up)
-            h_interp = h_low + (h_up - h_low) * (target - lower) / (upper - lower)
+            if upper == lower:
+                # Requested diameter has no real neighbor on one side (e.g. only one
+                # impeller size exists, or the request falls outside the whole range) —
+                # both bounds collapsed to the same curve, so there's nothing to
+                # interpolate between; use that single curve's head as-is.
+                h_interp = h_low
+            else:
+                h_interp = h_low + (h_up - h_low) * (target - lower) / (upper - lower)
             out.append({"flow": round(f_interp,4), "head": round(h_interp, 4)})
 
         return out
@@ -429,7 +466,13 @@ class ReportCheckResult:
 
     # ---------- efficiency estimate at arbitrary (Q,H) ----------
     def estimate_eff(self, flow: float, head: float) -> Optional[float]:
-        
+        eff, _ = self.estimate_eff_bounded(flow, head)
+        return eff
+
+    def estimate_eff_bounded(self, flow: float, head: float) -> Tuple[Optional[float], bool]:
+        """Same as estimate_eff, but also reports whether (flow, head) fell outside
+        the plotted efficiency curves (i.e. the value is extrapolated/floored, not interpolated)."""
+
         """Try 2D interpolation; fallback to distance-to-curves interpolation."""
         # 1) 2D interpolation on scatter
         if self.efficiency_curve_data:
@@ -438,22 +481,19 @@ class ReportCheckResult:
             eff_keys = sorted(list(set(float(label.replace('%', '').replace('L', '').replace('R', '').strip()) for label in self.eff_key)))
             try:
                 eff = griddata(pts, vals, (flow, head), method="linear")
-    
+
                 if eff is not None and not np.isnan(eff):
-                    return float(np.clip(eff, 0.0, 100.0))
+                    return float(np.clip(eff, 0.0, 100.0)), False
 
-                # FALLBACK (Out of Bounds)
-                nearest_eff = griddata(pts, vals, (flow, head), method="nearest")
-
-                if nearest_eff is not None and not np.isnan(nearest_eff):
-                    # Snap the messy 'nearest' result to one of our clean levels
-                    current_level = min(eff_keys, key=lambda x: abs(x - nearest_eff))
-                    idx = eff_keys.index(current_level)
-                    if idx == 0:
-                        return float(np.clip(nearest_eff, 0.0, 100.0))
-                    else:
-                        # Step down 1 level
-                        return float(eff_keys[max(0, idx - 1)])
+                # FALLBACK (Out of Bounds): we can no longer trust "nearest contour"
+                # proximity here — a contour's branch can be missing on one side of the
+                # data (e.g. the 30% line only digitized on the left), so snapping to
+                # whichever labeled point happens to be spatially closest and stepping
+                # down one level can land on a number with no real relationship to the
+                # true efficiency. The only value we can honestly stand behind is the
+                # lowest efficiency level confirmed anywhere in this pump's own curve data.
+                if eff_keys:
+                    return float(min(eff_keys)), True
             except Exception:
                 pass
                 
@@ -487,6 +527,7 @@ class ReportCheckResult:
         #w1 = 1.0 / max(d1, 1e-6); w2 = 1.0 / max(d2, 1e-6)
         #est = (e1 * w1 + e2 * w2) / (w1 + w2)
         #return float(np.clip(est, 0.0, 100.0))
+        return None, False
 
     def pressure_unit_to_bar(self, pressure: float, unit: str) -> Optional[float]:
         try:
@@ -525,7 +566,7 @@ class ReportCheckResult:
             operation_flow = 635.0  # m3/h
             operation_head = 11.5   # m
         else:
-            impeller_dia = int(self.pump_data["design_impeller_dia"])
+            impeller_dia = float(self.pump_data["design_impeller_dia"])
             model = self.pump_data["pump_model"]
             speed = self.pump_data["pump_speed"]
             model_input = f"{model}  {speed}RPM"
@@ -543,9 +584,8 @@ class ReportCheckResult:
             operation_flow = float(self.pump_data["design_flow"]) * fc
             operation_head = float(self.pump_data["design_head"]) * hc
 
-        # 1) Load data for the model
-        qs = FactoryCurve.objects.filter(model=model_input)
-        self.data = [model_to_dict(o) for o in qs]
+        # 1) Load data for the model from the PEC system (live source of truth)
+        self.data = fetch_pec_curve_data(model_input)
         if not self.data:
             return {"error": f"Factory curve not found for model: {model_input}"}
             
@@ -596,6 +636,23 @@ class ReportCheckResult:
             return {"error": "Insufficient data for grouping."}
         
         self.imp_key = sorted([key for key in self.imp_grouped.keys() if key != ""])
+
+        # 2b) Sanity-check the requested impeller diameter BEFORE building any curve for
+        # it. self.imp_key holds the pump's real, available sizes as strings — comparing
+        # them with plain min()/max() sorts lexicographically and can silently pick the
+        # wrong bound (e.g. "100.00" < "90.00"), so compare as floats instead. A diameter
+        # between two real sizes is fine (interpolated below); only reject when it falls
+        # outside the whole range this pump actually has data for.
+        available_dias = sorted(float(d) for d in self.imp_key)
+        if impeller_dia < available_dias[0] or impeller_dia > available_dias[-1]:
+            dia_list = ", ".join(f"{d:g}" for d in available_dias)
+            return {
+                "error": (
+                    f"Impeller diameter {impeller_dia:g}mm is not available for this pump model. "
+                    f"Available sizes: {dia_list}mm."
+                )
+            }
+
         self.eff_key = self.eff_grouped.keys()
         
         # scatter list for interpolation
@@ -613,7 +670,7 @@ class ReportCheckResult:
         # return {"eff_fits": {k: v.to_dict() for k, v in self.eff_fits.items()}}
         
         # 4) Desired impeller curve
-        impeller_dia_str = f"{impeller_dia}.00"
+        impeller_dia_str = f"{impeller_dia:.2f}"
         if impeller_dia_str in self.imp_fits:
             
             imp_data = {}
@@ -638,8 +695,8 @@ class ReportCheckResult:
             
             pairs = {}
  
-            lower = max([d for d in self.imp_key if float(d) <= impeller_dia], default=min(self.imp_key))
-            upper = min([d for d in self.imp_key if float(d) >= impeller_dia], default=max(self.imp_key))
+            lower = max([d for d in self.imp_key if float(d) <= impeller_dia], key=float, default=self.imp_key[0])
+            upper = min([d for d in self.imp_key if float(d) >= impeller_dia], key=float, default=self.imp_key[-1])
             
             pairs[impeller_dia_str] = self.interpolate(impeller_dia, upper, lower, "imp")
 
@@ -658,6 +715,25 @@ class ReportCheckResult:
             qmin = fit.flow_limit["min_flow_limit"]; qmax = fit.flow_limit["max_flow_limit"]
             q = np.linspace(qmin, qmax, 500); h = m(q)
             self.desire_imp_curve_data = [{"flow": round(float(f),4), "head": round(float(hh),4), "imp_dia": f"{impeller_dia}"} for f, hh in zip(q, h)]
+
+        # 4b) Sanity-check the requested operating point BEFORE extrapolating anything.
+        # Head/power/NPSHr below are computed by evaluating a polynomial fit to the pump's
+        # real curve data at the requested flow — outside the flow range that fit was built
+        # from, the polynomial diverges and produces physically impossible numbers (e.g.
+        # negative head). Catch that here instead of surfacing garbage results.
+        flow_limit = self.desired_imp_fit.flow_limit if self.desired_imp_fit else None
+        if flow_limit:
+            min_flow_limit = flow_limit["min_flow_limit"]
+            max_flow_limit = flow_limit["max_flow_limit"]
+            if operation_flow < min_flow_limit or operation_flow > max_flow_limit:
+                return {
+                    "error": (
+                        f"Design flow {operation_flow:.2f} m3/h is outside "
+                        f"this pump's curve range ({min_flow_limit:.2f}-{max_flow_limit:.2f} m3/h) "
+                        f"for impeller diameter {impeller_dia}mm. "
+                        f"Check the flow value, its unit, or the selected pump model/impeller size."
+                    )
+                }
 
         #Old method for finding BEP change to new method
         # 5) Intersections with efficiency curves
@@ -733,14 +809,21 @@ class ReportCheckResult:
             h_op = float(self.desire_imp_curve_data[idx]["head"])
 
         # efficiencies
-        eff_min = self.estimate_eff(f_min, h_min)
-        eff_max = self.estimate_eff(f_max, h_max)
-        eff_op = self.estimate_eff(operation_flow, h_op)
+        eff_min, oob_min = self.estimate_eff_bounded(f_min, h_min)
+        eff_max, oob_max = self.estimate_eff_bounded(f_max, h_max)
+        eff_op, oob_op = self.estimate_eff_bounded(operation_flow, h_op)
         eff_bep = bep_pt["eff"]
 
-        min_flow_point = {"point_flow": round(f_min, 4), "point_head": round(h_min, 4), "point_label": f"Min Flow {round(eff_min,2) or '??'}%", "eff": round(eff_min,2)}
-        max_flow_point = {"point_flow": round(f_max, 4), "point_head": round(h_max, 4), "point_label": f"Max Flow {round(eff_max,2) or '??'}%", "eff": round(eff_max,2)}
-        operation_point = {"point_flow": round(operation_flow, 4), "point_head": round(h_op, 4), "point_label": f"Operation {round(eff_op,2) or '??'}%", "eff": round(eff_op,2)}
+        def eff_label(prefix: str, eff: Optional[float], out_of_bounds: bool) -> str:
+            if eff is None:
+                return f"{prefix} ??%"
+            # out_of_bounds means the point fell outside the plotted efficiency curves,
+            # so `eff` is only a conservative ceiling, not an interpolated reading.
+            return f"{prefix} Less than {round(eff,2)}%" if out_of_bounds else f"{prefix} {round(eff,2)}%"
+
+        min_flow_point = {"point_flow": round(f_min, 4), "point_head": round(h_min, 4), "point_label": eff_label("Min Flow", eff_min, oob_min), "eff": round(eff_min,2) if eff_min is not None else None}
+        max_flow_point = {"point_flow": round(f_max, 4), "point_head": round(h_max, 4), "point_label": eff_label("Max Flow", eff_max, oob_max), "eff": round(eff_max,2) if eff_max is not None else None}
+        operation_point = {"point_flow": round(operation_flow, 4), "point_head": round(h_op, 4), "point_label": eff_label("Operation", eff_op, oob_op), "eff": round(eff_op,2) if eff_op is not None else None}
         bep_point = {"point_flow": round(bep_pt["flow"], 4), "point_head": round(bep_pt["head"], 4), "point_label": f"BEP {round(eff_bep,2)}%", "eff": round(eff_bep,2)}
 
         # 8) Power (kW)
@@ -825,12 +908,101 @@ class ReportCheckResult:
             "power_max_flow_kW": power_max_flow_kW,
             "power_bep_kW": power_bep_kW,
             "power_required_cal_kW": power_required_cal_kW,
+            "curve_format": self.data[0].get("curve_format"),
             "shut_off_head": shut_off_head,
             "npshr": npshr_val,
             "units": units,
+            "analysis": self.working_range_analysis(operation_flow, operation_head, h_op, min_flow_point, max_flow_point, bep_point, npshr_val),
         }
         return result
-    
+
+    def working_range_analysis(self, operation_flow, operation_head, curve_head, min_flow_point, max_flow_point, bep_point, npshr=None):
+        """Working-Range verdict + engineering suggestions for an operating point,
+        matching the K-Monitoring Operating Range Verification format."""
+        min_flow = min_flow_point["point_flow"]   # 30% BEP
+        max_flow = max_flow_point["point_flow"]   # 110% BEP
+        bep_flow = bep_point["point_flow"]
+
+        result = {
+            "working_range": None,          # "below_30" | "within" | "above_110"
+            "working_range_label": None,
+            "pump_performance": None,
+            "suggestions": [],
+            "head_check": None,
+            "npsh_check": None,
+            "fluid_temperature_note": None,
+        }
+
+        # The plotted point always uses the curve's own head at this flow (a fixed-speed
+        # pump can't independently choose flow and head — head is whatever the curve says).
+        # The head the user typed in is only meaningful as a cross-check against that: a
+        # big gap usually means the system-curve head used to pick this operating point
+        # doesn't match what the pump can actually deliver here.
+        if curve_head not in (None, 0) and operation_head is not None:
+            try:
+                head_diff = abs(float(operation_head) - float(curve_head)) / float(curve_head)
+                if head_diff >= 0.05:
+                    result["head_check"] = (
+                        f"คำเตือน: Head ที่ระบุ ({operation_head:.2f}) ต่างจาก Head จริงบน Curve ที่ Flow นี้ "
+                        f"({curve_head:.2f}) มากกว่า 5% ({head_diff*100:.1f}%) — ควรตรวจสอบ System Curve/Head ที่คำนวณไว้ "
+                        f"หรือปั๊มอาจต้องตั้งระยะห่างใบพัด (Impeller clearance) ใหม่ / ใบพัดสึก"
+                    )
+                else:
+                    result["head_check"] = (
+                        f"Head ที่ระบุ ({operation_head:.2f}) ใกล้เคียง Head จริงบน Curve ({curve_head:.2f}) "
+                        f"อยู่ในเกณฑ์ปกติ (ต่างกัน {head_diff*100:.1f}%)"
+                    )
+            except (TypeError, ValueError, ZeroDivisionError):
+                pass
+
+        if operation_flow < min_flow:
+            result["working_range"] = "below_30"
+            result["working_range_label"] = "จุดการทำงานต่ำกว่า 30% ของจุดประสิทธิภาพสูงสุด (BEP)"
+            result["pump_performance"] = "ไม่อยู่ในเกณฑ์มาตรฐาน"
+            result["suggestions"] = [
+                "ข้อแนะนำ: จำเป็นต้องเปิดวาล์วเพิ่มเพื่อเพิ่มอัตราการไหล (Flow rate)",
+                "ปั๊มอาจจำเป็นต้องตั้งระยะห่างใบพัด (Impeller clearance) ใหม่",
+                "ปั๊มอาจจำเป็นต้องเปลี่ยนแผ่นกันสึก (Wear plate)",
+            ]
+
+        elif operation_flow > max_flow:
+            result["working_range"] = "above_110"
+            result["working_range_label"] = "จุดการทำงานสูงกว่า 110% ของจุดประสิทธิภาพสูงสุด (BEP)"
+            result["pump_performance"] = "ไม่อยู่ในเกณฑ์มาตรฐาน"
+            result["suggestions"] = [
+                "ข้อแนะนำ: จำเป็นต้องหรี่วาล์วลงเพื่อลดอัตราการไหล (Flow rate)",
+                "เสี่ยงต่อ Cavitation และ Motor Overload จากการทำงานเกิน Curve",
+            ]
+
+        else:
+            result["working_range"] = "within"
+            result["working_range_label"] = "อยู่ในช่วงการทำงานที่แนะนำ (Working Range)"
+            result["pump_performance"] = "อยู่ในเกณฑ์มาตรฐาน"
+            if operation_flow < bep_flow:
+                result["suggestions"].append("วาล์วทางด้านส่ง (Discharge) สามารถเปิดเพิ่มได้อีก")
+
+        # NPSH check needs npsha (Available) from the user; skipped when not provided
+        npsha = self.pump_data.get("npsha")
+        if npshr is not None and npsha not in (None, ""):
+            try:
+                npsha_val = float(npsha)
+                margin = npsha_val - float(npshr)
+                if margin > 0.5:
+                    result["npsh_check"] = "ค่า NPSH: ค่า NPSHa (จริง) สูงกว่า NPSHr (ที่ต้องการ) มากกว่า 0.5 เมตร"
+                elif margin >= 0:
+                    result["npsh_check"] = f"ค่า NPSH: NPSHa สูงกว่า NPSHr เพียง {margin:.2f} เมตร (ต่ำกว่าเกณฑ์ 0.5 เมตร) — เสี่ยงเกิด Cavitation"
+                else:
+                    result["npsh_check"] = f"ค่า NPSH: NPSHa ต่ำกว่า NPSHr อยู่ {abs(margin):.2f} เมตร — มีความเสี่ยงเกิด Cavitation สูง"
+            except (TypeError, ValueError):
+                pass
+
+        # Fluid temperature is only echoed back for the report — typed by the user, not computed
+        operating_temperature = self.pump_data.get("operating_temperature")
+        if operating_temperature not in (None, ""):
+            result["fluid_temperature_note"] = f"อุณหภูมิของไหล: {operating_temperature} องศาเซลเซียส"
+
+        return result
+
     def flow_within_30_100_BEP(self, flow, head, opeData):
         try:
             #Check whether flow is over or under 30% to 100% BEP

@@ -2,6 +2,7 @@
 from ninja_extra import api_controller, http_get, http_post, http_put, http_delete
 from ninja_jwt.authentication import JWTAuth
 from pump_data.models import KMonitoringLOV, PumpDetail, PumpDetailLOV, MotorDetailLOV, ShaftSealLOV, PumpMaterialLOV, MediaLOV
+from pump_data.api import get_customer_company_code
 from engineer.models import EngineerReport, EngineerReportCheck, EngineerReportCheckCal, EngineerReportCheckVibration, EngineerReportCheckVisual, EngineerReportCheckResult
 from users.models import UserProfile, CustomUser
 from engineer.schema.engineer import EngineerReportPayLoad_schema, EngineerReport_schema, EngineerReportCheck_schema, EngineerReportCheckCal_schema, EngineerReportCheckVibe_schema, EngineerReportCheckVisual_schema, EngineerReportCheckResult_schema, EngineerReportCheckResultSubmit_schema, ReportCheckCalPayload_schema, EngineerReportData_schema
@@ -128,48 +129,70 @@ class ReportController:
         except Exception as e:
             return JsonResponse({"error": {"error": str(e)}}, status=400)
         
-    @http_get('/report', response=list[EngineerReport_schema])
+    @http_get('/report', response=list[EngineerReport_schema], auth=JWTAuth())
     def get_report(self, request):
         id = request.GET.get('id')
-        report_check_instance = EngineerReportCheck.objects.get(check_id=id)
-        
-        if not report_check_instance:
+        company_code = get_customer_company_code(request.auth)
+
+        try:
+            report_check_instance = EngineerReportCheck.objects.get(check_id=id)
+        except EngineerReportCheck.DoesNotExist:
             return JsonResponse({"error": "Report not found"}, status=404)
-        
+
+        if company_code is not None and (
+            report_check_instance.pump_id is None
+            or report_check_instance.pump_id.company_code != company_code
+        ):
+            return JsonResponse({"error": "Report not found"}, status=404)
+
         report_files = EngineerReport.objects.filter(report_check_id=report_check_instance).order_by('-created_at')
 
         result = list(report_files.values())
         return JsonResponse(result, safe=False, status=200)
 
 
-    @http_get('/report/download')
+    @http_get('/report/download', auth=JWTAuth())
     def download_report(self, request):
         report_id = request.GET.get('id')
         #report_id = "514bbdca-8bf0-4374-8091-a1662887bb36"
         #return JsonResponse({"report_id": report_id}, status=200)
         if not report_id:
             return JsonResponse({"error": "Report ID is required"}, status=400)
-        
+
         report = get_object_or_404(EngineerReport, pk=report_id)
+
+        company_code = get_customer_company_code(request.auth)
+        if company_code is not None and (
+            report.pump_detail is None
+            or report.pump_detail.company_code != company_code
+        ):
+            raise Http404("Report not found")
 
         if not report.report_file:
             raise Http404("Report not found")
-        
+
         return FileResponse(
         report.report_file.open('rb'),
         as_attachment=True,
         filename=report.report_name
     )
-        
-    @http_delete('/report')
+
+    @http_delete('/report', auth=JWTAuth())
     def delete_report(self, request):
         report_id = request.GET.get('id')
-        
-        report = get_object_or_404(EngineerReport, pk=report_id)
-        
-        if not report_id: 
+
+        if not report_id:
             return JsonResponse({"error": "Report ID is required"}, status=400)
-        
+
+        report = get_object_or_404(EngineerReport, pk=report_id)
+
+        company_code = get_customer_company_code(request.auth)
+        if company_code is not None and (
+            report.pump_detail is None
+            or report.pump_detail.company_code != company_code
+        ):
+            return JsonResponse({"error": "Report not found"}, status=404)
+
         try:
             if report.report_file:
                 report.report_file.delete(save=False)
@@ -180,20 +203,26 @@ class ReportController:
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-    
-    @http_get('/report-check')
+
+    @http_get('/report-check', auth=JWTAuth())
     def get_report_check(self, request):
         check_id = request.GET.get('id')
+        company_code = get_customer_company_code(request.auth)
         if check_id:
             try:
                 uuid_id = UUID(check_id)
                 data = EngineerReportCheck.objects.filter(pump_id__pump_id=uuid_id)
+                if company_code is not None:
+                    data = data.filter(pump_id__company_code=company_code)
                 data = list(data.values())
                 return JsonResponse(data,safe=False, status=200)
             except EngineerReportCheck.DoesNotExist:
                 return JsonResponse({"error": "Report not found"}, status=404)
         else:
-            media_lovs = list(EngineerReportCheck.objects.all().values())
+            query = EngineerReportCheck.objects.all()
+            if company_code is not None:
+                query = query.filter(pump_id__company_code=company_code)
+            media_lovs = list(query.values())
             return JsonResponse({"data": media_lovs}, status=200)
 
     @http_post('/report-check')

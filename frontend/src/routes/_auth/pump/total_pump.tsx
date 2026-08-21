@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/table/DataTable";
 import { PumpDataType } from "@/data/pump_models";
-import { useGetPumpDetail } from "@/hook/pump/pump";
+import { useGetPumpDetail, useGetDashboardStats } from "@/hook/pump/pump";
 import {
   GearIcon,
   PersonIcon,
@@ -31,6 +31,7 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
 
 function TotalPump() {
   const { data: pumpDetailData } = useGetPumpDetail("");
+  const { data: dashboardStats } = useGetDashboardStats();
   const deleteMutation = useDeletePump()
   const handlePumpDelete = (id: string) => {
     console.log(id);
@@ -320,8 +321,12 @@ function TotalPump() {
             <GearIcon />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">Placeholder</p>
+            <div className="text-2xl font-bold">
+              {dashboardStats?.active_pumps ?? "-"}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Good condition / Acceptable for long term use
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -332,8 +337,10 @@ function TotalPump() {
             <PersonIcon />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Placeholder</p>
+            <div className="text-2xl font-bold">
+              {dashboardStats?.customer_count ?? "-"}
+            </div>
+            <p className="text-xs text-muted-foreground">Customer role users</p>
           </CardContent>
         </Card>
         <Card>
@@ -344,8 +351,10 @@ function TotalPump() {
             <ClockIcon />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">11</div>
-            <p className="text-xs text-muted-foreground">Placeholder</p>
+            <div className="text-2xl font-bold">
+              {dashboardStats?.requiring_maintenance ?? "-"}
+            </div>
+            <p className="text-xs text-muted-foreground">Vibration causes damage</p>
           </CardContent>
         </Card>
         <Card>
@@ -356,8 +365,12 @@ function TotalPump() {
             <FileTextIcon />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1</div>
-            <p className="text-xs text-muted-foreground">Placeholder</p>
+            <div className="text-2xl font-bold">
+              {dashboardStats?.needing_recheck ?? "-"}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Acceptable for short term operation / New add
+            </p>
           </CardContent>
         </Card>
       </div>

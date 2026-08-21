@@ -27,6 +27,7 @@ const PumpDetail = () => {
   const { data: pumpDetail } = useGetPumpDetail(id);
   const { mutate, isPending, isError } = useGetCalPumpData();
   const [pumpDetailCalData, setPumpDetailCalData] = useState<any>();
+  const [calError, setCalError] = useState<string | null>(null);
 
   useEffect(() => {
     if (pumpDetail) {
@@ -48,12 +49,21 @@ const PumpDetail = () => {
 
       mutate(calData, {
         onSuccess: (data) => {
-          setPumpDetailCalData(data);
+          setPumpDetailCalData(data?.error ? undefined : data);
+          setCalError(data?.error ?? null);
         },
         onError: (error) => {
           console.log(error);
+          setPumpDetailCalData(undefined);
+          setCalError("Failed to calculate the pump's operating point.");
         },
       });
+    } else {
+      // Avoid showing the previous pump's graph/technical data while a
+      // different pump_id is loading (this component is reused across
+      // navigations, it doesn't remount per pump).
+      setPumpDetailCalData(undefined);
+      setCalError(null);
     }
   }, [pumpDetail]);
 
@@ -70,7 +80,7 @@ const PumpDetail = () => {
       </div>
       <div className="flex flex-col lg:flex-row gap-2 lg:gap-4">
         <img
-          src={pumpImage}
+          src={pumpDetail?.pump_image || pumpImage}
           alt="pump image"
           className="w-full lg:w-[400px] rounded-xl object-contain"
         />
@@ -337,10 +347,17 @@ const PumpDetail = () => {
             <CardTitle className="p-4">Pump Technical Data</CardTitle>
             <ChevronDown className="w-3.5 h-3.5" />
           </CollapsibleTrigger>
-          {pumpDetailCalData ? (
+          {calError ? (
+            <CollapsibleContent>
+              <CardContent className="text-sm text-destructive">
+                {calError}
+              </CardContent>
+            </CollapsibleContent>
+          ) : pumpDetailCalData ? (
             <CollapsibleContent>
               <CardContent className="flex flex-col gap-2 text-sm">
                 <HeadFlowGraph
+                  format={pumpDetailCalData?.curve_format}
                   chartData={
                     pumpDetailCalData && [
                       ...pumpDetailCalData.desire_imp_curve_data,

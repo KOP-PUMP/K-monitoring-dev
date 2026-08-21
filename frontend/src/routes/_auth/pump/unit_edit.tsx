@@ -55,9 +55,9 @@ function UnitEdit() {
     data_value3: "",
     data_value4: "",
     created_at: new Date().toISOString(),
-    created_by: userData?.email,
+    created_by: userData?.user.user_email,
     updated_at: new Date().toISOString(),
-    updated_by: userData?.email,
+    updated_by: userData?.user.user_email,
   };
 
   //Get data for update when URL has id for update data

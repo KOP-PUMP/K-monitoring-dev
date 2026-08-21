@@ -53,6 +53,17 @@ export const getPumpDetail = async (id: string | null) => {
   }
 }
 
+export const uploadPumpImage = async (id: string, file: File) => {
+  const formData = new FormData();
+  formData.append("image", file);
+  const response = await axiosInstance.post(
+    `/pump-data/pump-detail/${id}/image`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+  return response.data;
+};
+
 /* LOV */
 
 export const getLOVById = async (id: string) => {
@@ -257,6 +268,11 @@ export const updateMediaLOV = async ({
 
 export const deleteMediaLOV = async (id: string) => {
   const response = await axiosInstance.delete(`/pump-data/media-lov/${id}`);
+  return response.data;
+};
+
+export const getDashboardStats = async () => {
+  const response = await axiosInstance.get("/pump-data/dashboard-stats");
   return response.data;
 };
 

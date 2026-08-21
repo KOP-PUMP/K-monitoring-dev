@@ -1,12 +1,31 @@
+from django.conf import settings
 from ninja_extra import api_controller, http_get, http_post, http_put, http_delete
 from ninja_jwt.authentication import JWTAuth
+from ninja import File
+from ninja.files import UploadedFile
 from pump_data.models import KMonitoringLOV, PumpDetail, PumpDetailLOV, MotorDetailLOV, ShaftSealLOV, PumpMaterialLOV, MediaLOV
-from users.models import CompaniesDetail
+from users.models import CompaniesDetail, CustomUser, UserProfile
 from pump_data.schema.pump_lov import KMonitoringLOV_schema, PumpDetailLOV_schema, PumpDetail_schema, MotorDetailLOV_schema, ShaftSealLOV_schema, PumpMaterialLOV_schema, MediaLOV_schema
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from uuid import UUID
 from django.http import JsonResponse
+
+
+def pump_image_url(request, pump):
+    if not pump.pump_image:
+        return None
+    return request.build_absolute_uri(pump.pump_image.url)
+
+
+def get_customer_company_code(user):
+    """Return the requesting user's company code if they are a Customer, else None (no scoping)."""
+    if not user or user.user_role != 'Customer':
+        return None
+    try:
+        return user.profile.user_company_code
+    except UserProfile.DoesNotExist:
+        return None
 
 
 @api_controller('/pump-data/', tags=['pump-data'])
@@ -38,26 +57,77 @@ class ListOfValuesController:
                 'motor_lov_id' : motor_lov_instance,
                 'shaft_seal_lov_id' : shaft_seal_lov_instance
             })
-            PumpDetail.objects.create(**payload_dict)
-            return JsonResponse({"success": True, "message": f"Pump detail created successfully"}, status=200)
+            new_pump = PumpDetail.objects.create(**payload_dict)
+            return JsonResponse({"success": True, "message": f"Pump detail created successfully", "pump_id": str(new_pump.pump_id)}, status=200)
         except (ValueError, Exception) as e:
             return JsonResponse({"error": f"Error creating pump detail: {str(e)}"}, status=400)
-        
-    @http_get('/pump-detail')
+
+    @http_post('/pump-detail/{id}/image')
+    def upload_pump_image(self, request, id: str, image: UploadedFile = File(...)):
+        try:
+            uuid_id = UUID(id)
+            pump = get_object_or_404(PumpDetail, pk=uuid_id)
+            if pump.pump_image:
+                pump.pump_image.delete(save=False)
+            pump.pump_image.save(image.name, image, save=True)
+            return JsonResponse({"success": True, "pump_image": pump_image_url(request, pump)}, status=200)
+        except ValueError:
+            return JsonResponse({"error": "Invalid ID format"}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": f"Error uploading pump image: {str(e)}"}, status=400)
+
+    @http_get('/pump-detail', auth=JWTAuth())
     def get_pump_detail(self, request):
         pump_id = request.GET.get('id')
+        company_code = get_customer_company_code(request.auth)
         if pump_id:
             try:
                 uuid_id = UUID(pump_id)
                 data = get_object_or_404(PumpDetail, pk=uuid_id)
+                if company_code is not None and data.company_code != company_code:
+                    return JsonResponse({"error": "Pump not found"}, status=404)
+                image_url = pump_image_url(request, data)
                 data = model_to_dict(data)
+                data['pump_image'] = image_url
                 return JsonResponse(data, status=200)
             except PumpDetail.DoesNotExist:
                 return JsonResponse({"error": "Pump not found"}, status=404)
         else:
-            pump_detail = list(PumpDetail.objects.all().values())
+            query = PumpDetail.objects.all()
+            if company_code is not None:
+                query = query.filter(company_code=company_code)
+            pump_detail = list(query.values())
+            for row in pump_detail:
+                row['pump_image'] = (
+                    request.build_absolute_uri(f"{settings.MEDIA_URL}{row['pump_image']}")
+                    if row.get('pump_image') else None
+                )
             return JsonResponse({"data": pump_detail}, status=200)
 
+
+    @http_get('/dashboard-stats', auth=JWTAuth())
+    def get_dashboard_stats(self, request):
+        company_code = get_customer_company_code(request.auth)
+        pumps = PumpDetail.objects.all()
+        if company_code is not None:
+            pumps = pumps.filter(company_code=company_code)
+
+        active_pumps = pumps.filter(
+            pump_status__in=['Good condition', 'Acceptable for long term operation']
+        ).count()
+        customer_count = CustomUser.objects.filter(user_role='Customer').count()
+        requiring_maintenance = pumps.filter(
+            pump_status='Vibration causes damage'
+        ).count()
+        needing_recheck = pumps.filter(
+            pump_status__in=['Acceptable only for short term operation', 'New add']
+        ).count()
+        return JsonResponse({
+            "active_pumps": active_pumps,
+            "customer_count": customer_count,
+            "requiring_maintenance": requiring_maintenance,
+            "needing_recheck": needing_recheck,
+        }, status=200)
 
     @http_put('/pump-detail/{id}')
     def update_pump_detail(self, request, id: str, payload: PumpDetail_schema):
@@ -87,8 +157,9 @@ class ListOfValuesController:
                 'shaft_seal_lov_id': shaft_seal_lov_instance,
             })
 
+            skip_fields = {'pump_id', 'created_at', 'created_by'}
             for attr, value in payload_dict.items():
-                if attr == 'pump_id':
+                if attr in skip_fields:
                     continue
                 setattr(instance, attr, value)
             instance.save()

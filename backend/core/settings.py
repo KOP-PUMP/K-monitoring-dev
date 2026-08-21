@@ -30,9 +30,7 @@ DEBUG = bool(os.environ.get("DEBUG"))
 ALLOWED_HOSTS = ["*"]
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = "/var/www/myproject/storage"
-#MEDIA_ROOT = "/Users/kop-mac/Documents/storage"
-BASE_DIR = Path(__file__).resolve().parent.parent
+MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "/var/www/myproject/storage")
 REPORT_TEMPLATE_DIR = BASE_DIR / "engineer" / "report_templates"
 
 # Application definition

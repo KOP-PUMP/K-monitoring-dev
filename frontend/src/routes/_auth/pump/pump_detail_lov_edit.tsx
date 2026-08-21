@@ -79,6 +79,19 @@ function MediaLOVEdit() {
     }
   }, [factoryCurveNumber]);
 
+    useEffect(() => {
+    if (PECPumpModelSelected) {
+      const parts = PECPumpModelSelected.split(" ");
+      pumpDetailLOVForm.setValue("pump_code_name", PECPumpModelSelected);
+      pumpDetailLOVForm.setValue("pump_brand", parts[0] || "");
+      pumpDetailLOVForm.setValue(
+        "pump_model",
+        `${parts[0] || ""} ${parts[1] || ""}`.trim(),
+      );
+      pumpDetailLOVForm.setValue("pump_model_size", parts[1] || "");
+    }
+  }, [PECPumpModelSelected, pumpDetailLOVForm]);
+
   const { id } = useSearch({ from: "/_auth/pump/pump_detail_lov_edit" });
   const { data: pumpDetailLOV } = useGetPumpDetailLOV(id);
   useEffect(() => {

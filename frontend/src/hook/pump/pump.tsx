@@ -30,6 +30,8 @@ import {
   getPumpDetail,
   updatePumpDetail,
   deletePumpDetail,
+  getDashboardStats,
+  uploadPumpImage,
 } from "@/api/pump/pump";
 import { LOVData } from "@/types/table";
 import {
@@ -59,10 +61,27 @@ export const useCreatePumpDetail = () => {
   });
 };
 
+export const useUploadPumpImage = () => {
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) =>
+      uploadPumpImage(id, file),
+    onError: () => {
+      toast.error("Error uploading pump image");
+    },
+  });
+};
+
 export const useGetPumpDetail = (id: string | null) => {
   return useQuery({
     queryKey: ["pump", "pump_detail", id],
     queryFn: () => getPumpDetail(id),
+  });
+};
+
+export const useGetDashboardStats = () => {
+  return useQuery({
+    queryKey: ["pump", "dashboard_stats"],
+    queryFn: getDashboardStats,
   });
 };
 

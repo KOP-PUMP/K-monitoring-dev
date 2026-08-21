@@ -91,3 +91,5 @@ class CalPumpPayload_schema(Schema):
     media_name : str
     media_density : str
     media_density_unit : str
+    npsha : Optional[str] = None
+    operating_temperature : Optional[str] = None

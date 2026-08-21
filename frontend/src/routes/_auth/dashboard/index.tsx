@@ -12,8 +12,10 @@ import {
 
 import { PumpMaintenanceChart } from "@/components/chart/PumpMaintenanceChart";
 import { PumpStatusChart } from "@/components/chart/PumpStatusChart";
+import { useGetDashboardStats } from "@/hook/pump/pump";
 
 const DashboardPage = () => {
+  const { data: dashboardStats } = useGetDashboardStats();
   /* const { mutate: sendLineNotification } = useSendLineNotification(); */
 
   /* const handleNotificationClick = () => {
@@ -43,8 +45,12 @@ const DashboardPage = () => {
               <GearIcon />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">Placeholder</p>
+              <div className="text-2xl font-bold">
+                {dashboardStats?.active_pumps ?? "-"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Good condition / Acceptable for long term use
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -55,8 +61,10 @@ const DashboardPage = () => {
               <PersonIcon />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">3</div>
-              <p className="text-xs text-muted-foreground">Placeholder</p>
+              <div className="text-2xl font-bold">
+                {dashboardStats?.customer_count ?? "-"}
+              </div>
+              <p className="text-xs text-muted-foreground">Customer role users</p>
             </CardContent>
           </Card>
           <Card>
@@ -67,8 +75,10 @@ const DashboardPage = () => {
               <ClockIcon />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">11</div>
-              <p className="text-xs text-muted-foreground">Placeholder</p>
+              <div className="text-2xl font-bold">
+                {dashboardStats?.requiring_maintenance ?? "-"}
+              </div>
+              <p className="text-xs text-muted-foreground">Vibration causes damage</p>
             </CardContent>
           </Card>
           <Card>
@@ -79,8 +89,12 @@ const DashboardPage = () => {
               <FileTextIcon />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1</div>
-              <p className="text-xs text-muted-foreground">Placeholder</p>
+              <div className="text-2xl font-bold">
+                {dashboardStats?.needing_recheck ?? "-"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Acceptable for short term operation / New add
+              </p>
             </CardContent>
           </Card>
         </div>

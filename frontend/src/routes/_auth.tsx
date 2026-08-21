@@ -271,8 +271,16 @@ function Dashboard() {
                   >
                     Factory Curve
                   </Link>
+                  <Link
+                    to="/analytic/factory_curve_analyze"
+                    className="flex items-center gap-3 rounded-lg px-10 py-2 text-muted-foreground transition-all hover:text-primary"
+                    activeProps={activeProps}
+                  >
+                    Factory Curve Analyze
+                  </Link>
                 </CollapsibleContent>
               </Collapsible>
+
               {canAccess("user_manage", userRole) && (
                 <Collapsible>
                   <CollapsibleTrigger
