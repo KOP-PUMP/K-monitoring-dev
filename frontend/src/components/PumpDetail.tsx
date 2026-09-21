@@ -761,6 +761,20 @@ export default function PumpList({ editId }: { editId?: string } = {}) {
         power_bep_flow: pumpDetailCalData.power_bep_kW.toFixed(2).toString(),
         pump_efficiency_unit: pumpDetailCalData.units.unit_eff.toString(),
         shut_off_head_unit: pumpDetailCalData.units.unit_head.toString(),
+        // Only set when the pump's own suction/discharge pipe ID is filled in —
+        // otherwise leave whatever's already in the field alone.
+        ...(pumpDetailCalData.suction_velo_m_s != null
+          ? {
+              suction_velo: pumpDetailCalData.suction_velo_m_s.toFixed(2).toString(),
+              suction_velo_unit: "m/s",
+            }
+          : {}),
+        ...(pumpDetailCalData.discharge_velo_m_s != null
+          ? {
+              discharge_velo: pumpDetailCalData.discharge_velo_m_s.toFixed(2).toString(),
+              discharge_velo_unit: "m/s",
+            }
+          : {}),
       });
     }
   }, [pumpDetailCalData]);
