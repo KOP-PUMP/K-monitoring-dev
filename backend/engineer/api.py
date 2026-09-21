@@ -13,7 +13,6 @@ from django.forms.models import model_to_dict
 from uuid import UUID
 from datetime import datetime
 from django.http import JsonResponse , FileResponse, Http404
-from openpyxl import Workbook, load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.core import serializers
@@ -23,7 +22,7 @@ import json
 import uuid
 import os
 from factory_curve.schema.factory_curve import CalPumpPayload_schema
-from engineer.report_generate import ReportMapper
+from engineer.report_generate_pdf import PDFReportBuilder
 import requests
 from dotenv import load_dotenv
 from engineer.schema.engineer import MARSEquipmentDataOut_schema,EngineerVibrationAnalysisPayload_schema, MARSMeasurementDataOut_schema
@@ -32,20 +31,13 @@ load_dotenv()
 
 @api_controller('/engineer', tags=['Report'])
 class ReportController:
-    @http_post('/report')
+    @http_post('/report', auth=JWTAuth())
     def create_report(self, request, payload: EngineerReportPayLoad_schema):
         try:
             id = request.GET.get('id')
             user = request.GET.get('email')
-            
-            print(f"Received data: {id}, {user}")
-            #return JsonResponse({"massage": payload.dict()}, status=400)
-            # Construct the absolute path
-            
-            template_path = os.path.join(settings.REPORT_TEMPLATE_DIR, 'engineer_form.xlsx')
 
-            # Load workbook and access the active sheet
-            wb = load_workbook(template_path)
+            print(f"Received data: {id}, {user}")
             print("start get report check instance")
             report_check_instance = EngineerReportCheck.objects.get(check_id=id)
             if not report_check_instance:
@@ -78,28 +70,35 @@ class ReportController:
             print("start dict result data")
             data_result_dict = model_to_dict(data_result) if data_result else {}
             
-            print("start mapping")
-            #Call mapping function
-            mapper = ReportMapper(
-                wb=wb, 
+            print("get curve data for chart")
+            # Not persisted anywhere (curve_cal's arrays are only ever kept
+            # in-memory when the Cal tab was submitted) — recompute it fresh
+            # from the pump's own data so the report can plot it. A failure
+            # here (e.g. curve no longer matches) shouldn't block the report,
+            # it just means no chart on this page.
+            curve_result = None
+            if pump_instance:
+                try:
+                    curve_result = ReportCheckResult(pump_data).curve_cal(False)
+                except Exception:
+                    curve_result = None
+
+            print("start building PDF")
+            builder = PDFReportBuilder(
                 pump_data=pump_data,
                 report_check_data=report_check_data,
                 data_cal_dict=data_cal_dict,
                 data_vibe_dict=data_vibe_dict,
                 data_visual_dict=data_visual_dict,
-                data_result_dict=data_result_dict
+                data_result_dict=data_result_dict,
+                curve_result=curve_result,
             )
-            print("call map all")
-            mapper.map_all()
-            
-            buffer = BytesIO()
-            wb.save(buffer)
-            buffer.seek(0)
+            file_bytes = builder.render_pdf()
 
             current_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-            filename = f"report_{current_time}.xlsx"
-            
-            new_report =EngineerReport.objects.create(
+            filename = f"report_{current_time}.pdf"
+
+            new_report = EngineerReport.objects.create(
                 report_check_id=report_check_instance,
                 pump_detail=pump_instance,
                 user_detail=user_instance,
@@ -111,11 +110,10 @@ class ReportController:
                 updated_at=datetime.now(),
                 updated_by=user
             )
-            
-            file_bytes = buffer.getvalue()
+
             new_report.report_file.save(filename, ContentFile(file_bytes), save=False)
-            new_report.save()    
-            
+            new_report.save()
+
             download_buffer = BytesIO(file_bytes)
             download_buffer.seek(0)
 
@@ -123,9 +121,9 @@ class ReportController:
                         download_buffer,
                         as_attachment=True,
                         filename=filename,
-                        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        content_type="application/pdf",
                     )
-            
+
         except Exception as e:
             return JsonResponse({"error": {"error": str(e)}}, status=400)
         
@@ -225,7 +223,7 @@ class ReportController:
             media_lovs = list(query.values())
             return JsonResponse({"data": media_lovs}, status=200)
 
-    @http_post('/report-check')
+    @http_post('/report-check', auth=JWTAuth())
     def create_report_check(self, request, payload: EngineerReportCheck_schema):
         try:
             payload_dict = payload.dict()
@@ -251,18 +249,38 @@ class ReportController:
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
     
-    @http_delete('/report-check/{id}')
+    @http_delete('/report-check/{id}', auth=JWTAuth())
     def delete_report_check(self, request, id: str):
         try:
             print(f"Deleting report check with ID: {id}")
             uuid_id = UUID(id)
             data = get_object_or_404(EngineerReportCheck, pk=uuid_id)
+
+            company_code = get_customer_company_code(request.auth)
+            if company_code is not None and (
+                data.pump_id is None or data.pump_id.company_code != company_code
+            ):
+                return JsonResponse({"error": "Report not found"}, status=404)
+
+            # EngineerReport.report_check_id is SET_NULL (not CASCADE) — deleting
+            # the check alone would silently orphan every generated report file
+            # for it (row stays, no longer linked to anything, file left on disk
+            # forever). Clean those up explicitly first.
+            for generated_report in EngineerReport.objects.filter(report_check_id=data):
+                if generated_report.report_file:
+                    generated_report.report_file.delete(save=False)
+                generated_report.delete()
+
+            # Cal / Vibration / Visual / Result rows all use CASCADE, so this
+            # removes them automatically.
             data.delete()
             return JsonResponse({"success": True, "message": "Report deleted successfully"}, status=200)
         except ValueError:
             return JsonResponse({"error": "Invalid ID format"}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
         
-    @http_post('/report-check-cal/get-result')
+    @http_post('/report-check-cal/get-result', auth=JWTAuth())
     def get_report_check_cal_result(self, request, payload: EngineerReportCheckCal_schema):
         try:
             payload_dict = payload.dict()
@@ -275,7 +293,7 @@ class ReportController:
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
     
-    @http_post('/report-check-cal')
+    @http_post('/report-check-cal', auth=JWTAuth())
     def create_report_check_cal(self, request, payload: EngineerReportCheckCal_schema):
         try:
             payload_dict = payload.dict()
@@ -287,97 +305,96 @@ class ReportController:
             
             rc = ReportCheckResult(pump_detail)
             pump_cal_result = rc.curve_cal(False)
-            
-            oprData = {**payload_dict}
-            oprData["desire_imp_curve_data"] = pump_cal_result["desire_imp_curve_data"]
-            oprData["desire_imp_curve_fit"] = pump_cal_result["desire_imp_curve_fit"]
-            oprData["min_flow_point"] = pump_cal_result["min_flow_point"]
-            oprData["max_flow_point"] = pump_cal_result["max_flow_point"]
-            oprData["bep_point"] = pump_cal_result["bep_point"]
-            oprData["media_density"] = pump_detail["media_density"]
-            oprData["media_density_unit"] = pump_detail["media_density_unit"]
-            oprData["vapor_pressure"] = pump_detail["vapor_pressure"]
-            oprData["vapor_pressure_unit"] = pump_detail["vapor_pressure_unit"]
-            oprData["npshr_curve_data"] = pump_cal_result["npshr_curve_data"]
-            oprData["npshr_curve_fit"] = pump_cal_result["npshr_curve_fit"]
-            oprData["design_operation_point"] = pump_cal_result["operation_point"]
-            oprData["hydraulic_power_kW"] = pump_cal_result["hydraulic_power_kW"]
-            
-            
-            check_result = rc.report_check_cal(oprData)
-            
-            if not check_result:
-                return JsonResponse({"error": "Failed to create report check cal"}, status=400)
-            
+
+            # The Cal group's field measurements below are always worth saving on
+            # their own — if the curve comparison can't be computed yet (curve not
+            # matched, insufficient data), that just means no verdict yet, not a
+            # reason to reject the engineer's input. Leave check_result empty in
+            # that case rather than failing the whole submission.
+            check_result = {}
+            if not pump_cal_result.get("error"):
+                oprData = {**payload_dict}
+                oprData["desire_imp_curve_data"] = pump_cal_result["desire_imp_curve_data"]
+                oprData["desire_imp_curve_fit"] = pump_cal_result["desire_imp_curve_fit"]
+                oprData["min_flow_point"] = pump_cal_result["min_flow_point"]
+                oprData["max_flow_point"] = pump_cal_result["max_flow_point"]
+                oprData["bep_point"] = pump_cal_result["bep_point"]
+                oprData["media_density"] = pump_detail["media_density"]
+                oprData["media_density_unit"] = pump_detail["media_density_unit"]
+                oprData["vapor_pressure"] = pump_detail["vapor_pressure"]
+                oprData["vapor_pressure_unit"] = pump_detail["vapor_pressure_unit"]
+                oprData["bearing_last_chg_dt"] = pump_detail.get("bearing_last_chg_dt")
+                oprData["pump_max_temp"] = pump_detail.get("pump_max_temp")
+                oprData["motor_efficiency"] = pump_detail.get("motor_efficiency")
+                oprData["suction_pipe_id"] = pump_detail.get("suction_pipe_id")
+                oprData["discharge_pipe_id"] = pump_detail.get("discharge_pipe_id")
+                oprData["npshr_curve_data"] = pump_cal_result["npshr_curve_data"]
+                oprData["npshr_curve_fit"] = pump_cal_result["npshr_curve_fit"]
+                oprData["design_operation_point"] = pump_cal_result["operation_point"]
+                oprData["hydraulic_power_kW"] = pump_cal_result["hydraulic_power_kW"]
+
+                check_result = rc.report_check_cal(oprData)
+
             report_data = {**payload_dict}
             report_data.update(check_id=report_instance)
-            
+
+            # Operation Head, Shaft Power, Hydraulic Power, NPSHa and Suction/
+            # Discharge Fluid Velocity are auto-generated from the other Cal
+            # inputs rather than typed in by hand — overwrite whatever was
+            # submitted for them with the freshly computed values whenever the
+            # calc succeeded. Operation Shut Off Head is a fixed pump/curve
+            # characteristic, not derived from this test — just read through
+            # from the pump's own registered record.
+            if pump_detail.get('shut_off_head') not in (None, ''):
+                report_data['head_shut'] = pump_detail.get('shut_off_head')
+                report_data['head_shut_unit'] = pump_detail.get('shut_off_head_unit')
+                check_result['calc_head_shut'] = pump_detail.get('shut_off_head')
+                check_result['calc_head_shut_unit'] = pump_detail.get('shut_off_head_unit')
+            if pump_detail.get('max_head') not in (None, ''):
+                report_data['head_max'] = pump_detail.get('max_head')
+                report_data['head_max_unit'] = pump_detail.get('max_head_unit')
+                check_result['calc_head_max'] = pump_detail.get('max_head')
+                check_result['calc_head_max_unit'] = pump_detail.get('max_head_unit')
+            if check_result.get('calc_head_ope') not in (None, ''):
+                report_data['head_ope'] = str(check_result['calc_head_ope'])
+                report_data['head_ope_unit'] = 'm'
+            if check_result.get('calc_shaft_power') not in (None, ''):
+                report_data['shaft_ope'] = str(check_result['calc_shaft_power'])
+                report_data['shaft_ope_unit'] = 'kW'
+            if check_result.get('calc_npsha') not in (None, ''):
+                report_data['npsha'] = str(check_result['calc_npsha'])
+            if check_result.get('calc_suction_velo') not in (None, ''):
+                report_data['suction_fluid_velo'] = str(check_result['calc_suction_velo'])
+                report_data['suction_fluid_velo_unit'] = 'm/s'
+            if check_result.get('calc_discharge_velo') not in (None, ''):
+                report_data['discharge_fluid_velo'] = str(check_result['calc_discharge_velo'])
+                report_data['discharge_fluid_velo_unit'] = 'm/s'
+            if check_result.get('calc_hyd_power') not in (None, ''):
+                report_data['hyd_power_measure'] = str(check_result['calc_hyd_power'])
+                report_data['hyd_power_measure_unit'] = 'kW'
+
             print("report_id", payload_dict.get('check_id'))
-            #Update or Create Report Check Result
-            
-            EngineerReportCheckResult.objects.create(
+            # Update the existing Result row's auto-computed fields if one already
+            # exists (e.g. the engineer filled in the Result tab before this Cal
+            # tab), otherwise create a fresh one. A blind .create() here would leave
+            # two EngineerReportCheckResult rows for the same report, and whichever
+            # one a later .first() happens to pick would be missing half the data.
+            EngineerReportCheckResult.objects.update_or_create(
                 check_id=report_instance,
-                speed_suggest=check_result.get('speed_suggest', ''),
-                flow_suggest=check_result.get('flow_suggest', ''),
-                npshr_suggest=check_result.get('npshr_suggest', ''),
-                velocity_suggest=check_result.get('velocity_suggest', ''),
-                boiling_point_suggest=check_result.get('boiling_point_suggest', ''),
-                current_suggest=check_result.get('current_suggest', ''),
-                power_suggest=check_result.get('power_suggest', ''),
-                api_suggest=check_result.get('api_suggest', ''),
-                buffer_suggest=check_result.get('buffer_suggest', ''),
-                bearing_suggest=check_result.get('bearing_suggest', ''),
-                vibration_suggest=check_result.get('vibration_suggest', ''),
-                bearing_temp_suggest=check_result.get('bearing_temp_suggest', ''),
-                timestamp=check_result.get('timestamp', ''),
-                range_30_110_result=check_result.get('range_30_110_result', ''),
-                range_30_110_suggest=check_result.get('range_30_110_suggest', ''),
-                range_30_110_remark=check_result.get('range_30_110_remark', ''),
-                npshr_npsha_result=check_result.get('npshr_npsha_result', ''),
-                npshr_npsha_suggest=check_result.get('npshr_npsha_suggest', ''),
-                npshr_npsha_remark=check_result.get('npshr_npsha_remark', ''),
-                pump_standard_result=check_result.get('pump_standard_result', ''),
-                pump_standard_suggest=check_result.get('pump_standard_suggest', ''),
-                pump_standard_remark=check_result.get('pump_standard_remark', ''),
-                power_result=check_result.get('power_result', ''),
-                power_remark=check_result.get('power_remark', ''),
-                fluid_temp_result=check_result.get('fluid_temp_result', ''),
-                fluid_temp_suggest=check_result.get('fluid_temp_suggest', ''),
-                fluid_temp_remark=check_result.get('fluid_temp_remark', ''),
-                bearing_temp_result=check_result.get('bearing_temp_result', ''),
-                bearing_temp_remark=check_result.get('bearing_temp_remark', ''),
-                v_pump_de_h_result=check_result.get('v_pump_de_h_result', ''),
-                v_pump_de_v_result=check_result.get('v_pump_de_v_result', ''),
-                v_pump_de_a_result=check_result.get('v_pump_de_a_result', ''),
-                v_pump_nde_h_result=check_result.get('v_pump_nde_h_result', ''),
-                v_pump_nde_v_result=check_result.get('v_pump_nde_v_result', ''),
-                v_pump_nde_a_result=check_result.get('v_pump_nde_a_result', ''),
-                v_motor_de_h_result=check_result.get('v_motor_de_h_result', ''),
-                v_motor_de_v_result=check_result.get('v_motor_de_v_result', ''),
-                v_motor_de_a_result=check_result.get('v_motor_de_a_result', ''),
-                v_motor_nde_h_result=check_result.get('v_motor_nde_h_result', ''),
-                v_motor_nde_v_result=check_result.get('v_motor_nde_v_result', ''),
-                v_motor_nde_a_result=check_result.get('v_motor_nde_a_result', ''),
-                a_pump_de_h_result=check_result.get('a_pump_de_h_result', ''),
-                a_pump_de_v_result=check_result.get('a_pump_de_v_result', ''),
-                a_pump_de_a_result=check_result.get('a_pump_de_a_result', ''),
-                a_pump_nde_h_result=check_result.get('a_pump_nde_h_result', ''),
-                a_pump_nde_v_result=check_result.get('a_pump_nde_v_result', ''),
-                a_pump_nde_a_result=check_result.get('a_pump_nde_a_result', ''),
-                a_motor_de_h_result=check_result.get('a_motor_de_h_result', ''),
-                a_motor_de_v_result=check_result.get('a_motor_de_v_result', ''),
-                a_motor_de_a_result=check_result.get('a_motor_de_a_result', ''),
-                a_motor_nde_h_result=check_result.get('a_motor_nde_h_result', ''),
-                a_motor_nde_v_result=check_result.get('a_motor_nde_v_result', ''),
-                a_motor_nde_a_result=check_result.get('a_motor_nde_a_result', ''),
-                v_pump_suggest=check_result.get('v_pump_suggest', ''),
-                v_pump_remark=check_result.get('v_pump_remark', ''),
-                v_motor_suggest=check_result.get('v_motor_suggest', ''),
-                v_motor_remark=check_result.get('v_motor_remark', ''),
-                a_pump_suggest=check_result.get('a_pump_suggest', ''),
-                a_pump_remark=check_result.get('a_pump_remark', ''),
-                a_motor_suggest=check_result.get('a_motor_suggest', ''),
-                a_motor_remark=check_result.get('a_motor_remark', ''),
+                defaults={
+                    "range_30_110_result": check_result.get('range_30_110_result', ''),
+                    "range_30_110_suggest": check_result.get('range_30_110_suggest', ''),
+                    "npshr_npsha_result": check_result.get('npshr_npsha_result', ''),
+                    "npshr_npsha_suggest": check_result.get('npshr_npsha_suggest', ''),
+                    "pump_standard_result": check_result.get('pump_standard_result', ''),
+                    "pump_standard_suggest": check_result.get('pump_standard_suggest', ''),
+                    "power_result": check_result.get('power_result', ''),
+                    "power_suggest": check_result.get('power_suggest', ''),
+                    "fluid_temp_result": check_result.get('fluid_temp_result', ''),
+                    "fluid_temp_suggest": check_result.get('fluid_temp_suggest', ''),
+                    "bearing_temp_result": check_result.get('bearing_temp_result', ''),
+                    "bearing_temp_suggest": check_result.get('bearing_temp_suggest', ''),
+                },
             )
 
             EngineerReportCheckCal.objects.create(**report_data)
@@ -389,7 +406,7 @@ class ReportController:
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-    @http_put('/report-check-cal/{id}')
+    @http_put('/report-check-cal/{id}', auth=JWTAuth())
     def update_report_check_cal(self, request, id: str, payload: ReportCheckCalPayload_schema):
         try:
             uuid_id = UUID(id)
@@ -405,36 +422,108 @@ class ReportController:
             
             rc = ReportCheckResult(pump_data)
             pump_cal_result = rc.curve_cal(False)
-        
-            oprData = payload.report_data.dict()
-            
-            print(f"pump data: {pump_data}")
-            oprData["desire_imp_curve_data"] = pump_cal_result["desire_imp_curve_data"]
-            oprData["desire_imp_curve_fit"] = pump_cal_result["desire_imp_curve_fit"]
-            oprData["min_flow_point"] = pump_cal_result["min_flow_point"]
-            oprData["max_flow_point"] = pump_cal_result["max_flow_point"]
-            oprData["bep_point"] = pump_cal_result["bep_point"]
-            oprData["media_density"] = pump_data.get("media_density")
-            oprData["media_density_unit"] = pump_data.get("media_density_unit")
-            oprData["bearing_last_chg_dt"] = pump_data.get("bearing_last_chg_dt")
-            oprData["vapor_pressure"] = pump_data.get("vapor_pressure")
-            oprData["vapor_pressure_unit"] = pump_data.get("vapor_pressure_unit")
-            oprData["npshr_curve_data"] = pump_cal_result["npshr_curve_data"]
-            oprData["npshr_curve_fit"] = pump_cal_result["npshr_curve_fit"]
-            oprData["design_operation_point"] = pump_cal_result["operation_point"]
-            oprData["hydraulic_power_kW"] = pump_cal_result["hydraulic_power_kW"]
 
-            #return oprData
-            #print("oprData", oprData["bearing_last_chg_dt"])
-            check_result = rc.report_check_cal(oprData)
-            
+            # As with create_report_check_cal: the field measurements are always
+            # worth saving. If the curve comparison can't be computed at all right
+            # now, leave the existing computed verdicts untouched (report_check_cal
+            # already leaves any individual check blank on its own if it's the
+            # specific one missing data — this only skips recomputation entirely
+            # when there's no curve fit at all to check against).
+            check_result = None
+            if not pump_cal_result.get("error"):
+                oprData = payload.report_data.dict()
+
+                print(f"pump data: {pump_data}")
+                oprData["desire_imp_curve_data"] = pump_cal_result["desire_imp_curve_data"]
+                oprData["desire_imp_curve_fit"] = pump_cal_result["desire_imp_curve_fit"]
+                oprData["min_flow_point"] = pump_cal_result["min_flow_point"]
+                oprData["max_flow_point"] = pump_cal_result["max_flow_point"]
+                oprData["bep_point"] = pump_cal_result["bep_point"]
+                oprData["media_density"] = pump_data.get("media_density")
+                oprData["media_density_unit"] = pump_data.get("media_density_unit")
+                oprData["bearing_last_chg_dt"] = pump_data.get("bearing_last_chg_dt")
+                oprData["pump_max_temp"] = pump_data.get("pump_max_temp")
+                oprData["vapor_pressure"] = pump_data.get("vapor_pressure")
+                oprData["vapor_pressure_unit"] = pump_data.get("vapor_pressure_unit")
+                oprData["motor_efficiency"] = pump_data.get("motor_efficiency")
+                oprData["suction_pipe_id"] = pump_data.get("suction_pipe_id")
+                oprData["discharge_pipe_id"] = pump_data.get("discharge_pipe_id")
+                oprData["npshr_curve_data"] = pump_cal_result["npshr_curve_data"]
+                oprData["npshr_curve_fit"] = pump_cal_result["npshr_curve_fit"]
+                oprData["design_operation_point"] = pump_cal_result["operation_point"]
+                oprData["hydraulic_power_kW"] = pump_cal_result["hydraulic_power_kW"]
+
+                check_result = rc.report_check_cal(oprData)
+
             for attr, value in payload.report_data.dict(exclude_unset=True).items():
-                setattr(report_cal_instance, attr, value) 
+                setattr(report_cal_instance, attr, value)
+
+            # Operation Head, Shaft Power, Hydraulic Power, NPSHa and Suction/
+            # Discharge Fluid Velocity are auto-generated from the other Cal
+            # inputs rather than typed in by hand — overwrite whatever was
+            # submitted for them whenever the calc succeeded. Operation Shut Off
+            # Head is a fixed pump/curve characteristic, not derived from this
+            # test — just read through from the pump's own registered record.
+            calc_head_ope = (check_result or {}).get('calc_head_ope')
+            calc_shaft_power = (check_result or {}).get('calc_shaft_power')
+            calc_hyd_power = (check_result or {}).get('calc_hyd_power')
+            calc_npsha = (check_result or {}).get('calc_npsha')
+            calc_suction_velo = (check_result or {}).get('calc_suction_velo')
+            calc_discharge_velo = (check_result or {}).get('calc_discharge_velo')
+            if pump_data.get('shut_off_head') not in (None, ''):
+                report_cal_instance.head_shut = pump_data.get('shut_off_head')
+                report_cal_instance.head_shut_unit = pump_data.get('shut_off_head_unit')
+            if pump_data.get('max_head') not in (None, ''):
+                report_cal_instance.head_max = pump_data.get('max_head')
+                report_cal_instance.head_max_unit = pump_data.get('max_head_unit')
+            if calc_head_ope not in (None, ''):
+                report_cal_instance.head_ope = str(calc_head_ope)
+                report_cal_instance.head_ope_unit = 'm'
+            if calc_shaft_power not in (None, ''):
+                report_cal_instance.shaft_ope = str(calc_shaft_power)
+                report_cal_instance.shaft_ope_unit = 'kW'
+            if calc_npsha not in (None, ''):
+                report_cal_instance.npsha = str(calc_npsha)
+            if calc_suction_velo not in (None, ''):
+                report_cal_instance.suction_fluid_velo = str(calc_suction_velo)
+                report_cal_instance.suction_fluid_velo_unit = 'm/s'
+            if calc_discharge_velo not in (None, ''):
+                report_cal_instance.discharge_fluid_velo = str(calc_discharge_velo)
+                report_cal_instance.discharge_fluid_velo_unit = 'm/s'
+            if calc_hyd_power not in (None, ''):
+                report_cal_instance.hyd_power_measure = str(calc_hyd_power)
+                report_cal_instance.hyd_power_measure_unit = 'kW'
             report_cal_instance.save()
-            
-            for attr, value in check_result.items():
-                setattr(report_result_instance, attr, value)
-            report_result_instance.save()
+
+            if check_result is not None:
+                # calc_* keys feed report_cal_instance above, not the Result row —
+                # EngineerReportCheckResult has no matching fields for them.
+                for attr, value in check_result.items():
+                    if attr.startswith('calc_'):
+                        continue
+                    setattr(report_result_instance, attr, value)
+                report_result_instance.save()
+            else:
+                # Nothing recomputed — report back the untouched existing values so
+                # the Result tab keeps showing them instead of appearing to go blank.
+                check_result = {
+                    key: getattr(report_result_instance, key)
+                    for key in (
+                        "range_30_110_result", "range_30_110_suggest",
+                        "npshr_npsha_result", "npshr_npsha_suggest",
+                        "pump_standard_result", "pump_standard_suggest",
+                        "power_result", "power_suggest",
+                        "fluid_temp_result", "fluid_temp_suggest",
+                        "bearing_temp_result", "bearing_temp_suggest",
+                    )
+                }
+
+            if pump_data.get('shut_off_head') not in (None, ''):
+                check_result['calc_head_shut'] = pump_data.get('shut_off_head')
+                check_result['calc_head_shut_unit'] = pump_data.get('shut_off_head_unit')
+            if pump_data.get('max_head') not in (None, ''):
+                check_result['calc_head_max'] = pump_data.get('max_head')
+                check_result['calc_head_max_unit'] = pump_data.get('max_head_unit')
 
             return check_result
             #return JsonResponse({"success": True, "message": "Report Cal. updated successfully"}, status=200)
@@ -442,7 +531,7 @@ class ReportController:
         except Exception as e:
             return JsonResponse({"error update report cal": str(e)}, status=400)
 
-    @http_post('/report-check-vibe')
+    @http_post('/report-check-vibe', auth=JWTAuth())
     def create_report_check_vibe(self, request, payload: EngineerReportCheckVibe_schema):
         try:
             payload_dict = payload.dict()
@@ -464,7 +553,7 @@ class ReportController:
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-    @http_put('/report-check-vibe/{id}')
+    @http_put('/report-check-vibe/{id}', auth=JWTAuth())
     def update_report_check_vibe(self, request, id: str, payload: EngineerReportCheckVibe_schema):
         try:
             uuid_id = UUID(id)
@@ -483,7 +572,7 @@ class ReportController:
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-    @http_post('/report-check-visual')
+    @http_post('/report-check-visual', auth=JWTAuth())
     def create_report_check_visual(self, request, payload: EngineerReportCheckVisual_schema):
         try:
             payload_dict = payload.dict()
@@ -518,7 +607,7 @@ class ReportController:
         except EngineerReportCheckVisual.DoesNotExist:
             return JsonResponse({"error": "Report not found"}, status=404)
 
-    @http_put('/report-check-visual/{id}', response=EngineerReportCheckVisual_schema)
+    @http_put('/report-check-visual/{id}', response=EngineerReportCheckVisual_schema, auth=JWTAuth())
     def update_report_check_visual(self, request, id: str, payload: EngineerReportCheckVisual_schema):
         uuid_id = UUID(id)
         report_instance = EngineerReportCheckVisual.objects.get(check_id=uuid_id)
@@ -533,7 +622,7 @@ class ReportController:
 
         return JsonResponse({"success": True, "message": "Report visual updated successfully"}, status=200)
 
-    @http_post('/report-check-result')
+    @http_post('/report-check-result', auth=JWTAuth())
     def submit_report_check_result(self, request, payload: EngineerReportCheckResult_schema):
         try:
             payload_dict = payload.dict()
@@ -546,10 +635,17 @@ class ReportController:
             new_report = {}
 
             new_report.update(payload_dict)
-            new_report['check_id'] = pump_instance
+            new_report.pop('check_id', None)
 
-            EngineerReportCheckResult.objects.create(**new_report)
-            
+            # A row may already exist for this check (e.g. the Cal tab was saved
+            # first and created it with the auto-computed fields) — update it
+            # instead of creating a second row that a later .first() could pick
+            # over this one, silently dropping half the report's data.
+            EngineerReportCheckResult.objects.update_or_create(
+                check_id=pump_instance,
+                defaults=new_report,
+            )
+
             pump_instance.status = "Check result submitted"
             pump_instance.save()
 
@@ -557,7 +653,7 @@ class ReportController:
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
         
-    @http_put('/report-check-result/{id}')
+    @http_put('/report-check-result/{id}', auth=JWTAuth())
     def update_report_check_result(self, request, id: str, payload: EngineerReportCheckResult_schema):
         try:
             uuid_id = UUID(id)
@@ -569,7 +665,7 @@ class ReportController:
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
         
-    @http_get('/report-check-data')
+    @http_get('/report-check-data', auth=JWTAuth())
     def get_report_check_data(self, request):
         uuid_id = request.GET.get('id')
         check_data = {}

@@ -152,6 +152,13 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Browsers block JS from reading response headers on cross-origin requests
+# unless the server explicitly exposes them — without this, the frontend's
+# file-download code can never read the real filename Content-Disposition
+# carries (e.g. report_2026_09_07_....pdf) and silently falls back to a
+# hardcoded generic name.
+CORS_EXPOSE_HEADERS = ["Content-Disposition"]
+
 from datetime import timedelta
 
 NINJA_JWT = {

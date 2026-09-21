@@ -101,7 +101,6 @@ class EngineerReportCheckCal_schema(Schema):
     liquid_temp : Optional[str] = None
     liquid_temp_unit : Optional[str] = None
     npsha : Optional[str] = None
-    npsha_unit : Optional[str] = None
     npsha_actual : Optional[str] = None
     npsha_actual_unit : Optional[str] = None
     suction_fluid_velo : Optional[str] = None
@@ -362,7 +361,6 @@ class EngineerReportCheckResultSubmit_schema(Schema):
     liquid_temp : Optional[str] = None
     liquid_temp_unit : Optional[str] = None
     npsha : Optional[str] = None
-    npsha_unit : Optional[str] = None
     npsha_actual : Optional[str] = None
     npsha_actual_unit : Optional[str] = None
     suction_fluid_velo : Optional[str] = None
