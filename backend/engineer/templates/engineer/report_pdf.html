@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 8pt;
+      color: #888;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 8.7pt;
+    color: #1a1a1a;
+    margin: 0;
+  }
+  h1 { font-size: 13pt; margin: 0 0 1mm 0; }
+  h2 {
+    font-size: 10pt;
+    background: #2b3a55;
+    color: #fff;
+    padding: 1.5mm 3mm;
+    margin: 3.5mm 0 1.5mm 0;
+    border-radius: 2px;
+    break-after: avoid;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #2b3a55;
+    padding-bottom: 2.5mm;
+    margin-bottom: 2.5mm;
+  }
+  .header .letterhead { display: flex; align-items: center; gap: 3mm; }
+  .header .logo { height: 16mm; width: auto; }
+  .header .letterhead-text .company { font-size: 10.5pt; font-weight: 700; color: #2b3a55; }
+  .header .letterhead-text .address { font-size: 7pt; color: #666; max-width: 90mm; margin-top: 0.5mm; }
+  .header .meta { text-align: right; font-size: 8pt; color: #444; line-height: 1.5; }
+  .header .meta .report-title { font-size: 11pt; font-weight: 700; color: #1a1a1a; margin-bottom: 1mm; }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 1.5mm; }
+  .kv-table td {
+    padding: 0.8mm 2mm;
+    vertical-align: top;
+    border-bottom: 1px solid #eee;
+  }
+  .kv-table td.label {
+    width: 32%;
+    color: #555;
+    font-weight: 600;
+  }
+  .kv-table-cell-right { text-align: right; }
+  .kv-grid { display: flex; gap: 4mm; }
+  .kv-grid > table { flex: 1; }
+
+  .data-table th, .data-table td {
+    border: 1px solid #ccc;
+    padding: 1mm 1.8mm;
+    text-align: center;
+    font-size: 8.2pt;
+  }
+  .data-table th {
+    background: #eef1f6;
+    font-weight: 600;
+  }
+  .data-table td.left { text-align: left; }
+  .data-table td.remark { text-align: left; max-width: 45mm; word-wrap: break-word; }
+
+  .checklist-cols { display: flex; gap: 4mm; }
+  .checklist-cols > div { flex: 1; }
+  .checklist-cols table { break-inside: avoid; }
+  .checklist-cols th, .checklist-cols td {
+    border: 1px solid #ccc;
+    padding: 1.2mm 1.8mm;
+    font-size: 8pt;
+  }
+  .checklist-cols th { background: #eef1f6; }
+  .checklist-cols td.item { text-align: left; }
+  .checklist-cols td.check { text-align: center; width: 14mm; }
+  .checklist-cols td.remark { text-align: left; word-wrap: break-word; }
+
+  .result-block {
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    padding: 1.5mm 3mm;
+    margin-bottom: 1.5mm;
+    break-inside: avoid;
+  }
+  .result-block .title { font-weight: 700; font-size: 9pt; margin-bottom: 0.8mm; }
+  .result-block .verdict {
+    display: inline-block;
+    padding: 0.5mm 2mm;
+    border-radius: 2px;
+    font-weight: 600;
+    font-size: 8.3pt;
+  }
+  .verdict.ok { background: #e3f4e3; color: #1e7a1e; }
+  .verdict.warn { background: #fdeaea; color: #b3261e; }
+  .verdict.neutral { background: #f0f0f0; color: #555; }
+  .result-block .note { font-size: 8pt; color: #444; margin-top: 0.6mm; white-space: pre-wrap; }
+
+  /* No break-inside:avoid on .section itself — a few of these (Visual
+     Inspection, Performance Evaluation) are long enough that forcing the
+     WHOLE block onto one page just leaves a large blank gap on the previous
+     page instead. The finer-grained .result-block (each check card) below
+     is what actually needs to stay intact. */
+  .muted { color: #888; }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="letterhead">
+      {% if company_logo %}<img src="{{ company_logo }}" class="logo" alt="{{ issuer_company_name }} logo">{% endif %}
+      <div class="letterhead-text">
+        <div class="company">{{ issuer_company_name }}</div>
+        <div class="address">{{ issuer_company_address }}</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div class="report-title">{{ report_title }}</div>
+    </div>
+  </div>
+  <h2>Information</h2>
+  <div class="kv-grid">
+    <table class="kv-table">
+      <tr><td class="label">Customer :</td><td>{{ company_name }}</td></tr>
+      <tr><td class="label">Tag No :</td><td>{{ tag_no }}</td></tr>
+      <tr><td class="label">Doc No:</td><td>{{ doc_no }}</td></tr>
+      <tr><td class="label">Engineer Doc No :</td><td>{{ doc_number_engineer }}</td></tr>
+      <tr><td class="label">Doc Customer :</td><td>{{ doc_customer }}</td></tr>
+      <tr><td class="label">Report Date :</td><td>{{ today }}</td></tr>
+    </table>
+    <!-- Same two-table side-by-side structure as "Pump & Motor Information"
+         below, kept in step row-for-row with the left table (blank rows
+         where this side has nothing) so this table's column split lands on
+         the exact same vertical line as that section's, instead of splitting
+         partway through the left table's own value cell. -->
+    <table class="kv-table">
+      <tr><td class="label">&nbsp;</td><td>&nbsp;</td></tr>
+      <tr><td class="label">Serial No :</td><td class="kv-table-cell-right">{{ serial_no }}</td></tr>
+      <tr><td class="label">&nbsp;</td><td>&nbsp;</td></tr>
+      <tr><td class="label">&nbsp;</td><td>&nbsp;</td></tr>
+      <tr><td class="label">&nbsp;</td><td>&nbsp;</td></tr>
+      <tr><td class="label">Last Checked :</td><td class="kv-table-cell-right">{{ updated_at }}</td></tr>
+    </table>
+  </div>
+  <h2>Pump &amp; Motor Information</h2>
+  <div class="kv-grid">
+    <table class="kv-table">
+      <tr><td class="label">Pump Brand / Model</td><td>{{ pump_brand }} / {{ pump_model }}</td></tr>
+      <tr><td class="label">Pump Stage / Speed</td><td>{{ pump_stage }} / {{ pump_speed }} rpm</td></tr>
+      <tr><td class="label">Media</td><td>{{ media_name }} (density {{ media_density }})</td></tr>
+      <tr><td class="label">Media Viscosity</td><td>{{ media_viscosity }} {{ media_viscosity_unit }}</td></tr>
+      <tr><td class="label">Suction / Discharge Pipe ID</td><td>{{ suction_pipe_id }} / {{ discharge_pipe_id }}</td></tr>
+    </table>
+    <table class="kv-table">
+      <tr><td class="label">Motor Brand / Model</td><td class="kv-table-cell-right">{{ motor_brand }} / {{ motor_model }}</td></tr>
+      <tr><td class="label">Motor Serial No</td><td class="kv-table-cell-right">{{ motor_serial_no }}</td></tr>
+      <tr><td class="label">Voltage</td><td class="kv-table-cell-right">{{ voltage }}</td></tr>
+      <tr><td class="label">Suggested Motor</td><td class="kv-table-cell-right">{{ suggest_motor }}</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Operating Point (Field Measurement)</h2>
+    <div class="kv-grid">
+      <table class="kv-table">
+        {% for item in operating_point_left %}
+        <tr><td class="label">{{ item.label }}</td><td>{{ item.value|default:"-" }}</td></tr>
+        {% endfor %}
+      </table>
+      <table class="kv-table">
+        {% for item in operating_point_right %}
+        <tr><td class="label">{{ item.label }}</td><td>{{ item.value|default:"-" }}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class="note muted">Remarks: {{ cal_remarks|default:"-" }}</div>
+  </div>
+
+  {% if curve_chart %}
+  <div class="section">
+    <h2>Performance Curve</h2>
+    <img src="{{ curve_chart }}" style="width:100%; max-width:170mm;" alt="Head vs Flow performance curve">
+  </div>
+  {% endif %}
+
+
+  <div class="section">
+    <h2>Vibration &amp; Temperature Readings</h2>
+    <table class="data-table">
+      <tr>
+        <th style="width:auto;" rowspan="2"></th><th style="width:auto;" rowspan="2"></th>
+        <th colspan="2">Pump</th><th colspan="2">Motor</th>
+      </tr>
+      <tr>
+        <th>NDE</th><th>DE</th><th>NDE</th><th>DE</th>
+      </tr>
+      {% for row in vibration_rows %}
+      <tr>
+        {% if row.standalone %}
+        <td class="left" colspan="2">{{ row.sub }}</td>
+        {% else %}
+          {% if row.group %}
+          <td class="left" rowspan="{{ row.group_rowspan }}">{{ row.group }}</td>
+          {% endif %}
+          <td class="left">{{ row.sub }}</td>
+        {% endif %}
+        {% for value in row.values %}
+        <td>{{ value|default:"-" }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </table>
+    {% if env_vibration %}<div class="note muted">Environmental Vibration: {{ env_vibration }} mm/s</div>{% endif %}
+  </div>
+
+  <div class="section">
+    <h2>Visual Inspection Checklist{% if pump_type %} — {{ pump_type }}{% endif %}</h2>
+    <div class="checklist-cols">
+      <div>
+        <table>
+          <tr><th style="width:6mm;">#</th><th class="item">Item</th><th class="check">OK?</th><th style="width:auto;">Remark</th></tr>
+          {% for item in general_checklist %}
+          <tr>
+            <td style="text-align:center;">{{ forloop.counter }}</td>
+            <td class="item">{{ item.label }}</td>
+            <td class="check">{{ item.check }}</td>
+            <td class="remark">{{ item.remark }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      <div>
+        <table>
+          <tr><th style="width:6mm;">#</th><th class="item">Running Check</th><th class="check">OK?</th><th style="width:auto;">Remark</th></tr>
+          {% for item in running_checklist %}
+          <tr>
+            <td style="text-align:center;">{{ forloop.counter }}</td>
+            <td class="item">{{ item.label }}</td>
+            <td class="check">{{ item.check }}</td>
+            <td class="remark">{{ item.remark }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+    <div class="result-block">
+      <div class="title">Remarks</div>
+      <span class="verdict neutral">{{ visual_remarks|default:"No remark" }}</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Performance Evaluation</h2>
+
+    <div class="result-block">
+      <div class="title">Flow Range (30% – 110% of BEP)</div>
+      <span class="verdict {{ range_30_110_class }}">{{ range_30_110_result|default:"No result" }}</span>
+      <div class="note"><b>Suggest:</b> {{ range_30_110_suggest|default:"-" }}</div>
+      <div class="note"><b>Remark:</b> {{ range_30_110_remark|default:"-" }}</div>
+    </div>
+
+    <div class="result-block">
+      <div class="title">Deviation from Factory Curve</div>
+      <span class="verdict {{ pump_standard_class }}">{{ pump_standard_result|default:"No result" }}</span>
+      <div class="note"><b>Suggest:</b> {{ pump_standard_suggest|default:"-" }}</div>
+      <div class="note"><b>Remark:</b> {{ pump_standard_remark|default:"-" }}</div>
+    </div>
+
+    <div class="result-block">
+      <div class="title">NPSH (Cavitation Check)</div>
+      <span class="verdict {{ npshr_npsha_class }}">{{ npshr_npsha_result|default:"No result" }}</span>
+      <div class="note muted">Suction P.: {{ suction_pres_ope }} | Vapor P.: {{ vapor_pressure }} | NPSHa: {{ npsha_actual }} / {{ npsha }}</div>
+      <div class="note"><b>Suggest:</b> {{ npshr_npsha_suggest|default:"-" }}</div>
+      <div class="note"><b>Remark:</b> {{ npshr_npsha_remark|default:"-" }}</div>
+    </div>
+
+    <div class="result-block">
+      <div class="title">Power (ISO 9906)</div>
+      <span class="verdict {{ power_class }}">{{ power_result|default:"No result" }}</span>
+      <div class="note muted">Measured hydraulic power: {{ hyd_power_measure }} | Motor power: {{ motor_power }}</div>
+      <div class="note"><b>Suggest:</b> {{ power_suggest|default:"-" }}</div>
+      <div class="note"><b>Remark:</b> {{ power_remark|default:"-" }}</div>
+    </div>
+
+    <div class="result-block">
+      <div class="title">Fluid Temperature</div>
+      <span class="verdict {{ fluid_temp_class }}">{{ fluid_temp_result|default:"No result" }}</span>
+      <div class="note muted">Measured: {{ liquid_temp }} {{ liquid_temp_unit }} | Pump rated max: {{ pump_max_temp }} °C</div>
+      <div class="note"><b>Suggest:</b> {{ fluid_temp_suggest|default:"-" }}</div>
+      <div class="note"><b>Remark:</b> {{ fluid_temp_remark|default:"-" }}</div>
+    </div>
+
+    <div class="result-block">
+      <div class="title">Bearing Housing Temperature</div>
+      <span class="verdict {{ bearing_temp_class }}">{{ bearing_temp_result|default:"No result" }}</span>
+      <div class="note"><b>Suggest:</b> {{ bearing_temp_suggest|default:"-" }}</div>
+      <div class="note"><b>Remark:</b> {{ bearing_temp_remark|default:"-" }}</div>
+    </div>
+
+    <div class="result-block">
+      <div class="title">Additional Suggestions</div>
+      {% for item in general_suggest_items %}
+      <div class="note"><b>{{ item.label }}:</b> {{ item.suggest|default:"-" }}</div>
+      {% endfor %}
+    </div>
+
+    {% for item in vibration_suggest_items %}
+    <div class="result-block">
+      <div class="title">{{ item.label }}</div>
+      <div class="note"><b>Suggest:</b> {{ item.suggest|default:"-" }}</div>
+      <div class="note"><b>Remark:</b> {{ item.remark|default:"-" }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+</body>
+</html>
