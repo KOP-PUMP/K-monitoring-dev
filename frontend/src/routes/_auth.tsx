@@ -281,7 +281,7 @@ function Dashboard() {
                 </CollapsibleContent>
               </Collapsible>
 
-              {canAccess("user_manage", userRole) && (
+              {canAccess("users_manage", userRole) && (
                 <Collapsible>
                   <CollapsibleTrigger
                     className="flex w-full justify-between items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
