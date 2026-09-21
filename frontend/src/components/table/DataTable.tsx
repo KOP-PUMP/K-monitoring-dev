@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown} from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,23 +30,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ExtendedColumnDef } from "@/routes/_auth/pump/unit_list";
-import { LOVData } from "@/types/table";
+
+import { ExtendedColumnDef, LOVData } from "@/types/table";
 
 export function DataTable({
   data,
   columns,
   search,
   visible,
+  pageSize = 5,
 }: {
   data: any;
   columns: any;
   search: any;
   visible?: any;
+  pageSize?: number;
 }) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>(
@@ -57,7 +59,7 @@ export function DataTable({
             updated_at: false,
             created_by: false,
             created_at: false,
-          }
+          },
     );
   const [rowSelection, setRowSelection] = React.useState({});
 
@@ -80,7 +82,7 @@ export function DataTable({
     },
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize,
       },
     },
   });
@@ -88,30 +90,47 @@ export function DataTable({
   return (
     <div className="w-full">
       <div className="flex items-center py-4 gap-4">
-        {typeof search === "object" ? (
-          search.map((search: any, index: number) => (
-            <Input
-              key={index}
-              placeholder={`Filter ${search}...`}
-              value={
-                (table.getColumn(search)?.getFilterValue() as string) ?? ""
-              }
-              onChange={(event) =>
-                table.getColumn(search)?.setFilterValue(event.target.value)
-              }
-              className="max-w-[200px] "
-            />
-          ))
-        ) : (
-          <Input
-            placeholder={`Filter ${search}...`}
-            value={(table.getColumn(search)?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn(search)?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-        )}
+        {typeof search === "object"
+          ? search.map((searchKey: string, index: number) => {
+              const label =
+                (
+                  table.getColumn(searchKey)
+                    ?.columnDef as ExtendedColumnDef<any>
+                )?.label ?? searchKey;
+              return (
+                <Input
+                  key={index}
+                  placeholder={`Filter: ${label}`}
+                  value={
+                    (table.getColumn(searchKey)?.getFilterValue() as string) ??
+                    ""
+                  }
+                  onChange={(event) =>
+                    table
+                      .getColumn(searchKey)
+                      ?.setFilterValue(event.target.value)
+                  }
+                  className="max-w-[200px] "
+                />
+              );
+            })
+          : (() => {
+              const label =
+                (table.getColumn(search)?.columnDef as ExtendedColumnDef<any>)
+                  ?.label ?? search;
+              return (
+                <Input
+                  placeholder={`Filter: ${label}`}
+                  value={
+                    (table.getColumn(search)?.getFilterValue() as string) ?? ""
+                  }
+                  onChange={(event) =>
+                    table.getColumn(search)?.setFilterValue(event.target.value)
+                  }
+                  className="max-w-sm"
+                />
+              );
+            })()}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -154,7 +173,7 @@ export function DataTable({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -173,7 +192,7 @@ export function DataTable({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                       {/* {cell.column.id === "image" ? (
                         <img
@@ -224,6 +243,10 @@ export function DataTable({
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredRowModel().rows.length} Found.
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Page {table.getState().pagination.pageIndex + 1} of{" "}
+          {table.getPageCount() || 1}
         </div>
         <div className="space-x-2">
           <Button

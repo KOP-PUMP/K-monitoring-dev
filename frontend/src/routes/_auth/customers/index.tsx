@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/table/DataTable";
 import { useGetAllCustomersDetail } from "@/hook/users/customers";
 import {
@@ -13,12 +12,7 @@ import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { CustomerResponse } from "@/types/users/customer";
 import { Card } from "@/components/ui/card";
 
-export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
-  TData,
-  TValue
-> & {
-  label?: string; // Add the label property
-};
+import { ExtendedColumnDef} from "@/types/table";
 
 const CustomerTable = () => {
   const {data: customers} = useGetAllCustomersDetail();

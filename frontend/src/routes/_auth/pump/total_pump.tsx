@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/table/DataTable";
 import { PumpDataType } from "@/data/pump_models";
 import { useGetPumpDetail, useGetDashboardStats } from "@/hook/pump/pump";
@@ -22,12 +21,7 @@ import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useDeletePump } from "@/hook/pump/pump";
 
-export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
-  TData,
-  TValue
-> & {
-  label?: string; // Add the label property
-};
+import { ExtendedColumnDef} from "@/types/table";
 
 function TotalPump() {
   const { data: pumpDetailData } = useGetPumpDetail("");

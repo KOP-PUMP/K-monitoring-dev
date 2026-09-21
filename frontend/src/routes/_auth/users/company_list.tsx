@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/table/DataTable";
 import {
   DropdownMenu,
@@ -17,12 +16,7 @@ import { useGetAllCompaniesDetail, useDeleteCompany } from "@/hook/users/company
 import { Card } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 
-export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
-  TData,
-  TValue
-> & {
-  label?: string; // Add the label property
-};
+import { ExtendedColumnDef} from "@/types/table";
 
 const CompanyTable = () => {
   const { data: companies} = useGetAllCompaniesDetail();

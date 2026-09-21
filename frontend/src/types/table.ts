@@ -1,3 +1,12 @@
+import { ColumnDef } from "@tanstack/react-table";
+
+export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
+  TData,
+  TValue
+> & {
+  label?: string;
+};
+
 export interface LOVData {
   id?: any;
   type_name: string | null; 
