@@ -80,7 +80,6 @@ export const EngineerReportCheckCalSchema = z.object({
     liquid_temp : z.coerce.number().optional().nullable(),
     liquid_temp_unit : z.string().optional().nullable(),
     npsha : z.coerce.number().optional().nullable(),
-    npsha_unit : z.string().optional().nullable(),
     npsha_actual : z.coerce.number().optional().nullable(),
     npsha_actual_unit : z.string().optional().nullable(),
     suction_fluid_velo : z.coerce.number().optional().nullable(),

@@ -18,10 +18,11 @@ interface ComboboxProps {
   label?: string;
   value?: string;
   className?: string;
+  disabled?: boolean;
   onChange: (event: string) => void;
 }
 
-export function Combobox({ items, label, value: controlledValue, className, onChange }: ComboboxProps) {
+export function Combobox({ items, label, value: controlledValue, className, disabled, onChange }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [internalValue, setInternalValue] = React.useState("");
 
@@ -33,9 +34,16 @@ export function Combobox({ items, label, value: controlledValue, className, onCh
 
   return (
     <div className={cn("block", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open && !disabled} onOpenChange={(o) => !disabled && setOpen(o)}>
         <PopoverTrigger asChild>
-          <Button variant="outline" role="combobox" size="sm" aria-expanded={open} className="w-full justify-between">
+          <Button
+            variant="outline"
+            role="combobox"
+            size="sm"
+            aria-expanded={open}
+            disabled={disabled}
+            className={cn("w-full justify-between", disabled && "bg-muted/50 cursor-default")}
+          >
             {displayLabel}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>

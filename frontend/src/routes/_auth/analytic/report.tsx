@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/table/DataTable";
 import { useSearch } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   GearIcon,
   PersonIcon,
   ClockIcon,
   FileTextIcon,
+  Cross2Icon,
 } from "@radix-ui/react-icons";
 import {
   DropdownMenu,
@@ -56,6 +56,7 @@ import {
   useGetEngineerReportFile,
   useDeleteEngineerReportFile,
   useDownloadEngineerReportFile,
+  useDeleteEngineerReportCheck,
 } from "@/hook/engineer/engineer";
 import { z } from "zod";
 
@@ -72,12 +73,7 @@ import {
 } from "@/components/ui/form";
 import { EngineerReportFileCreateSchema } from "@/validators/engineer";
 
-export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
-  TData,
-  TValue
-> & {
-  label?: string; // Add the label property
-};
+import { ExtendedColumnDef} from "@/types/table";
 
 const ReportFileList = ({
   reports,
@@ -88,14 +84,86 @@ const ReportFileList = ({
 }) => {
   const deleteFileMutation = useDeleteEngineerReportFile();
   const downloadFileMutation = useDownloadEngineerReportFile();
+  const pageSize = 5;
+  const [page, setPage] = useState(0);
+  const pageCount = Math.ceil(reports.length / pageSize);
+  const paginatedReports = reports.slice(
+    page * pageSize,
+    page * pageSize + pageSize,
+  );
+  // Holds the fetched, already-saved PDF as a blob: URL so it can be
+  // previewed inline before the browser download is actually triggered —
+  // same pattern as the freshly-generated report in ReportCreate.
+  const [preview, setPreview] = useState<{ url: string; filename: string } | null>(null);
+  // With many report file versions in the list, a user can click Download
+  // on one row, then another, before the first request resolves. Track the
+  // most recently requested id so a slower, older response can't clobber
+  // the preview of the row the user actually clicked last.
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const latestRequestedId = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (preview) window.URL.revokeObjectURL(preview.url);
+    };
+  }, [preview]);
 
   const handleDeleteReportFile = (id: string) => {
     deleteFileMutation.mutate(id);
   };
 
   const handleDownloadReportFile = (id: string) => {
-    downloadFileMutation.mutate(id);
+    latestRequestedId.current = id;
+    setDownloadingId(id);
+    downloadFileMutation.mutate(id, {
+      onSuccess: ({ blob, filename }) => {
+        if (latestRequestedId.current !== id) return;
+        setPreview({ url: window.URL.createObjectURL(blob), filename });
+      },
+      onSettled: () => {
+        if (latestRequestedId.current === id) setDownloadingId(null);
+      },
+    });
   };
+
+  const handleDownload = () => {
+    if (!preview) return;
+    const link = document.createElement("a");
+    link.href = preview.url;
+    link.setAttribute("download", preview.filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const handleClosePreview = () => {
+    if (preview) window.URL.revokeObjectURL(preview.url);
+    setPreview(null);
+  };
+
+  if (preview) {
+    return (
+      <div className="flex flex-col gap-2">
+        <DialogHeader className="flex flex-row justify-between items-center">
+          <DialogTitle>Report Preview</DialogTitle>
+          <DialogClose
+            onClick={handleClosePreview}
+            className="hover:text-red-500"
+          >
+            Close
+          </DialogClose>
+        </DialogHeader>
+        <iframe
+          src={preview.url}
+          title="Report preview"
+          className="w-full h-[70vh] border rounded"
+        />
+        <Button onClick={handleDownload} className="w-full">
+          Download
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -112,48 +180,82 @@ const ReportFileList = ({
         </DialogClose>
       </DialogHeader>
       {reports.length > 0 ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Actions</TableHead>
-              <TableHead className="w-[150px]">Detail</TableHead>
-              <TableHead className="w-[150px]">Remark</TableHead>
-              <TableHead className="w-[100px]">Updated At</TableHead>
-              <TableHead className="w-[100px]">Updated By</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {reports.map((report: any) => (
-              <TableRow key={report.id}>
-                <TableCell className="font-medium flex flex-col justify-center align-middle gap-1 pt-2">
-                  <Button
-                    onClick={() => handleDownloadReportFile(report.report_id)}
-                  >
-                    Download
-                  </Button>
-                  <Button
-                    onClick={() => handleDeleteReportFile(report.report_id)}
-                    variant="destructive"
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
-                <TableCell className="font-medium overflow-x-auto max-w-[50px]">
-                  {report.report_detail || "-"}
-                </TableCell>
-                <TableCell className="font-medium overflow-x-auto max-w-[50px]">
-                  {report.remark || "-"}
-                </TableCell>
-                <TableCell className="font-medium">
-                  {new Date(report.updated_at).toLocaleString()}
-                </TableCell>
-                <TableCell className="font-medium">
-                  {report.updated_by}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead className="w-[150px]">Detail</TableHead>
+                  <TableHead className="w-[150px]">Remark</TableHead>
+                  <TableHead className="w-[100px]">Updated At</TableHead>
+                  <TableHead className="w-[100px]">Updated By</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedReports.map((report: any) => (
+                  <TableRow key={report.id}>
+                    <TableCell className="font-medium flex flex-col justify-center align-middle gap-1 pt-2">
+                      <Button
+                        onClick={() =>
+                          handleDownloadReportFile(report.report_id)
+                        }
+                        disabled={downloadingId === report.report_id}
+                      >
+                        {downloadingId === report.report_id
+                          ? "Loading..."
+                          : "Download"}
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          handleDeleteReportFile(report.report_id)
+                        }
+                        variant="destructive"
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                    <TableCell className="font-medium overflow-x-auto max-w-[50px]">
+                      {report.report_detail || "-"}
+                    </TableCell>
+                    <TableCell className="font-medium overflow-x-auto max-w-[50px]">
+                      {report.remark || "-"}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {new Date(report.updated_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {report.updated_by}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          {pageCount > 1 && (
+            <div className="flex items-center justify-end space-x-2 pt-2">
+              <div className="flex-1 text-sm text-muted-foreground">
+                Page {page + 1} of {pageCount}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(p - 1, 0))}
+                disabled={page === 0}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(p + 1, pageCount - 1))}
+                disabled={page >= pageCount - 1}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </div>
       ) : (
         <div className="text-center py-10">No Report Found</div>
       )}
@@ -173,6 +275,16 @@ const ReportCreate = ({
   onClose: () => void;
 }) => {
   const createFileMutation = useCreateEngineerReportFile();
+  // Holds the just-generated PDF as a blob: URL so it can be shown inline
+  // first — the file is only actually saved to disk once the user clicks
+  // Download, instead of forcing a download the instant it's generated.
+  const [preview, setPreview] = useState<{ url: string; filename: string } | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (preview) window.URL.revokeObjectURL(preview.url);
+    };
+  }, [preview]);
 
   const handleCreateReportFile = (
     values: z.infer<typeof EngineerReportFileCreateSchema>,
@@ -188,17 +300,53 @@ const ReportCreate = ({
         data,
       },
       {
-        onSuccess: () => {
-          onClose();
-          form.reset();
+        onSuccess: ({ blob, filename }) => {
+          setPreview({ url: window.URL.createObjectURL(blob), filename });
         },
         onError: (error) => {
           console.error("Create failed:", error);
-          onClose();
         },
       },
     );
   };
+
+  const handleDownload = () => {
+    if (!preview) return;
+    const link = document.createElement("a");
+    link.href = preview.url;
+    link.setAttribute("download", preview.filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const handleCloseAll = () => {
+    if (preview) window.URL.revokeObjectURL(preview.url);
+    setPreview(null);
+    form.reset();
+    onClose();
+  };
+
+  if (preview) {
+    return (
+      <div className="flex flex-col gap-2">
+        <DialogHeader className="flex flex-row justify-between items-center">
+          <DialogTitle>Report Preview</DialogTitle>
+          <DialogClose onClick={handleCloseAll} className="hover:text-red-500">
+            Close
+          </DialogClose>
+        </DialogHeader>
+        <iframe
+          src={preview.url}
+          title="Report preview"
+          className="w-full h-[70vh] border rounded"
+        />
+        <Button onClick={handleDownload} className="w-full">
+          Download
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -245,8 +393,8 @@ const ReportCreate = ({
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full">
-            Generate new report file
+          <Button type="submit" className="w-full" disabled={createFileMutation.isPending}>
+            {createFileMutation.isPending ? "Generating..." : "Generate new report file"}
           </Button>
         </form>
       </Form>
@@ -258,9 +406,11 @@ function TotalReport() {
   const localstorage = window.localStorage.getItem("user");
   const userData = localstorage !== null ? JSON.parse(localstorage) : null;
   const createMutation = useCreateEngineerReportCheck();
+  const deleteReportCheckMutation = useDeleteEngineerReportCheck();
   const { id } = useSearch({ from: "/_auth/analytic/report" });
   const [openFileAction, setOpenFileAction] = useState(false);
   const [reportFileID, setReportFileID] = useState<string | null>(null);
+  const [deleteCheckId, setDeleteCheckId] = useState<string | null>(null);
   const [isCreateReportFile, setIsCreateReportFile] = useState(false);
   const { data: reportFileData } = useGetEngineerReportFile(reportFileID);
   const [reportDetail, setReportDetail] = useState<any>({
@@ -280,9 +430,12 @@ function TotalReport() {
     setReportID(id);
   }; */
 
-  /* const handleDeleteReport = (id: string) => {
-    deleteMutation.mutate(id);
-  }; */
+  const handleConfirmDeleteReportCheck = () => {
+    if (deleteCheckId) {
+      deleteReportCheckMutation.mutate(deleteCheckId);
+      setDeleteCheckId(null);
+    }
+  };
 
   const handleCreateReportCheck = (e: any) => {
     e.preventDefault();
@@ -357,13 +510,14 @@ function TotalReport() {
                   >
                     All Report
                   </DropdownMenuItem>
-                  {/* <DropdownMenuItem
-                  onClick={() => handleDeleteReportFile(company.check_id)}
-                  >
-                    Delete Report
-                  </DropdownMenuItem> */}
                 </>
               )}
+              <DropdownMenuItem
+                className="text-red-500 focus:text-red-500"
+                onClick={() => setDeleteCheckId(company.check_id)}
+              >
+                Delete Report
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -677,7 +831,7 @@ function TotalReport() {
         </Card>
         <Dialog open={openFileAction} onOpenChange={setOpenFileAction}>
           <DialogContent
-            className="p-6 max-w-4xl"
+            className="p-6 max-w-4xl max-h-[85vh] flex flex-col overflow-hidden"
             onPointerDownOutside={(e) => {
               e.preventDefault();
             }}
@@ -696,6 +850,34 @@ function TotalReport() {
                 onClose={handleClose}
               />
             )}
+          </DialogContent>
+        </Dialog>
+        <Dialog
+          open={deleteCheckId !== null}
+          onOpenChange={(open) => !open && setDeleteCheckId(null)}
+        >
+          <DialogContent className="p-6 max-w-md">
+            <DialogClose
+              onClick={() => setDeleteCheckId(null)}
+              className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 hover:text-red-500 focus:outline-none"
+            >
+              <Cross2Icon className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+            <DialogHeader>
+              <DialogTitle>Delete this report check?</DialogTitle>
+              <DialogDescription>
+                This permanently deletes this maintenance check along with
+                all its Cal, Vibration, Visual and Result data, and every
+                generated report file created from it. This cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <Button
+              className="bg-red-500 hover:bg-red-600 w-full"
+              onClick={handleConfirmDeleteReportCheck}
+            >
+              Delete
+            </Button>
           </DialogContent>
         </Dialog>
       </div>

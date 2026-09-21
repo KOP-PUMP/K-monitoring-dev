@@ -8,6 +8,7 @@ import {
   LabelList,
   Tooltip,
   ReferenceLine,
+  ReferenceArea,
 } from "recharts";
 import { FactoryCurveDataResponse } from "@/types/factory_curve/factory_curve_data";
 import { ScatterProps } from "recharts";
@@ -18,6 +19,10 @@ export interface HeadFlowGraphProps {
   scatter?: boolean;
   isLoading?: boolean;
   isError?: boolean;
+  // Shades the recommended operating-flow band (e.g. 0.8x-1.1x BEP flow),
+  // same as the shaded region on the generated PDF report's curve chart.
+  // Only meaningful for the flow-on-X formats (KDIN/KOP9196/KISO).
+  recommendedRange?: { flow_min: number; flow_max: number } | null;
 }
 
 export const HeadFlowGraph = ({
@@ -26,6 +31,7 @@ export const HeadFlowGraph = ({
   scatter,
   isLoading,
   isError,
+  recommendedRange,
 }: HeadFlowGraphProps) => {
   const error = console.error;
   console.error = (...args) => {
@@ -134,6 +140,23 @@ export const HeadFlowGraph = ({
             <XAxis {...XAxisDefaultProps} />
             <YAxis {...YAxisDefaultProps} />
             <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+            {recommendedRange && (
+              <ReferenceArea
+                x1={recommendedRange.flow_min}
+                x2={recommendedRange.flow_max}
+                fill="#22c55e"
+                fillOpacity={0.08}
+                stroke="#22c55e"
+                strokeOpacity={0.3}
+                strokeDasharray="3 3"
+                label={{
+                  value: "Recommended",
+                  position: "insideTop",
+                  fill: "#16a34a",
+                  fontSize: 11,
+                }}
+              />
+            )}
             {uniqueImpDia.map((dia, index) => {
               if (dia) {
                 const dataSeries = transformedDataImp[dia].filter(

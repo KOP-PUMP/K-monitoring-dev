@@ -1,10 +1,27 @@
 export interface ReportCheckCalResponse {
     range_30_110_result : string
+    range_30_110_suggest : string
     npshr_npsha_result : string
+    npshr_npsha_suggest : string
     pump_standard_result : string
+    pump_standard_suggest : string
     power_result : string
+    power_suggest : string
     fluid_temp_result : string
+    fluid_temp_suggest : string
     bearing_temp_result : string
+    bearing_temp_suggest : string
+    calc_head_ope ?: number | string
+    calc_flow_ope ?: number | string
+    calc_shaft_power ?: number | string
+    calc_hyd_power ?: number | string
+    calc_head_shut ?: number | string
+    calc_head_shut_unit ?: string
+    calc_head_max ?: number | string
+    calc_head_max_unit ?: string
+    calc_npsha ?: number | string
+    calc_suction_velo ?: number | string
+    calc_discharge_velo ?: number | string
 }
 
 export interface ReportCheckFileCreateOut {

@@ -38,7 +38,7 @@ export const useCreateEngineerReportFile = () => {
       data: ReportCheckFileCreateOut;
     }) => createEngineerReportFile({ id, email, data }),
     onSuccess: () => {
-      toast.success("Download started");
+      toast.success("Report generated");
     },
     onError: () => {
       toast.error("Error creating engineer report");
@@ -58,9 +58,6 @@ export const useGetEngineerReportFile = (id: string | null) => {
 export const useDownloadEngineerReportFile = () => {
   return useMutation({
     mutationFn: (id: string | null) => downloadEngineerReportFile(id),
-    onSuccess: () => {
-      toast.success("Download started");
-    },
     onError: () => {
       toast.error("Error downloading engineer report");
     },
@@ -225,13 +222,13 @@ export const useCreateEngineerReportResultCheck = () => {
   return useMutation({
     mutationFn: createEngineerReportResultCheck,
     onSuccess: () => {
-      toast.success("Engineer Report Vibe Check created successfully");
+      toast.success("Engineer Report Result Check created successfully");
       setTimeout(() => {
         window.location.reload();
       }, 2000);
     },
     onError: (error) => {
-      toast.error("Error creating engineer report Vibe check");
+      toast.error("Error creating engineer report Result check");
       console.error("Update Error:", error);
     },
   });

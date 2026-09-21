@@ -8,6 +8,33 @@ import {
 
 // Report File
 
+// Shared by every "Download" action (the report-preview dialog's Download
+// button, and re-downloading an already-generated report from the report
+// list) — the actual file save is always this same hidden-<a> blob trick,
+// only triggered on demand rather than automatically.
+export const triggerBrowserDownload = (blob: Blob, filename: string) => {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+const _filenameFromContentDisposition = (
+  contentDisposition: string | undefined,
+  fallback: string,
+) => {
+  if (!contentDisposition) return fallback;
+  const match = contentDisposition.match(/filename="?([^"]+)"?/);
+  return match?.[1] ?? fallback;
+};
+
+// Generates the report PDF server-side and returns it as a blob for inline
+// preview — it no longer force-downloads on its own; the caller decides when
+// to show a Download button and only then calls triggerBrowserDownload.
 export const createEngineerReportFile = async ({
   id,
   email,
@@ -21,36 +48,19 @@ export const createEngineerReportFile = async ({
     `/engineer/report?id=${id}&user=${email}`,
     data,
     {
-      responseType: "blob", // 🔥 สำคัญมาก
+      responseType: "blob",
     },
   );
 
   const blob = new Blob([response.data], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    type: "application/pdf",
   });
+  const filename = _filenameFromContentDisposition(
+    response.headers["content-disposition"],
+    "report.pdf",
+  );
 
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-
-  let filename = "report.xlsx";
-  const contentDisposition = response.headers["content-disposition"];
-
-  if (contentDisposition) {
-    const match = contentDisposition.match(/filename="?([^"]+)"?/);
-    if (match?.[1]) {
-      filename = match[1];
-    }
-  }
-
-  link.setAttribute("download", filename);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  window.URL.revokeObjectURL(url);
-
-  return true;
+  return { blob, filename };
 };
 
 export const getEngineerReportFile = async (id: string | null) => {
@@ -62,6 +72,9 @@ export const getEngineerReportFile = async (id: string | null) => {
   }
 };
 
+// Fetches an already-saved report as a blob for inline preview — same
+// contract as createEngineerReportFile, so the caller decides when to show
+// a Download button and only then calls triggerBrowserDownload.
 export const downloadEngineerReportFile = async (id: string | null) => {
   const response = await axiosInstance.get(
     `/engineer/report/download?id=${id}`,
@@ -71,30 +84,14 @@ export const downloadEngineerReportFile = async (id: string | null) => {
   );
 
   const blob = new Blob([response.data], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    type: "application/pdf",
   });
+  const filename = _filenameFromContentDisposition(
+    response.headers["content-disposition"],
+    "report.pdf",
+  );
 
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-
-  let filename = "report.xlsx";
-  const contentDisposition = response.headers["content-disposition"];
-
-  if (contentDisposition) {
-    const match = contentDisposition.match(/filename="?([^"]+)"?/);
-    if (match?.[1]) {
-      filename = match[1];
-    }
-  }
-
-  link.setAttribute("download", filename);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
-
-  return true;
+  return { blob, filename };
 };
 
 export const deleteEngineerReportFile = async (id: string) => {
