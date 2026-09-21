@@ -800,44 +800,44 @@ function ReportEdit() {
         engineerReportCheckCalForm.reset({
           ...engineerReportCheckCalForm.getValues(),
           ...(response.calc_head_ope != null
-            ? { head_ope: String(response.calc_head_ope), head_ope_unit: "m" }
+            ? { head_ope: Number(response.calc_head_ope), head_ope_unit: "m" }
             : {}),
           ...(response.calc_shaft_power != null
             ? {
-                shaft_ope: String(response.calc_shaft_power),
+                shaft_ope: Number(response.calc_shaft_power),
                 shaft_ope_unit: "kW",
               }
             : {}),
           ...(response.calc_hyd_power != null
             ? {
-                hyd_power_measure: String(response.calc_hyd_power),
+                hyd_power_measure: Number(response.calc_hyd_power),
                 hyd_power_measure_unit: "kW",
               }
             : {}),
           ...(response.calc_head_shut != null
             ? {
-                head_shut: String(response.calc_head_shut),
+                head_shut: Number(response.calc_head_shut),
                 head_shut_unit: response.calc_head_shut_unit,
               }
             : {}),
           ...(response.calc_head_max != null
             ? {
-                head_max: String(response.calc_head_max),
+                head_max: Number(response.calc_head_max),
                 head_max_unit: response.calc_head_max_unit,
               }
             : {}),
           ...(response.calc_npsha != null
-            ? { npsha: String(response.calc_npsha) }
+            ? { npsha: Number(response.calc_npsha) }
             : {}),
           ...(response.calc_suction_velo != null
             ? {
-                suction_fluid_velo: String(response.calc_suction_velo),
+                suction_fluid_velo: Number(response.calc_suction_velo),
                 suction_fluid_velo_unit: "m/s",
               }
             : {}),
           ...(response.calc_discharge_velo != null
             ? {
-                discharge_fluid_velo: String(response.calc_discharge_velo),
+                discharge_fluid_velo: Number(response.calc_discharge_velo),
                 discharge_fluid_velo_unit: "m/s",
               }
             : {}),
@@ -855,46 +855,46 @@ function ReportEdit() {
           ...engineerReportCheckCalForm.getValues(),
           ...(checkResult.calc_head_ope != null
             ? {
-                head_ope: String(checkResult.calc_head_ope),
+                head_ope: Number(checkResult.calc_head_ope),
                 head_ope_unit: "m",
               }
             : {}),
           ...(checkResult.calc_shaft_power != null
             ? {
-                shaft_ope: String(checkResult.calc_shaft_power),
+                shaft_ope: Number(checkResult.calc_shaft_power),
                 shaft_ope_unit: "kW",
               }
             : {}),
           ...(checkResult.calc_hyd_power != null
             ? {
-                hyd_power_measure: String(checkResult.calc_hyd_power),
+                hyd_power_measure: Number(checkResult.calc_hyd_power),
                 hyd_power_measure_unit: "kW",
               }
             : {}),
           ...(checkResult.calc_head_shut != null
             ? {
-                head_shut: String(checkResult.calc_head_shut),
+                head_shut: Number(checkResult.calc_head_shut),
                 head_shut_unit: checkResult.calc_head_shut_unit,
               }
             : {}),
           ...(checkResult.calc_head_max != null
             ? {
-                head_max: String(checkResult.calc_head_max),
+                head_max: Number(checkResult.calc_head_max),
                 head_max_unit: checkResult.calc_head_max_unit,
               }
             : {}),
           ...(checkResult.calc_npsha != null
-            ? { npsha: String(checkResult.calc_npsha) }
+            ? { npsha: Number(checkResult.calc_npsha) }
             : {}),
           ...(checkResult.calc_suction_velo != null
             ? {
-                suction_fluid_velo: String(checkResult.calc_suction_velo),
+                suction_fluid_velo: Number(checkResult.calc_suction_velo),
                 suction_fluid_velo_unit: "m/s",
               }
             : {}),
           ...(checkResult.calc_discharge_velo != null
             ? {
-                discharge_fluid_velo: String(checkResult.calc_discharge_velo),
+                discharge_fluid_velo: Number(checkResult.calc_discharge_velo),
                 discharge_fluid_velo_unit: "m/s",
               }
             : {}),
