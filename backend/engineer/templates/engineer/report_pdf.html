@@ -14,7 +14,10 @@
   }
   * { box-sizing: border-box; }
   body {
-    font-family: "Helvetica", "Arial", sans-serif;
+    /* Latin text uses Helvetica/Arial (Liberation Sans on the server); the Thai
+       families after it are what actually render Thai — without one installed
+       (fonts-thai-tlwg in the Dockerfile) every Thai glyph prints as an empty box. */
+    font-family: "Helvetica", "Arial", "Loma", "Garuda", "Waree", "Noto Sans Thai", "Thonburi", "Sarabun", sans-serif;
     font-size: 8.7pt;
     color: #1a1a1a;
     margin: 0;
