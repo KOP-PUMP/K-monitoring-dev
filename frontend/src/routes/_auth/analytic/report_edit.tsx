@@ -3330,6 +3330,7 @@ function ReportEdit() {
                         label="Speed Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <MeasurementField
                         control={engineerReportCheckResultForm.control}
@@ -3337,6 +3338,7 @@ function ReportEdit() {
                         label="Flow Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <MeasurementField
                         control={engineerReportCheckResultForm.control}
@@ -3344,6 +3346,7 @@ function ReportEdit() {
                         label="NPSHr Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <MeasurementField
                         control={engineerReportCheckResultForm.control}
@@ -3351,6 +3354,7 @@ function ReportEdit() {
                         label="Velocity Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <MeasurementField
                         control={engineerReportCheckResultForm.control}
@@ -3358,6 +3362,7 @@ function ReportEdit() {
                         label="Boiling Point Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <MeasurementField
                         control={engineerReportCheckResultForm.control}
@@ -3365,6 +3370,7 @@ function ReportEdit() {
                         label="Current Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <MeasurementField
                         control={engineerReportCheckResultForm.control}
@@ -3372,6 +3378,7 @@ function ReportEdit() {
                         label="API Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <MeasurementField
                         control={engineerReportCheckResultForm.control}
@@ -3379,6 +3386,7 @@ function ReportEdit() {
                         label="Buffer Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <MeasurementField
                         control={engineerReportCheckResultForm.control}
@@ -3386,6 +3394,7 @@ function ReportEdit() {
                         label="Bearing Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <MeasurementField
                         control={engineerReportCheckResultForm.control}
@@ -3393,6 +3402,7 @@ function ReportEdit() {
                         label="Vibration Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <MeasurementField
                         control={engineerReportCheckResultForm.control}
@@ -3400,6 +3410,7 @@ function ReportEdit() {
                         label="Bearing Temp. Suggest"
                         type="text"
                         auto
+                        editable
                       />
                       <StackedTextField
                         control={engineerReportCheckResultForm.control}
@@ -4018,6 +4029,7 @@ function ReportEdit() {
                             name: "v_pump_suggest",
                             placeholder: "Suggest",
                             auto: true,
+                            editable: true,
                           },
                           { name: "v_pump_remark", placeholder: "Remark" },
                         ]}
@@ -4030,6 +4042,7 @@ function ReportEdit() {
                             name: "v_motor_suggest",
                             placeholder: "Suggest",
                             auto: true,
+                            editable: true,
                           },
                           { name: "v_motor_remark", placeholder: "Remark" },
                         ]}
@@ -4042,6 +4055,7 @@ function ReportEdit() {
                             name: "a_pump_suggest",
                             placeholder: "Suggest",
                             auto: true,
+                            editable: true,
                           },
                           { name: "a_pump_remark", placeholder: "Remark" },
                         ]}
@@ -4054,6 +4068,7 @@ function ReportEdit() {
                             name: "a_motor_suggest",
                             placeholder: "Suggest",
                             auto: true,
+                            editable: true,
                           },
                           { name: "a_motor_remark", placeholder: "Remark" },
                         ]}

@@ -94,6 +94,9 @@ interface StackedField {
   // an inline "Auto" badge and made read-only. Sibling fields such as
   // "remark" are unaffected and stay freely editable.
   auto?: boolean;
+  // Keeps the "Auto" badge but leaves the field editable so the engineer can
+  // overwrite the pre-filled value.
+  editable?: boolean;
   // Same inline badge treatment as "auto" ("Optional" instead of "Auto"),
   // but the field stays fully editable.
   optional?: boolean;
@@ -137,7 +140,7 @@ export function StackedTextField({
               <FormControl className="w-full">
                 <AutoAwareInput
                   badge={stackedBadge(primary)}
-                  readOnly={!!primary.auto}
+                  readOnly={!!primary.auto && !primary.editable}
                   placeholder={primary.placeholder}
                   type="text"
                   field={field}
@@ -154,7 +157,7 @@ export function StackedTextField({
                       <FormControl className="w-full">
                         <AutoAwareInput
                           badge={badge}
-                          readOnly={!!f.auto}
+                          readOnly={!!f.auto && !f.editable}
                           placeholder={f.placeholder}
                           type="text"
                           field={subField}

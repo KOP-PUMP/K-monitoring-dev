@@ -24,6 +24,9 @@ interface MeasurementFieldProps {
   // (calc_*) rather than typed in by the engineer. Shown as an inline
   // "Auto" badge inside the input, which is made read-only.
   auto?: boolean;
+  // Keeps the "Auto" badge on an auto field but lets the engineer overwrite
+  // the pre-filled value instead of making it read-only.
+  editable?: boolean;
   // Marks a value the engineer may leave blank — shown the same way as
   // "auto" (inline badge inside the input) but stays fully editable.
   optional?: boolean;
@@ -105,6 +108,7 @@ export function MeasurementField({
   placeholder,
   type = "number",
   auto = false,
+  editable = false,
   optional = false,
   className,
 }: MeasurementFieldProps) {
@@ -133,7 +137,7 @@ export function MeasurementField({
               <FormControl className="w-full">
                 <AutoAwareInput
                   badge={badge}
-                  readOnly={auto}
+                  readOnly={auto && !editable}
                   placeholder={placeholder ?? label}
                   type={type}
                   field={field}
@@ -163,7 +167,7 @@ export function MeasurementField({
                   <FormControl className="w-full">
                     <AutoAwareInput
                       badge={badge}
-                      readOnly={auto}
+                      readOnly={auto && !editable}
                       placeholder={placeholder ?? label}
                       type={type}
                       field={field}
