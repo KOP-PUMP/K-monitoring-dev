@@ -18,6 +18,11 @@ from dateutil.relativedelta import relativedelta
 
 G = 9.80665  # m/s²
 
+ATM_PRESSURE_BAR = 1.01325          # standard atmosphere, for gauge -> absolute suction pressure
+SUCTION_PRESSURE_IS_GAUGE = True    # the field "Suction Pressure" is a gauge reading; set False if entered absolute
+NPSH_MARGIN_M = 0.5                 # required NPSHa margin over NPSHr (m)
+POWER_TOLERANCE = 0.05             # Shaft Power may exceed the curve power by this much (the original +5% criterion)
+
 PEC_API_URL = os.getenv("PEC_API_URL", "https://www.pecsystem.net")
 
 
@@ -331,39 +336,24 @@ class ReportCheckResult:
         return out
     
     def interpolate_from_curve(self, data_points, y_target, group_name):
-        # Step 1: Find the closest two points to the given y_target
-        # Sort the points based on the y-values
-        
-        closest_points = []
-        distances = 10
-        for point in data_points:
-            try:
-                if abs(point[group_name] - y_target) < distances:
-                    data = point
-                    distances = abs(point[group_name] - y_target)
-                    data["distance"] = distances
-                    closest_points.append(data)
-            except Exception:
-                continue
-        
-        sorted_points = sorted(closest_points, key=lambda p: p["distance"])
-        #print(sorted_points)
-        # Get the closest two points
-        if group_name == "head":
-            x_lower = float(sorted_points[0]["flow"])
-            x_upper = float(sorted_points[1]["flow"])
-            y_lower = float(sorted_points[0]["head"])
-            y_upper = float(sorted_points[1]["head"])
-        else:
-            x_lower = float(sorted_points[0]["head"])
-            x_upper = float(sorted_points[1]["head"])
-            y_lower = float(sorted_points[0]["flow"])
-            y_upper = float(sorted_points[1]["flow"])
-        
-        
-        # Interpolation formula
-        x_target = x_lower + (y_target - y_lower) * (x_upper - x_lower) / (y_upper - y_lower)
-        return x_target
+        """Linear interpolation on the pump's own H-Q curve.
+        group_name == "flow": y_target is a flow, returns the curve head there.
+        group_name == "head": y_target is a head, returns the flow on the falling
+        branch of the curve (right of the head peak). Raises ValueError when the
+        target is outside the curve, so a check goes blank instead of being wrong."""
+        pts = sorted(((float(p["flow"]), float(p["head"])) for p in data_points), key=lambda t: t[0])
+        q = np.array([p[0] for p in pts])
+        h = np.array([p[1] for p in pts])
+        if group_name == "flow":
+            if y_target < q[0] or y_target > q[-1]:
+                raise ValueError("flow outside the pump curve")
+            return float(np.interp(y_target, q, h))
+        k = int(np.argmax(h))
+        q2, h2 = q[k:], h[k:]
+        if y_target > h2[0] or y_target < h2.min():
+            raise ValueError("head outside the pump curve")
+        order = np.argsort(h2)
+        return float(np.interp(y_target, h2[order], q2[order]))
 
     def _predict_head_or_flow(self, method: str, coeffs: List[float], flow: float, head: float) -> Tuple[Optional[float], Optional[float]]:
         """Return (head_pred, flow_pred) depending on method."""
@@ -529,6 +519,30 @@ class ReportCheckResult:
         #est = (e1 * w1 + e2 * w2) / (w1 + w2)
         #return float(np.clip(est, 0.0, 100.0))
         return None, False
+
+    def curve_head_at(self, flow: float) -> float:
+        """Head on the selected impeller's curve at `flow` (m3/h)."""
+        coeffs = self.desired_imp_fit.best_coefficients
+        method = self.desired_imp_fit.best_fit_method or "Polynomial"
+        if method in ("Polynomial", "Parabolic"):
+            return float(np.poly1d(coeffs)(flow))
+        idx = int(np.argmin([abs(p["flow"] - flow) for p in self.desire_imp_curve_data]))
+        return float(self.desire_imp_curve_data[idx]["head"])
+
+    def operation_point_at(self, flow: float) -> Dict[str, Any]:
+        """The 'Operation' point (flow, curve head, %Eff) at `flow` — the single
+        source of %Eff for the chart marker, the PDF chart and the Range 30-110
+        check, so all of them always quote the same number."""
+        h = self.curve_head_at(flow)
+        eff, oob = self.estimate_eff_bounded(flow, h)
+        if eff is None:
+            label = "Operation ??%"
+        elif oob:
+            label = f"Operation Less than {round(eff, 2)}%"
+        else:
+            label = f"Operation {round(eff, 2)}%"
+        return {"point_flow": round(flow, 4), "point_head": round(h, 4), "point_label": label,
+                "eff": round(eff, 2) if eff is not None else None}
 
     def pressure_unit_to_bar(self, pressure: float, unit: str) -> Optional[float]:
         try:
@@ -811,12 +825,7 @@ class ReportCheckResult:
                 return float(self.desire_imp_curve_data[idx]["head"])
             h_min, h_max = head_at(f_min), head_at(f_max)
 
-        h_op = None
-        if method in ("Polynomial", "Parabolic"):
-            h_op = float(np.poly1d(coeffs)(operation_flow))
-        else:
-            idx = int(np.argmin([abs(p["flow"] - operation_flow) for p in self.desire_imp_curve_data]))
-            h_op = float(self.desire_imp_curve_data[idx]["head"])
+        h_op = self.curve_head_at(operation_flow)
 
         # efficiencies
         eff_min, oob_min = self.estimate_eff_bounded(f_min, h_min)
@@ -1090,10 +1099,19 @@ class ReportCheckResult:
                 "suggest": "คำเตือน / ตก Curve (หลี่ Valve)",
             }
         else:
-            min_eff = float(opeData["min_flow_point"]["eff"])
-            max_eff = float(opeData["max_flow_point"]["eff"])
-            eff_bep_percentage = round(min_eff + (max_eff - min_eff) * (flow - min_flow) / (max_flow - min_flow), 1)
-            result_text = f"Flow ({flow:.1f} m3/h) อยู่ที่ {eff_bep_percentage}% ของ BEP"
+            # %Eff at the measured flow, from the factory efficiency map — the same
+            # operation_point_at() the chart/PDF use, so every place quotes the same
+            # number (this used to be a straight-line min/max interpolation).
+            try:
+                op = self.operation_point_at(flow)
+            except Exception:
+                op = {}
+            eff_op = op.get("eff")
+            if eff_op is not None:
+                prefix = "ไม่เกิน " if "Less than" in str(op.get("point_label", "")) else ""
+                result_text = f"Flow ({flow:.1f} m3/h) มีประสิทธิภาพ (%Eff) {prefix}{float(eff_op):.1f}%"
+            else:
+                result_text = f"Flow ({flow:.1f} m3/h) อยู่ในช่วงการทำงานปกติ (ไม่สามารถอ่านค่า %Eff ได้)"
 
             if flow < recommended_min_flow:
                 # 1) Normal (within 30-110% BEP) but outside the recommended
@@ -1118,31 +1136,39 @@ class ReportCheckResult:
                 "suggest": suggest,
             }
 
-    def suction_preassure_check(self,flow,media_density, opeData):
-        vapor_pressure = float(opeData.get("vapor_pressure"))
-        vapor_pressure_unit = opeData.get("vapor_pressure_unit")
-        vapor_pressure_bar = self.pressure_unit_to_bar(vapor_pressure, vapor_pressure_unit)
-        # Vapor Pressure needs the same bar -> meters-of-head conversion as
-        # Suction Pressure, since it's summed with NPSHr/NPSHa (both in meters).
-        vapor_pressure_head = vapor_pressure_bar * 10 / media_density
-        suction_pres_ope = float(opeData.get("suction_pres_ope"))
-        suction_pres_ope_unit = opeData.get("suction_pres_ope_unit")
-        coeffs = opeData.get("npshr_curve_fit")["coefficients"]
+    def suction_preassure_check(self, flow, media_density, opeData):
+        # media_density here is specific gravity (relative to water, 1000 kg/m3).
+        # NPSHa per ISO/HI definition: total head at the suction flange above vapor
+        # pressure = (p_abs - p_vapor)/(rho*g) + v^2/(2g). The field Suction Pressure
+        # is a gauge reading, so atmospheric pressure is added (SUCTION_PRESSURE_IS_GAUGE).
+        rho = media_density * 1000.0
+        head_per_bar = 1e5 / (rho * G)       # 1 bar expressed as metres of this liquid
+        vapor_bar = self.pressure_unit_to_bar(float(opeData.get("vapor_pressure")), opeData.get("vapor_pressure_unit"))
+        suction_bar = self.pressure_unit_to_bar(float(opeData.get("suction_pres_ope")), opeData.get("suction_pres_ope_unit"))
+        abs_suction_bar = suction_bar + (ATM_PRESSURE_BAR if SUCTION_PRESSURE_IS_GAUGE else 0.0)
 
-        suction_pres_ope_bar = self.pressure_unit_to_bar(suction_pres_ope, suction_pres_ope_unit)
-        npsha_ope = suction_pres_ope_bar * 10 / media_density
+        velocity_head = 0.0
+        try:
+            pipe_id_m = float(opeData.get("suction_pipe_id")) / 1000.0
+            velocity = (flow / 3600.0) / ((np.pi / 4.0) * pipe_id_m ** 2)
+            velocity_head = velocity ** 2 / (2.0 * G)
+        except Exception:
+            pass
+
+        npsha_ope = (abs_suction_bar - vapor_bar) * head_per_bar + velocity_head
+        coeffs = opeData.get("npshr_curve_fit")["coefficients"]
         npshr_ope = float(np.poly1d(coeffs)(flow))
-        threshold = npshr_ope + 0.5 + vapor_pressure_head
+        threshold = npshr_ope + NPSH_MARGIN_M
         margin = round(npsha_ope - threshold, 2)
         if margin < 0:
             return {
-                "result": f"NPSHa ({npsha_ope:.2f} m) ต่ำกว่า NPSHr + 0.5 m + Vapor Pressure ({threshold:.2f} m) อยู่ {abs(margin)} m",
+                "result": f"NPSHa ({npsha_ope:.2f} m) ต่ำกว่า NPSHr + {NPSH_MARGIN_M:g} m ({threshold:.2f} m) อยู่ {abs(margin)} m",
                 "suggest": "คำเตือน / ระวังการเกิด Cavitation (ใช่/ไม่ใช่) / เช็คทางดูด (Strainer) / เช็คระยะ line  ท่อ / เช็คระดับน้ำของถัง / เช็ค Pressure ของถังปิด / เช็คขนาดท่อ",
                 "npsha": round(npsha_ope, 4),
             }
         else:
             return {
-                "result": f"NPSHa ({npsha_ope:.2f} m) สูงกว่า NPSHr + 0.5 m + Vapor Pressure ({threshold:.2f} m) อยู่ {margin} m",
+                "result": f"NPSHa ({npsha_ope:.2f} m) สูงกว่า NPSHr + {NPSH_MARGIN_M:g} m ({threshold:.2f} m) อยู่ {margin} m",
                 "suggest": "อยู่ในเกณฑ์ปกติ",
                 "npsha": round(npsha_ope, 4),
             }
@@ -1181,23 +1207,39 @@ class ReportCheckResult:
                     "suggest": "อยู่ในเกณฑ์ปกติ",
                 }
 
-    def power_check_iso9906(self, flow, head, power):
-        # power = Shaft Power (Motor Power measured * Motor Efficiency) —
-        # resolved by the caller (report_check_cal). cal is the ideal hydraulic
-        # power ISO 9906 ceiling, always at water density (factory curves are
-        # rated on water regardless of the actual pumped media), + 5% tolerance.
-        cal = (flow * head * 9.81 * 1.05 ) / 3600
-
-        if power <= cal:
+    def power_check_iso9906(self, flow, head, power, rho_kg_m3):
+        # power = Shaft Power (Motor Power measured * Motor Efficiency) — resolved by
+        # the caller. It is compared with the shaft power the factory curve gives at
+        # the same flow (a like-for-like quantity):
+        #     P_curve = rho * g * Q * H_curve(Q) / eta_curve(Q)
+        # and may exceed it by POWER_TOLERANCE (the original +5% criterion).
+        # The measured efficiency (hydraulic / shaft power) is shown next to the curve
+        # efficiency for information only.
+        op = self.operation_point_at(flow)
+        eta_curve = op.get("eff")
+        if eta_curve is None or eta_curve <= 0 or "Less than" in str(op.get("point_label", "")):
             return {
-                "result": f"Shaft Power ที่วัดได้ ({power:.2f} kW) อยู่ในเกณฑ์ที่คำนวณตาม ISO 9906 ({cal:.2f} kW)",
+                "result": f"Shaft Power ที่วัดได้ ({power:.2f} kW) — ไม่สามารถเทียบกับกำลังตามเส้นโค้งได้ (จุดทำงานอยู่นอกช่วงเส้นประสิทธิภาพของปั๊ม)",
+                "suggest": "ตรวจสอบเพิ่มเติม",
+            }
+
+        flow_m3s = flow / 3600.0
+        p_curve = rho_kg_m3 * G * flow_m3s * op["point_head"] / 1000.0 / (eta_curve / 100.0)
+        p_limit = p_curve * (1.0 + POWER_TOLERANCE)
+        p_hyd = rho_kg_m3 * G * flow_m3s * head / 1000.0
+        eta_field = p_hyd / power * 100.0 if power > 0 else None
+        basis = f"กำลังตามเส้นโค้ง {p_curve:.2f} kW + {POWER_TOLERANCE*100:.0f}% = {p_limit:.2f} kW"
+        eff_text = f" | Eff ที่วัดได้ {eta_field:.1f}% (ตามกราฟ {eta_curve:.1f}%)" if eta_field is not None else ""
+
+        if power <= p_limit:
+            return {
+                "result": f"Shaft Power ที่วัดได้ ({power:.2f} kW) ไม่เกิน {basis}{eff_text}",
                 "suggest": "อยู่ในเกณฑ์ปกติ",
             }
-        else:
-            return {
-                "result": f"Shaft Power ที่วัดได้ ({power:.2f} kW) เกินค่าที่คำนวณตาม ISO 9906 ({cal:.2f} kW)",
-                "suggest": "คำเตือน / ต้องตั้งระยะห่างใบพัด (Impeller clearance) ใหม่ / ใบพัดอาจสึก",
-            }
+        return {
+            "result": f"Shaft Power ที่วัดได้ ({power:.2f} kW) เกิน {basis}{eff_text}",
+            "suggest": "คำเตือน / ต้องตั้งระยะห่างใบพัด (Impeller clearance) ใหม่ / ใบพัดอาจสึก",
+        }
 
     def fluid_temp_check(self, ope_temp , max_temp):
         # Result is a plain factual description of the formula outcome. The
@@ -1265,6 +1307,7 @@ class ReportCheckResult:
         flow = None
         head = None
         media_density_sg = None
+        rho_kg_m3 = None
         curve_data = opeData.get("desire_imp_curve_data")
         flow_is_measured = opeData.get("flow_ope") not in (None, 0, "")
 
@@ -1275,7 +1318,10 @@ class ReportCheckResult:
             media_density = float(opeData.get("media_density"))
             media_density_unit_conv = self.FindUnitStandardConversion("unit_density", opeData.get("media_density_unit"), "sg")
             media_density_sg = media_density * media_density_unit_conv
-            head = (diff_pres_ope_bar * 10) / media_density_sg
+            # H = dP / (rho * g) with the actual liquid density (1 bar of water is
+            # 10.2 m, not 10 m — a flat "x10" under-reads head by ~2%).
+            rho_kg_m3 = media_density_sg * 1000.0
+            head = (diff_pres_ope_bar * 1e5) / (rho_kg_m3 * G)
             result["calc_head_ope"] = round(head, 4)
         except Exception:
             head = None
@@ -1311,15 +1357,12 @@ class ReportCheckResult:
         except Exception:
             shaft_power = None
 
-        # Hydraulic power — computed independently of Motor/Shaft Power, from the
-        # CURRENT operating flow/head, always at WATER density (1000 kg/m3):
-        # factory curves are rated on water regardless of the actual pumped
-        # media, so this is the ISO 9906 reference power, not this pump's real
-        # delivered hydraulic power. rho(1000)*G*(Q/3600)*H/1000 reduces to
-        # G*(Q/3600)*H since the *1000 kg/m3 and /1000 factors cancel.
-        if flow is not None and head is not None:
+        # Hydraulic power (pump output) = rho * g * Q * H with the density of the liquid
+        # actually pumped (ISO 9906 definition) — computed independently of
+        # Motor/Shaft Power from the current operating flow/head.
+        if flow is not None and head is not None and rho_kg_m3 is not None:
             try:
-                result["calc_hyd_power"] = round(G * (flow / 3600.0) * head, 4)
+                result["calc_hyd_power"] = round(rho_kg_m3 * G * (flow / 3600.0) * head / 1000.0, 4)
             except Exception:
                 pass
 
@@ -1368,11 +1411,11 @@ class ReportCheckResult:
                 pass
 
         #4. Check whether power of pump is on ISO 9906:2012 — Shaft Power
-        # (measured, independent) vs. the water-based ideal hydraulic power
-        # ceiling (calc_hyd_power * 1.05), not this pump's real media density.
-        if flow is not None and head is not None and shaft_power is not None:
+        # (measured, independent) vs. the shaft power the factory curve gives at
+        # this flow, within POWER_TOLERANCE.
+        if flow is not None and head is not None and shaft_power is not None and rho_kg_m3 is not None:
             try:
-                check = self.power_check_iso9906(flow, head, shaft_power)
+                check = self.power_check_iso9906(flow, head, shaft_power, rho_kg_m3)
                 result["power_result"] = check["result"]
                 result["power_suggest"] = check["suggest"]
             except Exception:

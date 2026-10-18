@@ -645,6 +645,9 @@ function ReportEdit() {
   const getCalPumpData = useGetCalPumpData();
   const [curveData, setCurveData] = useState<any>();
   const [curveError, setCurveError] = useState<string | null>(null);
+  // Measured operating flow (m3/h) — the chart's "Operation" point and %Eff are
+  // taken here (same value the Range 30-110 check quotes), not at the design flow.
+  const [measuredFlowM3h, setMeasuredFlowM3h] = useState<string | undefined>();
 
   useEffect(() => {
     const curvePumpData = reportCheckData?.pump_data;
@@ -668,6 +671,12 @@ function ReportEdit() {
         media_name: curvePumpData.media_name,
         media_density: curvePumpData.media_density,
         media_density_unit: curvePumpData.media_density_unit,
+        operation_flow:
+          measuredFlowM3h ??
+          (reportCheckData?.data_cal?.flow_ope &&
+          reportCheckData?.data_cal?.flow_ope_unit === "m3/h"
+            ? String(reportCheckData.data_cal.flow_ope)
+            : undefined),
       },
       {
         onSuccess: (data: any) => {
@@ -681,7 +690,7 @@ function ReportEdit() {
       },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reportCheckData?.pump_data]);
+  }, [reportCheckData?.pump_data, measuredFlowM3h]);
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -779,6 +788,9 @@ function ReportEdit() {
       const response: ReportCheckCalResponse =
         await updateEngineerReportCalCheck.mutateAsync({ data, id: id ?? "" });
       if (response) {
+        if (response.calc_flow_ope != null && response.calc_flow_ope !== "") {
+          setMeasuredFlowM3h(String(response.calc_flow_ope));
+        }
         engineerReportCheckResultForm.reset({
           ...engineerReportCheckResultForm.getValues(),
           range_30_110_result: response.range_30_110_result,
@@ -851,6 +863,9 @@ function ReportEdit() {
       const response = await createCheckCalMutation.mutateAsync(data);
       const checkResult = response?.data?.data;
       if (checkResult) {
+        if (checkResult.calc_flow_ope != null && checkResult.calc_flow_ope !== "") {
+          setMeasuredFlowM3h(String(checkResult.calc_flow_ope));
+        }
         engineerReportCheckCalForm.reset({
           ...engineerReportCheckCalForm.getValues(),
           ...(checkResult.calc_head_ope != null

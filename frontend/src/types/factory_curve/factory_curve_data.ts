@@ -55,6 +55,8 @@ export interface PumpDetailCalDataOut {
     media_name ?: string
     media_density ?: string
     media_density_unit ?: string 
+    // Field reports: measured operating flow in m3/h — puts the chart's Operation point here.
+    operation_flow ?: string
 }
 
 export interface PumpDetailCalResponse {

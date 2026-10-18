@@ -93,3 +93,6 @@ class CalPumpPayload_schema(Schema):
     media_density_unit : str
     npsha : Optional[str] = None
     operating_temperature : Optional[str] = None
+    # Field-report charts: measured operating flow (m3/h). When given, the chart's
+    # "Operation" marker/%Eff is taken at this flow instead of the design flow.
+    operation_flow : Optional[str] = None

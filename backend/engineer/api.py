@@ -29,6 +29,26 @@ from engineer.schema.engineer import MARSEquipmentDataOut_schema,EngineerVibrati
 from typing import List
 load_dotenv()
 
+
+def _measured_flow_m3h(rc, curve_result, data_cal_dict):
+    """Measured operating flow (m3/h) of a field report: the typed Flow if there
+    is one, otherwise read off the pump curve at the measured Operation Head —
+    the same way report_check_cal() decides the flow for its checks."""
+    try:
+        flow_raw = data_cal_dict.get("flow_ope")
+        if flow_raw not in (None, ""):
+            flow = float(flow_raw)
+            unit = data_cal_dict.get("flow_ope_unit")
+            if unit and unit != "m3/h":
+                flow *= rc.FindUnitStandardConversion("unit_flow", unit, "m3/h")
+            return flow
+        head_raw = data_cal_dict.get("head_ope")
+        if head_raw not in (None, "") and curve_result and not curve_result.get("error"):
+            return rc.interpolate_from_curve(curve_result["desire_imp_curve_data"], float(head_raw), "head")
+    except Exception:
+        pass
+    return None
+
 @api_controller('/engineer', tags=['Report'])
 class ReportController:
     @http_post('/report', auth=JWTAuth())
@@ -79,7 +99,16 @@ class ReportController:
             curve_result = None
             if pump_instance:
                 try:
-                    curve_result = ReportCheckResult(pump_data).curve_cal(False)
+                    rc = ReportCheckResult(pump_data)
+                    curve_result = rc.curve_cal(False)
+                    # curve_cal() marks the pump's DESIGN duty point as "Operation".
+                    # On a field report the Operation marker (and its %Eff) must be
+                    # the measured flow — the same operation_point_at() the
+                    # Range 30-110 check uses — so chart and check quote one number.
+                    measured_flow = _measured_flow_m3h(rc, curve_result, data_cal_dict)
+                    if measured_flow and not curve_result.get("error"):
+                        curve_result["design_operation_point"] = curve_result.get("operation_point")
+                        curve_result["operation_point"] = rc.operation_point_at(measured_flow)
                 except Exception:
                     curve_result = None
 

@@ -57,6 +57,16 @@ class FactoryCurveController:
         rc = ReportCheckResult(payload_dict)
         pump_cal_result = rc.curve_cal(False)
 
+        # Field-report chart: put the "Operation" marker at the measured flow, using
+        # the same operation_point_at() as the Range 30-110 check and the PDF.
+        measured_flow = payload_dict.get("operation_flow")
+        if measured_flow not in (None, "") and not pump_cal_result.get("error"):
+            try:
+                pump_cal_result["design_operation_point"] = pump_cal_result.get("operation_point")
+                pump_cal_result["operation_point"] = rc.operation_point_at(float(measured_flow))
+            except Exception:
+                pass
+
         return JsonResponse({"data" : pump_cal_result}, status=200)
     #    This is old version
     #    # Get query parameters
